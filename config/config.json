@@ -1,0 +1,27 @@
+{
+  "development": {
+    "username": "admin",
+    "password": "admin",
+    "database": "todo-list",
+    "host": "localhost",
+    "dialect": "postgres",
+    "port": 15432,
+    "define": {
+      "timestamps": true
+    }
+  },
+  "test": {
+    "username": "root",
+    "password": null,
+    "database": "database_test",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "root",
+    "password": null,
+    "database": "database_production",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+}
