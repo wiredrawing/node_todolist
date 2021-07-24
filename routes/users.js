@@ -1,14 +1,39 @@
 var express = require('express');
 var router = express.Router();
 let models = require("../models/index.js");
+const { route } = require('./todo.js');
+const {check, validationResult } = require("express-validator");
+const applicationConfig = require("../config/application-config.js");
+const user = require('../models/user.js');
+
+
+let sectionTypeIDList = [];
+applicationConfig.sectionType.map((data, index) => {
+  sectionTypeIDList.push(data.id);
+});
 
 
 
-/* GET users listing. */
+
+
 router.get('/', function(req, res, next) {
-  console.log(models);
+  res.render("./user/index", {
+    users: req.__.users,
+  });
+});
 
-  let users = models.user.findAll({
+
+
+
+/**
+ * ユーザー情報の新規作成処理
+ */
+router.get("/create", (req, res, next) => {
+  console.log("----------------------------->");
+  let actionUrl = req.originalUrl;
+  // console.log(applicationConfig.section_type);
+  // console.log(applicationConfig.section_type);
+  models.user.findAll({
     order: [
       ["id", "asc"]
     ],
@@ -16,22 +41,84 @@ router.get('/', function(req, res, next) {
       {model: models.task}
     ]
   }).then(users => {
-    console.log(users);
     let data = {
       users: users,
     };
-    users.map(user => {
-      console.log("===================>");
-      console.log(user.id);
-      console.log(user.user_name);
-      console.log(user.tasks);
-    });
     // ユーザー一覧をビューに表示
-    res.render("./user/index", data)
+    res.render("./user/create", {
+      users: users,
+      actionUrl: actionUrl,
+      sectionType: applicationConfig.sectionType,
+    })
   }).catch((error) => {
-    console.log(error);
-    res.render("./error/index", error);
+    return (next(new Error(error)));
   });
 });
 
+
+router.post("/create", [
+  // postデータのバリデーション
+  check("user_name", "名前は必須項目です｡").isLength({min:1, max: 256}),
+  check("section_type", "規定の値から選択して下さい｡").isIn(sectionTypeIDList),
+], (req, res, next) => {
+  let actionUrl = req.originalUrl;
+  let user = models.user;
+  let postData = req.body;
+  // console.log(postData);
+  // console.log(applicationConfig.sectionType.keys());
+  // バリデーションのチェック
+  const errors = validationResult(req);
+  // バリデーション結果
+  // console.log(errors.errors);
+
+  if (errors.isEmpty() === true) {
+    user.create({
+      user_name: postData.user_name,
+      section_type: postData.section_type
+    }).then((data) => {
+      res.redirect(301, "/users");
+    }).catch((error) => {
+      return (next(new Error(error)));
+    });
+  } else {
+    // 現在登録済みのユーザー一覧
+    user.findAll({
+      order: [
+        ["id", "asc",]
+      ],
+      include: [
+        {model: models.task}
+      ],
+    }).then((users) => {
+      // console.log(users);
+      res.render("./user/create", {
+        users: users,
+        errors: errors,
+        actionUrl: actionUrl,
+        sectionType: applicationConfig.sectionType
+      });
+    }).catch((error) => {
+      return (next(new Error(error)));
+    });
+  }
+});
+
+/* GET users listing. */
+router.get("/:userID", (req, res, next) => {
+  let userID = req.params.userID;
+
+  models.user.findByPk(userID, {
+    include: [
+      {model: models.task},
+    ]
+  }).then((user) => {
+    console.log(user);
+    res.render("./user/detail", {
+      user: user,
+    });
+  }).catch((error) => {
+    // 次に処理を渡す
+    return (next(new Error(error)));
+  });
+});
 module.exports = router;

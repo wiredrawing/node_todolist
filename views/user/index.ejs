@@ -1,10 +1,10 @@
-<%= users.users %>
+
 
 
 
 <% for (let user of users) { %>
-<p><%- user.id %></p>
-<p><%- user.user_name %></p>
+
+<p><a href="/users/<%- user.id %>">(<%- user.id %>)<%- user.user_name %></a></p>
   <% if (user.tasks) { %>
     <% for(let task of user.tasks) { %>
       <p><%- task.task_name %></p>

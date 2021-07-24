@@ -19,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
   };
   user.init({
     user_name: DataTypes.STRING,
+    section_type: DataTypes.STRING,
     createdAt: {
       type: DataTypes.DATE,
       fieldName: "created_at",

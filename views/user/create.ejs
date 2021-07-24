@@ -1,0 +1,28 @@
+
+
+
+
+<div class="user-add-form">
+  <form action="<%- actionUrl %>" method="POST">
+    <p>新規ユーザーを登録</p>
+    <input type="text" name="user_name">
+
+    <select name="section_type">
+      <% sectionType.forEach((section, index) => { %>
+        <option value="<%- section.id %>"><%- section.value %></option>
+      <% }) %>
+    </select>
+    <p><input type="submit" value="送信"></p>
+  </form>
+</div>
+
+
+<div class="registered-user-list">
+
+  <% users.forEach((user, index) => { %>
+    <ul>
+      <li><%- user.user_name %></li>
+      <li><%- user.section_type %></li>
+    </ul>
+  <% }); %>
+</div>

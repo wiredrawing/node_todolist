@@ -1,0 +1,27 @@
+
+
+
+
+
+
+<form action="<%- actionUrl -%>" method="POST">
+  <p>新規タスク名を登録</p>
+  <input type="text" name="task_name">
+
+  <p>新規タスクの内容を登録</p>
+  <textarea name="task_description"></textarea>
+
+  <p>担当者</p>
+  <select name="user_id">
+    <% users.forEach((user, index) => { %>
+      <option value="<%- user.id %>">(<%- user.section_type %>)<%- user.user_name %></option>
+    <% }) %>
+  </select>
+  <p><input type="submit" value="送信"></p>
+</form>
+
+<p>現在登録中のタスク一覧</p>
+<% tasks.forEach((task, index) => { %>
+  <p><%- task.task_name %></p>
+  <p><%- task.task_description %></p>
+<% }); %>

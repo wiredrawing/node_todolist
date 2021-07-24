@@ -13,6 +13,10 @@ module.exports = {
       task_name: {
         type: Sequelize.STRING(512)
       },
+      // タスク概要説明
+      task_description: {
+        type: Sequelize.TEXT
+      },
       // タスク担当者
       user_id: {
         type: Sequelize.BIGINT

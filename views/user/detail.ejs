@@ -1,0 +1,12 @@
+<p>ユーザー情報</p>
+
+<p>ユーザーID: <%- user.id %></p>
+<p>ユーザー名: <%- user.user_name %></p>
+<p>セクション名: <%- user.section_type %></p>
+
+<% user.tasks.forEach((task, index) => { %>
+<ul>
+  <li>(<%- task.id %>)<%- task.task_name %></li>
+  <li><%- task.task_description %></li>
+</ul>
+<% }) %>
