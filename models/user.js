@@ -20,6 +20,11 @@ module.exports = (sequelize, DataTypes) => {
   user.init({
     user_name: DataTypes.STRING,
     section_type: DataTypes.STRING,
+    deletedAt: {
+      type: DataTypes.DATE,
+      fieldName: "deleted_at",
+      underscored: true,
+    },
     createdAt: {
       type: DataTypes.DATE,
       fieldName: "created_at",
@@ -34,6 +39,7 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'user',
     underscored: true,
+    paranoid: true,
   });
   return user;
 };

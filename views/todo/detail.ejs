@@ -1,0 +1,31 @@
+<%- include("../common/header") %>
+
+<p><%- task.id %></p>
+
+<form action="" method="POST">
+  <p>
+    <input type="text" name="task_name" value="<%- task.task_name %>">
+  </p>
+
+  <p>
+    <textarea name="task_description"><%- task.task_description %></textarea>
+  </p>
+
+  <p>
+    <select name="user_id">
+      <% users.forEach((user, index) => { %>
+        <option <% if (user.id === task.user_id) { %>selected="selected" <% } %> value="<%- user.id %>"><%- user.user_name %></option>
+      <% }) %>
+    </select>
+  </p>
+
+  <p>タスクの作業ステータス</p>
+  <select name="status">
+    <% taskStatusList.forEach((status, index) => { %>
+      <option <% if (status.id === task.status) { %> selected="selected" <% } %> value="<%- status.id %>"><%- status.value %></option>
+    <% }) %>
+  </select>
+  <p><input type="submit" value="上記内容で更新する"></p>
+</form>
+
+<%- include("../common/footer") %>

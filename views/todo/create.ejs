@@ -1,9 +1,3 @@
-
-
-
-
-
-
 <form action="<%- actionUrl -%>" method="POST">
   <p>新規タスク名を登録</p>
   <input type="text" name="task_name">
@@ -17,6 +11,15 @@
       <option value="<%- user.id %>">(<%- user.section_type %>)<%- user.user_name %></option>
     <% }) %>
   </select>
+
+  <p>タスク進捗度</p>
+  <select name="status">
+    <% taskStatusList.forEach((status, index) => { %>
+      <option value="<%- status.id %>"><%- status.value %></option>
+    <% }); %>
+  </select>
+
+
   <p><input type="submit" value="送信"></p>
 </form>
 

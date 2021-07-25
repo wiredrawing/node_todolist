@@ -1,9 +1,15 @@
-
+<%- include("../common/header") %>
 
 
 <% tasks %>
 <p>
   <% tasks.forEach((task , index) => { %>
-    <p><%- task.task_name %></p>
+    <p>
+      <a href="/todo/detail/<%- task.id %>">
+        (<%- task.id %>)<%- task.task_name %>
+      </a>
+    </p>
   <% }) %>
 </p>
+
+<%- include("../common/footer") %>

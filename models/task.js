@@ -1,6 +1,6 @@
 'use strict';
 const {
-  Model
+  Model, TimeoutError
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class task extends Model {
@@ -19,7 +19,13 @@ module.exports = (sequelize, DataTypes) => {
   task.init({
     task_name: DataTypes.STRING,
     user_id: DataTypes.BIGINT,
+    task_description: DataTypes.STRING,
     status: DataTypes.INTEGER,
+    deletedAt: {
+      type: DataTypes.DATE,
+      fieldName: "deleted_at",
+      underscored: true,
+    },
     createdAt: {
       type: DataTypes.DATE,
       fieldName: "created_at",
@@ -34,6 +40,7 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'task',
     underscored: true,
+    paranoid: true,
   });
   return task;
 };
