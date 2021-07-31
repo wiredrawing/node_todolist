@@ -76,7 +76,7 @@ router.post("/create", [
       user_name: postData.user_name,
       section_type: postData.section_type
     }).then((data) => {
-      res.redirect(301, "/users");
+      res.redirect(301, "/user");
     }).catch((error) => {
       return (next(new Error(error)));
     });

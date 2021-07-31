@@ -6,12 +6,14 @@ var logger = require('morgan');
 let bodyParser = require("body-parser");
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+var userRouter = require('./routes/user');
 let todoRouter = require("./routes/todo");
+let projectRouter = require("./routes/project");
 
 // es6 modules
 let models = require("./models/index.js");
 const {check, validationResult } = require("express-validator");
+const { profileEnd } = require('console');
 
 var app = express();
 
@@ -48,7 +50,8 @@ app.use((req, res, next) => {
       ["id", "desc"]
     ],
     include: [
-      {model: models.user}
+      {model: models.user},
+      {model: models.Star}
     ]
   });
   Promise.all([users, tasks]).then((data) => {
@@ -80,8 +83,9 @@ app.use((req, res, next) => {
 
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/user', userRouter);
 app.use('/todo', todoRouter);
+app.use("/project", projectRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

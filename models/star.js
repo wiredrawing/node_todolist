@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class user extends Model {
+  class Star extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,38 +11,37 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      user.hasMany(models.task, {
-        foreignKey: "user_id",
-      })
-    }
-    getUserLink() {
-      this.userLink = `(${this.id}) ${this.user_name} さんのタスクへ`;
-      return this;
+      Star.hasOne(models.user, {
+        foreignKey: "id",
+      });
+      Star.hasOne(models.task, {
+        foreignKey: "id",
+      });
     }
   };
-  user.init({
-    user_name: DataTypes.STRING,
-    section_type: DataTypes.STRING,
+  Star.init({
+    // usersのid
+    task_id: DataTypes.BIGINT,
+    // tasksのid
+    user_id: DataTypes.BIGINT,
     deletedAt: {
       type: DataTypes.DATE,
-      // fieldName: "deleted_at",
-      // underscored: true,
+      // field: "deleted_at",
     },
     createdAt: {
       type: DataTypes.DATE,
-      // fieldName: "created_at",
-      // underscored: true,
+      // field: "created_at",
     },
     updatedAt: {
       type: DataTypes.DATE,
-      // fieldName: "updated_at",
-      // underscored: true,
-    }
+      // field: "updated_at",
+    },
   }, {
     sequelize,
-    modelName: 'user',
+    modelName: 'Star',
+    tableName: 'stars',
+    // カラムのアンダースコア区切りを許可する場合は以下を指定する
     underscored: true,
-    paranoid: true,
   });
-  return user;
+  return Star;
 };

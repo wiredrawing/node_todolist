@@ -8,7 +8,10 @@
   <p>担当者</p>
   <select name="user_id">
     <% users.forEach((user, index) => { %>
-      <option value="<%- user.id %>">(<%- user.section_type %>)<%- user.user_name %></option>
+      <option value="<%- user.id %>">
+        (<%- user.id %>/<%- user.section_type %>)<%- user.user_name %><br>
+        担当中タスク(<%- user.tasks.length %>件)
+      </option>
     <% }) %>
   </select>
 

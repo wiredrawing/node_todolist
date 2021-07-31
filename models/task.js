@@ -11,9 +11,19 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       task.belongsTo(models.user, {
-        foreignKey: "id"
+        foreignKey: "id",
+        sourceKey: "user_id",
+      });
+      // starsテーブルに紐づく
+      task.hasMany(models.Star, {
+        foreignKey: "task_id",
+        sourceKey: "id",
+      });
+      // projectsテーブルに紐づく
+      task.belongsTo(models.Project, {
+        foreignKey: "id",
+        sourceKey: "project_id",
       })
-      console.dir(task);
     }
   };
   task.init({
@@ -23,22 +33,23 @@ module.exports = (sequelize, DataTypes) => {
     status: DataTypes.INTEGER,
     deletedAt: {
       type: DataTypes.DATE,
-      fieldName: "deleted_at",
-      underscored: true,
+      // fieldName: "deleted_at",
+      // underscored: true,
     },
     createdAt: {
       type: DataTypes.DATE,
-      fieldName: "created_at",
-      underscored: true,
+      // fieldName: "created_at",
+      // underscored: true,
     },
     updatedAt: {
       type: DataTypes.DATE,
-      fieldName: "updated_at",
-      underscored: true,
+      // fieldName: "updated_at",
+      // underscored: true,
     }
   }, {
     sequelize,
     modelName: 'task',
+    // underscored: trueがあるとスネークケースが許可される
     underscored: true,
     paranoid: true,
   });

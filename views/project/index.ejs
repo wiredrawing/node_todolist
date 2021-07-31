@@ -1,0 +1,19 @@
+
+
+<div class="container">
+
+  <div class="row">
+    <% projects.forEach((data, index) =>  { %>
+      <div class="col-12">
+        <p>プロジェクト名: <%- data.project_name %></p>
+        <p>プロジェクト概要: <%- data.project_description %></p>
+      </div>
+      <div class="col-12">
+        <% data.tasks.forEach((task) => { %>
+          <p><%- task.task_name %></p>
+          <p><%- task.id %></p>
+        <% }) %>
+      </div>
+    <% }) %>
+  </div>
+</div>

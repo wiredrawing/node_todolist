@@ -7,8 +7,14 @@
     <p>
       <a href="/todo/detail/<%- task.id %>">
         (<%- task.id %>)<%- task.task_name %>
-      </a>
+      </a><br>
+      進捗状態: <%- taskStatusNameList[task.status] %>
     </p>
+    <p>もらったスター / <%- task.Stars.length %>個</p>
+    <form action="<%- actionUrlToStar %>" method="POST">
+      <input type="hidden" name="task_id" value="<%- task.id %>">
+      <input type="submit" value="スターを送る">
+    </form>
   <% }) %>
 </p>
 

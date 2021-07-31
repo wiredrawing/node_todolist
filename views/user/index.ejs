@@ -3,11 +3,18 @@
 
 
 <% for (let user of users) { %>
+  <p>
+    <a href="/user/<%- user.id %>">
+      <%- user.getUserLink().userLink %>
+    </a>
+  </p>
 
-<p><a href="/users/<%- user.id %>">(<%- user.id %>)<%- user.user_name %></a></p>
+  <!-- タスク一覧がある場合 -->
   <% if (user.tasks) { %>
+    <ul>
     <% for(let task of user.tasks) { %>
-      <p><%- task.task_name %></p>
+      <li><%- task.task_name %></li>
     <% } %>
+    </ul>
   <% } %>
 <% } %>
