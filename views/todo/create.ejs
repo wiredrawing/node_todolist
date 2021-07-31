@@ -1,4 +1,14 @@
 <form action="<%- actionUrl -%>" method="POST">
+
+  <p>プロジェクトを選択</p>
+  <select name="project_id">
+    <% projects.forEach((project, index) => { %>
+      <option value="<%- project.id %>">
+        <%- project.project_name %>
+      </option>
+    <% }) %>
+  </select>
+
   <p>新規タスク名を登録</p>
   <input type="text" name="task_name">
 

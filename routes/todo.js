@@ -34,7 +34,6 @@ console.log(applicationConfig);
  */
 router.get("/", (req, res, next) => {
   let actionUrlToStar = "/todo/star";
-
   // プロジェクト情報取得用プロミス
   let projectPromise = models.Project.findAll({
     include : [
@@ -131,6 +130,7 @@ router.post("/create",[
   check("task_name").not().isEmpty().isLength({min:1, max:256}),
   check("task_description").not().isEmpty().isLength({min:1, max:2048}),
   check("user_id").isIn(userIDList),
+  check("project_id").not().isEmpty().isNumeric().withMessage("プロジェクトIDは数字で指定して下さい"),
   check("status").isIn(taskStatusList),
 ], (req, res, next) => {
   // バリデーションチェック
@@ -152,10 +152,12 @@ router.post("/create",[
     task_description: postData.task_description,
     user_id: postData.user_id,
     status: postData.status,
+    project_id: postData.project_id,
   }).then((data) => {
     // 挿入結果を取得する
     console.log(data);
-    res.redirect(301, "/todo/create");
+    // レコードの新規追加が完了した場合は､リファラーでリダイレクト
+    return res.redirect("back");
   }).catch((error) => {
     next(new Error(error));
   });
@@ -202,9 +204,15 @@ router.get("/detail/:taskID", (req, res, index) => {
 router.post("/detail/:taskID", [
   // バリデーションチェック
   check("task_name").isLength({min: 1, max: 256}),
-  check("task_description").isLength({min: 1, max: 2048}),
-  check("user_id").isIn(userIDList),
-  check("status").isIn(taskStatusList),
+  check("task_description", "1文字以上2000文字以内で入力して下さい｡").isLength({min: 1, max: 2048}),
+  check("user_id").custom((value, {req}) => {
+    return models.user.findByPk(value).then((user) => {
+      return true;
+    }).catch((error) => {
+      throw new Error(error);
+    });
+  }).isNumeric().withMessage("Error1").isIn(userIDList).withMessage("Error2"),
+  check("status").isNumeric().isIn(taskStatusList),
 ], (req, res, next) => {
   const errors = validationResult(req);
 
