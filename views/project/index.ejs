@@ -14,6 +14,11 @@
           <p><%- task.id %></p>
         <% }) %>
       </div>
+
+      <!-- userデータがnull出ない場合 -->
+      <% if (data.user !== null) { %>
+        <p>リーダー: <%- data.user.user_name %></p>
+      <% } %>
     <% }) %>
   </div>
 </div>

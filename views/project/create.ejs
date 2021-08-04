@@ -2,9 +2,17 @@
 
 <form method="POST" action="<%- actionUrl %>">
 
-  <input type="text" name="project_name" value="">
+  <p><input type="text" name="project_name" value=""></p>
 
-  <input type="text" name="project_description" value="">
-  <input type="submit" value="上記内容でプロジェクトを登録する">
+  <p><input type="text" name="project_description" value=""></p>
+  <p><input type="submit" value="上記内容でプロジェクトを登録する"></p>
 
+  <!-- 担当リーダーを設定 -->
+  <p>
+    <select name="user_id">
+      <% users.forEach((user, index) => { %>
+        <option value="<%- user.id %>">(<%- user.id %>)<%- user.user_name %></option>
+      <% }) %>
+    </select>
+  </p>
 </form>

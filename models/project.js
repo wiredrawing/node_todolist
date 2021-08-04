@@ -15,12 +15,17 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "project_id",
         sourceKey: "id",
       });
+      Project.hasOne(models.user, {
+        foreignKey: "id",
+        sourceKey: "user_id",
+      });
       // define association here
     }
   };
   Project.init({
     project_name: DataTypes.STRING,
-    project_description: DataTypes.TEXT
+    project_description: DataTypes.TEXT,
+    user_id: DataTypes.BIGINT,
   }, {
     sequelize,
     modelName: 'Project',
