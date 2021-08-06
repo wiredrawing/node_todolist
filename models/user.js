@@ -28,14 +28,15 @@ module.exports = (sequelize, DataTypes) => {
       // fieldName: "deleted_at",
       // underscored: true,
     },
-    createdAt: {
+    created_at: {
       type: DataTypes.DATE,
-      // fieldName: "created_at",
+      fieldName: "created_at",
       // underscored: true,
     },
-    updatedAt: {
+    updated_at: {
       type: DataTypes.DATE,
-      // fieldName: "updated_at",
+      field: "updated_at",
+      fieldName: "updated_at",
       // underscored: true,
     }
   }, {

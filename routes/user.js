@@ -17,6 +17,7 @@ applicationConfig.sectionType.map((data, index) => {
 
 
 router.get('/', function(req, res, next) {
+  console.log(req.__.users);
   res.render("./user/index", {
     users: req.__.users,
   });
@@ -29,10 +30,7 @@ router.get('/', function(req, res, next) {
  * ユーザー情報の新規作成処理
  */
 router.get("/create", (req, res, next) => {
-  console.log("----------------------------->");
   let actionUrl = req.originalUrl;
-  // console.log(applicationConfig.section_type);
-  // console.log(applicationConfig.section_type);
   models.user.findAll({
     order: [
       ["id", "asc"]
@@ -64,12 +62,9 @@ router.post("/create", [
   let actionUrl = req.originalUrl;
   let user = models.user;
   let postData = req.body;
-  // console.log(postData);
-  // console.log(applicationConfig.sectionType.keys());
   // バリデーションのチェック
   const errors = validationResult(req);
   // バリデーション結果
-  // console.log(errors.errors);
 
   if (errors.isEmpty() === true) {
     user.create({
@@ -112,7 +107,6 @@ router.get("/:userID", (req, res, next) => {
       {model: models.task},
     ]
   }).then((user) => {
-    console.log(user);
     res.render("./user/detail", {
       user: user,
     });

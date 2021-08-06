@@ -1,24 +1,60 @@
+<%- include("../common/header") %>
 
-
-<div class="container">
-
-  <div class="row">
-    <% projects.forEach((data, index) =>  { %>
-      <div class="col-12">
-        <p>プロジェクト名: <%- data.project_name %></p>
-        <p>プロジェクト概要: <%- data.project_description %></p>
+  <div class="col-md-10" id="app">
+    <div class="content-box-large">
+      <div class="panel-heading">
+        <div class="row mb-5">
+          <div class="panel-title">現在登録中プロジェクトの一覧</div>
+        </div>
       </div>
-      <div class="col-12">
-        <% data.tasks.forEach((task) => { %>
-          <p><%- task.task_name %></p>
-          <p><%- task.id %></p>
-        <% }) %>
+      <div class="panel-heading">
+        <div class="row">
+          <div class="col-6 mb-5">
+            <p>検索キーワード</p>
+            <input type="text" class="form-control" v-model="keyword">
+          </div>
+          <div class="col-6 mb-5">
+            <p>検索キーワード</p>
+            <input class="btn btn-primary" type="button" v-on:click="moveToThePage(0)" value="プロジェクトの検索">
+          </div>
+        </div>
       </div>
-
-      <!-- userデータがnull出ない場合 -->
-      <% if (data.user !== null) { %>
-        <p>リーダー: <%- data.user.user_name %></p>
-      <% } %>
-    <% }) %>
+      <div class="panel-body">
+        <table cellpadding="0" cellspacing="0" class="table table-bordered" id="example">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>プロジェクト名</th>
+              <th>概要</th>
+              <th>責任者</th>
+              <th>登録タスク数</th>
+              <th>開始日</th>
+              <th>終了日</th>
+              <th>作成日</th>
+              <th>更新日</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% projects.forEach((data, index) =>  { %>
+            <tr>
+              <td><%- data.id %></td>
+              <td><%- data.project_name %></td>
+              <td><%- data.project_description %></td>
+              <td>
+                <!-- userデータがnull出ない場合 -->
+                <% if (data.user !== null) { %>
+                (<%- data.user.id %>)<%- data.user.user_name %>
+                <% } else { %>
+                ー
+                <% } %>
+              </td>
+              <td><%- data.tasks.length %></td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
-</div>
+
+<%- include("../common/footer") %>

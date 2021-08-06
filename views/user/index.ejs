@@ -1,20 +1,51 @@
+<%- include("../common/header") %>
 
+  <div class="col-md-10" id="app">
+    <div class="content-box-large">
+      <div class="panel-heading">
+        <div class="row mb-5">
+          <div class="panel-title">現在登録中プロジェクトの一覧</div>
+        </div>
+      </div>
+      <div class="panel-heading">
+        <div class="row">
+          <div class="col-6 mb-5">
+            <p>検索キーワード</p>
+            <input type="text" class="form-control" v-model="keyword">
+          </div>
+          <div class="col-6 mb-5">
+            <p>検索キーワード</p>
+            <input class="btn btn-primary" type="button" v-on:click="moveToThePage(0)" value="プロジェクトの検索">
+          </div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <table cellpadding="0" cellspacing="0" class="table table-bordered" id="example">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>ユーザー名</th>
+              <th>所属部署</th>
+              <th>作業中タスク</th>
+              <th>作成日</th>
+              <th>更新日</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% users.forEach((data, index) =>  { %>
+            <tr>
+              <td><%- data.id %></td>
+              <td><%- data.user_name %></td>
+              <td><%- data.section_type %></td>
+              <td><%- data.tasks.length %></td>
+              <td><%- data.created_at %></td>
+              <td><%- data.updated_at %></td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-
-
-<% for (let user of users) { %>
-  <p>
-    <a href="/user/<%- user.id %>">
-      <%- user.getUserLink().userLink %>
-    </a>
-  </p>
-
-  <!-- タスク一覧がある場合 -->
-  <% if (user.tasks) { %>
-    <ul>
-    <% for(let task of user.tasks) { %>
-      <li><%- task.task_name %></li>
-    <% } %>
-    </ul>
-  <% } %>
-<% } %>
+<%- include("../common/footer") %>

@@ -1,21 +1,75 @@
 <%- include("../common/header") %>
 
-
-<% tasks %>
-<p>
-  <% tasks.forEach((task , index) => { %>
-    <p>
-      <a href="/todo/detail/<%- task.id %>">
-        (<%- task.id %>)<%- task.task_name %>
-      </a><br>
-      進捗状態: <%- taskStatusNameList[task.status] %>
-    </p>
-    <p>もらったスター / <%- task.Stars.length %>個</p>
-    <form action="<%- actionUrlToStar %>" method="POST">
-      <input type="hidden" name="task_id" value="<%- task.id %>">
-      <input type="submit" value="スターを送る">
-    </form>
-  <% }) %>
-</p>
+  <div class="col-md-10" id="app">
+    <div class="content-box-large">
+      <div class="panel-heading">
+        <div class="row mb-5">
+          <div class="panel-title">現在登録中プロジェクトの一覧</div>
+        </div>
+      </div>
+      <div class="panel-heading">
+        <div class="row">
+          <div class="col-6 mb-5">
+            <p>検索キーワード</p>
+            <input type="text" class="form-control" v-model="keyword">
+          </div>
+          <div class="col-6 mb-5">
+            <p>検索キーワード</p>
+            <input class="btn btn-primary" type="button" v-on:click="moveToThePage(0)" value="プロジェクトの検索">
+          </div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <table cellpadding="0" cellspacing="0" class="table table-bordered" id="example">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>タスク名</th>
+              <th>プロジェクト名</th>
+              <th>担当者</th>
+              <th>作業ステータス</th>
+              <th>スター数</th>
+              <th>作成日<br>更新日</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% tasks.forEach((data, index) =>  { %>
+            <tr>
+              <td><%- data.id %></td>
+              <td>
+                <%- data.task_name %>
+              </td>
+              <td>
+                <% if (data.Project) { %>
+                  (<%- data.project_id %>)<%- data.Project.project_name %>
+                <% } %>
+              </td>
+              <td>
+                <%- data.user_id %>
+                <% if (data.user) { %>
+                (<%- data.user.id %>)<%- data.user.user_name %>
+                <% } else { %>
+                  ー
+                <% } %>
+              </td>
+              <td><%- taskStatusNameList[data.status] %></td>
+              <td>
+                <%- data.Stars.length %>個
+                <form action="<%- actionUrlToStar %>" method="POST">
+                  <input type="hidden" name="task_id" value="<%- data.id %>">
+                  <input type="submit" value="スターを送る">
+                </form>
+              </td>
+              <td>
+                <%- data.created_at %><br>
+                <%- data.updated_at %>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
 <%- include("../common/footer") %>

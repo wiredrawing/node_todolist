@@ -11,8 +11,8 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       task.belongsTo(models.user, {
-        foreignKey: "id",
-        sourceKey: "user_id",
+        foreignKey: "user_id",
+        sourceKey: "id",
       });
       // starsテーブルに紐づく
       task.hasMany(models.Star, {
@@ -21,8 +21,8 @@ module.exports = (sequelize, DataTypes) => {
       });
       // projectsテーブルに紐づく
       task.belongsTo(models.Project, {
-        foreignKey: "id",
-        sourceKey: "project_id",
+        foreignKey: "project_id",
+        sourceKey: "id",
       })
     }
   };
@@ -36,12 +36,12 @@ module.exports = (sequelize, DataTypes) => {
       // fieldName: "deleted_at",
       // underscored: true,
     },
-    createdAt: {
+    created_at: {
       type: DataTypes.DATE,
       // fieldName: "created_at",
       // underscored: true,
     },
-    updatedAt: {
+    updated_at: {
       type: DataTypes.DATE,
       // fieldName: "updated_at",
       // underscored: true,

@@ -13,7 +13,6 @@ models.user.findAll().then((users) => {
   users.forEach((user, index) => {
     userIDList.push(user.id);
   });
-  console.log(userIDList);
   return userIDList;
 });
 
@@ -24,8 +23,6 @@ applicationConfig.statusList.forEach((status, index) => {
   taskStatusNameList[status.id] = status.value;
 });
 
-console.log(taskStatusNameList);
-console.log(applicationConfig);
 
 
 
@@ -57,6 +54,7 @@ router.get("/", (req, res, next) => {
   Promise.all([projectPromise, taskPromise]).then((response) => {
     let projects = response[0];
     let tasks = response[1];
+    console.log(tasks);
     // ビューを表示
     res.render("./todo/index", {
       projects: projects,
@@ -141,7 +139,6 @@ router.post("/create",[
     return(next(new Error("バリデーションに失敗しました｡")));
   }
 
-  console.log(req.body);
   let task = models.task;
   // モデルを使ってtasksテーブルにタスクレコードを挿入する
 
@@ -155,7 +152,6 @@ router.post("/create",[
     project_id: postData.project_id,
   }).then((data) => {
     // 挿入結果を取得する
-    console.log(data);
     // レコードの新規追加が完了した場合は､リファラーでリダイレクト
     return res.redirect("back");
   }).catch((error) => {
@@ -218,7 +214,6 @@ router.post("/detail/:taskID", [
 
   // バリデーションチェック
   if (errors.isEmpty() !== true) {
-    console.log(errors);
     return (next(new Error(errors.errors)));
   }
   let postData = req.body
@@ -252,11 +247,6 @@ router.post("/star", [
       if (Number(data.id) === Number(value)) {
         return true;
       }
-      console.log(data);
-      console.log(value);
-      console.log("=================================>");
-      console.log(obj);
-      console.log("<=================================");
       return false;
     }).catch(error => {
       return false
@@ -277,7 +267,6 @@ router.post("/star", [
     task_id: postData.task_id,
     user_id: 1,
   }).then((data) => {
-    console.log(data);
     // スター追加後はもとページへリダイレクト
     res.redirect(301, "/todo/");
   }).catch((error) => {

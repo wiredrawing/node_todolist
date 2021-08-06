@@ -35,8 +35,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // 本アプリケーション独自のミドルウェア
 app.use((req, res, next) => {
-  console.log("独自ミドルウェアの実行開始 =====>")
-  console.log("_" in req);
   let users = models.user.findAll({
     order: [
       ["id", "desc"]
@@ -54,13 +52,18 @@ app.use((req, res, next) => {
       {model: models.Star}
     ]
   });
-  Promise.all([users, tasks]).then((data) => {
-    // console.log(data);
+  let projects = models.Project.findAll({
+    order : [
+      ["id", "desc"]
+    ]
+  });
+  Promise.all([users, tasks, projects]).then((data) => {
     let users = data[0];
     let tasks = data[1];
+    let projects = data[2];
     let userIDList = [];
     let taskIDList = [];
-
+    let projectIDList = [];
     // usersテーブルのIDのみの配列
     users.forEach((user, index ) => {
       userIDList.push(user.id);
@@ -70,15 +73,24 @@ app.use((req, res, next) => {
     tasks.forEach((task, index ) => {
       taskIDList . push(task.id);
     });
+
+    // projectsテーブルのIDのみの配列
+    projects.forEach((project, index) => {
+      projectIDList.push(project.id);
+    });
+
     req.__ = {
       users: users,
       tasks: tasks,
+      projects: projects,
       userIDList: userIDList,
       taskIDList: taskIDList,
+      projectIDList: projectIDList,
     }
     next();
-  });
-  console.log("独自ミドルウェアの実行開始 =====>")
+  }).catch((error) => {
+    next(new Error(error));
+  })
 });
 
 
@@ -94,8 +106,8 @@ app.use(function(req, res, next) {
 
 // error handler
 app.use(function(err, req, res, next) {
+  console.log(err.message);
   // set locals, only providing error in development
-  console.log(err);
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
   // render the error page
