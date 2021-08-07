@@ -40,7 +40,8 @@ module.exports = (sequelize, DataTypes) => {
     user_id: DataTypes.BIGINT,
     task_description: DataTypes.STRING,
     status: DataTypes.INTEGER,
-    deletedAt: {
+    priority: DataTypes.INTEGER,
+    deleted_at: {
       type: DataTypes.DATE,
       // fieldName: "deleted_at",
       // underscored: true,
