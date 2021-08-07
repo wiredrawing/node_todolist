@@ -37,11 +37,15 @@
             <tr>
               <td><%- data.id %></td>
               <td>
-                <%- data.task_name %>
+                <a href="/todo/detail/<%- data.id %>">
+                  <%- data.task_name %>
+                </a>
               </td>
               <td>
                 <% if (data.Project) { %>
-                  (<%- data.project_id %>)<%- data.Project.project_name %>
+                  <a href="/project/detail/<%- data.Project.id %>">
+                    (<%- data.project_id %>)<%- data.Project.project_name %>
+                  </a>
                 <% } %>
               </td>
               <td>
@@ -57,12 +61,12 @@
                 <%- data.Stars.length %>個
                 <form action="<%- actionUrlToStar %>" method="POST">
                   <input type="hidden" name="task_id" value="<%- data.id %>">
-                  <input type="submit" value="スターを送る">
+                  <input class="btn btn-outline-primary" type="submit" value="スター★">
                 </form>
               </td>
               <td>
-                <%- data.created_at %><br>
-                <%- data.updated_at %>
+                <%- data.formatted_created_at() %><br>
+                <%- data.formatted_updated_at() %>
               </td>
             </tr>
             <% }) %>

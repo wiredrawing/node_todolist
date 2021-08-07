@@ -1,47 +1,127 @@
 <%- include("../common/header") %>
 
-<form action="<%- actionUrl -%>" method="POST">
+<div class="col-xs-12 col-sm-12 col-md-10 ">
+  <div class="content-box-large ">
+    <div class="panel-title ">登録中タスク内容</div>
+    <div class="row " id="app ">
+      <div class="col-xl-12 ">
+        <form method="POST" action="/todo/create" class="form-group">
+          <div class="row ">
+            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
+              <p>タスク名</p>
+              <p>
+                <input type="text" class="form-control" name="task_name" value="">
+              </p>
 
-  <p>プロジェクトを選択</p>
-  <select name="project_id">
-    <% projects.forEach((project, index) => { %>
-      <option value="<%- project.id %>">
-        <%- project.project_name %>
-      </option>
-    <% }) %>
-  </select>
+              <% if (sessionErrors.task_name) { %>
+              <!-- エラーメッセージ -->
+              <div class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%- sessionErrors.task_name %></p>
+              </div>
+              <!-- エラーメッセージ -->
+              <% } %>
+            </div>
+          </div>
 
-  <p>新規タスク名を登録</p>
-  <input type="text" name="task_name">
+          <div class="row ">
+            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
+              <p>作業者ID</p>
+              <p>
+                <select class="form-control form-select" name="user_id" id="user_id">
+                  <% users.forEach((user, index) => { %>
+                  <option value="<%- user.id %>"><%- user.user_name %></option>
+                  <% }) %>
+                </select>
+              </p>
+              <!-- エラーメッセージ -->
+              <div v-for="data in errors.delivery " class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger ">{{data}}</p>
+              </div>
+              <!-- エラーメッセージ -->
+            </div>
 
-  <p>新規タスクの内容を登録</p>
-  <textarea name="task_description"></textarea>
+            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
+              <p>タスクステータス</p>
+              <p>
+                <select class="form-control form-select " name="status">
+                  <% taskStatusList.forEach((status, index) => { %>
+                    <option  value="<%- status.id%>">
+                      <%- status.value %>
+                    </option>
+                  <% }) %>
+                </select>
+              </p>
+              <% if (sessionErrors.status) {%>
+              <!-- エラーメッセージ -->
+              <div class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%- sessionErrors.status %></p>
+              </div>
+              <!-- エラーメッセージ -->
+              <% } %>
+            </div>
+          </div>
 
-  <p>担当者</p>
-  <select name="user_id">
-    <% users.forEach((user, index) => { %>
-      <option value="<%- user.id %>">
-        (<%- user.id %>/<%- user.section_type %>)<%- user.user_name %><br>
-        担当中タスク(<%- user.tasks.length %>件)
-      </option>
-    <% }) %>
-  </select>
+          <div class="row ">
+            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
+              <p>紐づくプロジェクト</p>
+              <p>
+                <select class="form-control form-select" name="project_id">
+                  <% projects.forEach((project, index) => { %>
+                    <option value="<%- project.id %>">
+                      <%- project.project_name %>　(<%- project.tasks.length %>件)
+                    </option>
+                  <% }) %>
+                </select>
+              </p>
+              <!-- エラーメッセージ -->
+              <div v-for="data in errors.is_displayed " class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger ">{{data}}</p>
+              </div>
+              <!-- エラーメッセージ -->
+            </div>
+            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
+              <p>表示状態の指定</p>
+              <p>
+                <select class="admin-shop-edit form-control form-select " v-model="shop.is_displayed ">
+                  <option v-for="data in display_status " v-bind:value="data.id ">{{data.value}}</option>
+                </select>
+              </p>
+              <!-- エラーメッセージ -->
+              <div v-for="data in errors.is_displayed " class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger ">{{data}}</p>
+              </div>
+              <!-- エラーメッセージ -->
+            </div>
+          </div>
 
-  <p>タスク進捗度</p>
-  <select name="status">
-    <% taskStatusList.forEach((status, index) => { %>
-      <option value="<%- status.id %>"><%- status.value %></option>
-    <% }); %>
-  </select>
+          <div class="row ">
+            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6 ">
+              <p>タスク詳細</p>
+              <p>
+                <textarea class="form-control" id="task_description" placeholder="注意事項がある場合は入力のこと" name="task_description" cols="50 " rows="10 "></textarea>
+              </p>
 
+              <% if (sessionErrors.task_description) { %>
+              <!-- エラーメッセージ -->
+              <div class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%- sessionErrors.task_description %></p>
+              </div>
+              <!-- エラーメッセージ -->
+              <% } %>
+            </div>
+          </div>
 
-  <p><input type="submit" value="送信"></p>
-</form>
-
-<p>現在登録中のタスク一覧</p>
-<% tasks.forEach((task, index) => { %>
-  <p><%- task.task_name %></p>
-  <p><%- task.task_description %></p>
-<% }); %>
-
+          <div class="row ">
+            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6 ">
+              <p>上記内容でタスクを作成する</p>
+              <p>
+                <button class="btn btn-outline-primary" type="submit" >上記内容でタスクを作成する</button>
+              </p>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 <%- include("../common/footer") %>

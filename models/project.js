@@ -2,6 +2,9 @@
 const {
   Model
 } = require('sequelize');
+
+const moment = require("moment");
+
 module.exports = (sequelize, DataTypes) => {
   class Project extends Model {
     /**
@@ -21,6 +24,15 @@ module.exports = (sequelize, DataTypes) => {
       });
       // define association here
     }
+
+    formatted_created_at() {
+      return moment(this.created_at).format("Y年M月d日 H時m分s秒");
+    }
+
+    formatted_updated_at() {
+      return moment(this.updated_at).format("Y年M月d日 H時m分s秒");
+    }
+
   };
   Project.init({
     project_name: DataTypes.STRING,

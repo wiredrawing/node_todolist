@@ -1,4 +1,118 @@
-現在閲覧中のプロジェクト名
-<p><%- (projectDetail.project_name) %></p>
+<%- include("../common/header") %>
 
-<p>タスクを作成する</p>
+<div class="col-xs-12 col-sm-12 col-md-10 ">
+  <div class="content-box-large ">
+    <div class="panel-title ">現在のプロジェクト名</div>
+    <div class="row " id="app ">
+      <div class="col-xl-12 ">
+        <form method="POST" action="/project/detail/<%- project.id %>" class="form-group">
+          <div class="row ">
+            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6 ">
+              <p><label class="control-label ">プロジェクトID</label></p>
+              <p>
+                <input class="form-control" type="text" disabled="disabled" value="<%- project.id %>">
+                <input type="hidden" name="project_id" value="<%- project.id %>">
+              </p>
+
+              <% if (sessionErrors.project_id) {%>
+              <!-- エラーメッセージ -->
+              <div v-for="data in errors.nasse_shop_id " class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%- sessionErrors.project_id %></p>
+              </div>
+              <!-- エラーメッセージ -->
+              <% } %>
+            </div>
+          </div>
+
+          <div class="row ">
+            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
+              <p>プロジェクト名</p>
+              <p>
+                <input type="text" class="form-control" name="project_name" value="<%- project.project_name %>">
+              </p>
+
+              <% if (sessionErrors.project_name) { %>
+              <!-- エラーメッセージ -->
+              <div v-for="data in errors.delivery " class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%- sessionErrors.project_name %></p>
+              </div>
+              <!-- エラーメッセージ -->
+              <% } %>
+
+            </div>
+          </div>
+
+          <div class="row ">
+            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
+              <p>責任者ID</p>
+              <p>
+                <select class="form-control form-select" name="user_id" id="user_id">
+                  <% users.forEach((user, index) => { %>
+                  <option <% if(project.user_id === user.id) { %> selected="selected" <% } %> value="<%- user.id %>"><%- user.user_name %></option>
+                  <% }) %>
+                </select>
+              </p>
+              <!-- エラーメッセージ -->
+              <div v-for="data in errors.delivery " class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger ">{{data}}</p>
+              </div>
+              <!-- エラーメッセージ -->
+            </div>
+
+          </div>
+
+          <div class="row ">
+            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
+              <p>登録中タスク一覧</p>
+              <p>
+                <select class="form-control form-select">
+                  <% project.tasks.forEach((task, index) => { %>
+                    <option value="<%- project.id %>">
+                      [<%- task.id %>]<%- task.task_name %>
+                      <% if (task.user !== null) { %>
+                        ([<%- task.user.id %>]<%- task.user.user_name %>)
+                      <% } %>
+                    </option>
+                  <% }) %>
+                </select>
+              </p>
+              <!-- エラーメッセージ -->
+              <div v-for="data in errors.is_displayed " class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger ">{{data}}</p>
+              </div>
+              <!-- エラーメッセージ -->
+            </div>
+          </div>
+
+          <div class="row ">
+            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6 ">
+              <p>タスク詳細</p>
+              <p>
+                <textarea class="form-control" id="project_description" placeholder="注意事項がある場合は入力のこと" name="project_description" cols="50 " rows="10 "><%- project.project_description %></textarea>
+              </p>
+
+              <% if (sessionErrors.project_description) { %>
+              <!-- エラーメッセージ -->
+              <div class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%- sessionErrors.project_description %></p>
+              </div>
+              <!-- エラーメッセージ -->
+              <% } %>
+
+            </div>
+          </div>
+
+          <div class="row ">
+            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6 ">
+              <p>上記内容で店舗更新をする</p>
+              <p>
+                <button class="btn btn-outline-primary " type="button " v-on:click="checkShop ">タスク内容を更新する</button>
+              </p>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include("../common/footer") %>

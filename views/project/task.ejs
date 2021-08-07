@@ -24,9 +24,9 @@
           <thead>
             <tr>
               <th>ID</th>
-              <th>プロジェクト名<br>登録タスク数</th>
+              <th>タスク名</th>
               <th>概要</th>
-              <th>責任者</th>
+              <th>作業者</th>
               <th>開始日</th>
               <th>終了日</th>
               <th>作成日</th>
@@ -34,19 +34,17 @@
             </tr>
           </thead>
           <tbody>
-            <% projects.forEach((data, index) =>  { %>
+            <% project.tasks.forEach((data, index) =>  { %>
             <tr>
               <td>
-                <a class="btn btn-outline-info" href="/project/detail/<%- data.id %>">
+                <a class="btn btn-outline-info" href="/todo/detail/<%- data.id %>">
                   <%- data.id %>
                 </a>
               </td>
               <td>
-                <a href="/project/task/<%- data.id %>">
-                  <%- data.project_name %>(<%- data.tasks.length %>件)
-                </a>
+                <%- data.task_name %>
               </td>
-              <td><%- data.project_description %></td>
+              <td><%- data.task_description %></td>
               <td>
                 <!-- userデータがnull出ない場合 -->
                 <% if (data.user !== null) { %>

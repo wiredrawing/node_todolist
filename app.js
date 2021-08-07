@@ -10,11 +10,13 @@ var userRouter = require('./routes/user');
 let todoRouter = require("./routes/todo");
 let projectRouter = require("./routes/project");
 
+let applicationConfig = require("./config/application-config");
 // es6 modules
 let models = require("./models/index.js");
 const {check, validationResult } = require("express-validator");
 const { profileEnd } = require('console');
 
+const session = require("express-session");
 var app = express();
 
 // view engine setup
@@ -32,6 +34,15 @@ app.use(bodyParser.urlencoded({
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(session({
+  secret: "暗号化ソルト",
+  resave: true,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 10 * 10000,
+  }
+}));
 
 // 本アプリケーション独自のミドルウェア
 app.use((req, res, next) => {
@@ -92,6 +103,8 @@ app.use((req, res, next) => {
     next(new Error(error));
   })
 });
+
+
 
 
 app.use('/', indexRouter);

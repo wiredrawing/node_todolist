@@ -8,7 +8,8 @@
     "port": 15432,
     "define": {
       "timestamps": true
-    }
+    },
+    "logging": false
   },
   "test": {
     "username": "root",

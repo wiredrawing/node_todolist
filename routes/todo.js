@@ -5,6 +5,9 @@ const {check, validationResult } = require("express-validator");
 const { route } = require("./index.js");
 const applicationConfig = require("../config/application-config.js");
 const task = require("../models/task.js");
+const moment = require("moment");
+const { resolveInclude } = require("ejs");
+const session = require("express-session");
 
 let userIDList = [];
 models.user.findAll().then((users) => {
@@ -19,7 +22,10 @@ models.user.findAll().then((users) => {
 let taskStatusList = [];
 let taskStatusNameList = [];
 applicationConfig.statusList.forEach((status, index) => {
-  taskStatusList.push(status.id);
+  if (status.id > 0 ){
+    // バリデーション用に1以上を保持
+    taskStatusList.push(status.id);
+  }
   taskStatusNameList[status.id] = status.value;
 });
 
@@ -73,6 +79,12 @@ router.get("/", (req, res, next) => {
  */
 router.get("/create", (req, res, next) => {
 
+  // セッションにエラーを持っている場合
+  let sessionErrors = {};
+  if (req.session.sessionErrors) {
+    sessionErrors = req.session.sessionErrors;
+  }
+
   // プロジェクト情報取得用プロミス
   let projectPromise = models.Project.findAll({
     include : [
@@ -115,6 +127,7 @@ router.get("/create", (req, res, next) => {
       tasks: tasks,
       users: users,
       taskStatusList: applicationConfig.statusList,
+      sessionErrors: sessionErrors,
     });
   }).catch((error) => {
     // エラー時はnextメソッドを通じて次の処理へ移す
@@ -129,14 +142,20 @@ router.post("/create",[
   check("task_description").not().isEmpty().isLength({min:1, max:2048}),
   check("user_id").isIn(userIDList),
   check("project_id").not().isEmpty().isNumeric().withMessage("プロジェクトIDは数字で指定して下さい"),
-  check("status").isIn(taskStatusList),
+  check("status").isIn(taskStatusList).withMessage("タスクステータスは有効な値を設定して下さい｡"),
 ], (req, res, next) => {
   // バリデーションチェック
   const errors = validationResult(req);
   // バリデーション成功の場合
   if (errors.isEmpty() !==true) {
-    // nextミドルウェアに､Errorオブジェクトを渡す
-    return(next(new Error("バリデーションに失敗しました｡")));
+    // バリデーションエラーが有る場合は､セッションにエラーを保持
+    let sessionErrors = {}
+    errors.errors.forEach( function(error, index) {
+      sessionErrors[error.param] = error.msg;
+    });
+    req.session.sessionErrors = sessionErrors;
+    // Back the previous page.
+    return res.redirect("back");
   }
 
   let task = models.task;
@@ -162,9 +181,17 @@ router.post("/create",[
 
 /**
  * 指定したタスクの詳細情報を確認する
+ *
  */
 router.get("/detail/:taskID", (req, res, index) => {
 
+  let sessionErrors = {};
+  if (req.session.sessionErrors) {
+    sessionErrors = req.session.sessionErrors
+  }
+
+  console.log(sessionErrors);
+  console.log("===>" , sessionErrors);
   // taskモデルのpromiseを取得
   let taskID = req.params.taskID;
   // userモデルのpromiseを取得
@@ -179,14 +206,25 @@ router.get("/detail/:taskID", (req, res, index) => {
     ]
   });
 
+  let projects = models.Project.findAll({
+    include: [
+      {model: models.task}
+    ]
+  });
+
   // usersとtaskの両方が完了した段階で実行
-  Promise.all([users, task]).then((data) => {
+  Promise.all([users, task, projects]).then((data) => {
     let users = data[0];
     let task = data[1];
+    let projects = data[2];
+    console.log(task.created_at);
+    console.log(task.updated_at);
     res.render("todo/detail", {
       task: task,
       users: users,
+      projects: projects,
       taskStatusList: applicationConfig.statusList,
+      sessionErrors: sessionErrors
     })
   }).catch(error => {
     console.log(error);
@@ -199,7 +237,7 @@ router.get("/detail/:taskID", (req, res, index) => {
  */
 router.post("/detail/:taskID", [
   // バリデーションチェック
-  check("task_name").isLength({min: 1, max: 256}),
+  check("task_name").isLength({min: 1, max: 256}).withMessage("タスク名を正しく入力して下さい｡"),
   check("task_description", "1文字以上2000文字以内で入力して下さい｡").isLength({min: 1, max: 2048}),
   check("user_id").custom((value, {req}) => {
     return models.user.findByPk(value).then((user) => {
@@ -208,13 +246,21 @@ router.post("/detail/:taskID", [
       throw new Error(error);
     });
   }).isNumeric().withMessage("Error1").isIn(userIDList).withMessage("Error2"),
-  check("status").isNumeric().isIn(taskStatusList),
+  check("status").isNumeric().isIn(taskStatusList).withMessage("タスクステータスは有効な値を設定して下さい｡"),
 ], (req, res, next) => {
   const errors = validationResult(req);
 
   // バリデーションチェック
   if (errors.isEmpty() !== true) {
-    return (next(new Error(errors.errors)));
+    console.log(errors.errors);
+    let sessionErrors = {};
+    // エラー内容をキーをカラムにして保存
+    errors.errors.forEach( ( error, index ) => {
+      sessionErrors[error.param] = error.msg;
+    });
+    req.session.sessionErrors = sessionErrors;
+    return res.redirect(301, "/todo/detail/" + req.params.taskID);
+    // return (next(new Error(errors.errors)));
   }
   let postData = req.body
 
@@ -225,12 +271,16 @@ router.post("/detail/:taskID", [
     task.task_description = postData.task_description;
     task.user_id = postData.user_id;
     task.status = postData.status;
-    task.save().then((result) => {
-      res.redirect(301, "/todo/detail/" + req.params.taskID);
+    task.project_id = postData.project_id;
+    return task.save().then((result) => {
+      return result;
     }).catch(error => {
       console.log(error);
       return next(new Error(error))
     });
+  }).then((result) => {
+    console.log("result => ", result);
+    res.redirect(301, "/todo/detail/" + req.params.taskID);
   }).catch((error) => {
     console.log(error);
     return next(new Error(error))

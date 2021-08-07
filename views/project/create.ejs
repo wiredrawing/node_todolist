@@ -1,18 +1,102 @@
+<%- include("../common/header") %>
 
+<div class="col-xs-12 col-sm-12 col-md-10 ">
+  <div class="content-box-large ">
+    <div class="panel-title ">プロジェクトの作成</div>
+    <div class="row " id="app ">
+      <div class="col-xl-12 ">
+        <form method="POST" action="/project/create" class="form-group">
+          <div class="row ">
+            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
+              <p>プロジェクト名</p>
+              <p>
+                <input type="text" class="form-control" name="project_name" value="">
+              </p>
 
-<form method="POST" action="<%- actionUrl %>">
+              <% if (sessionErrors.project_name) { %>
+              <!-- エラーメッセージ -->
+              <div class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%- sessionErrors.project_name %></p>
+              </div>
+              <!-- エラーメッセージ -->
+              <% } %>
+            </div>
+          </div>
 
-  <p><input type="text" name="project_name" value=""></p>
+          <div class="row ">
+            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
+              <p>責任者ID</p>
+              <p>
+                <select class="form-control form-select" name="user_id" id="user_id">
+                  <% users.forEach((user, index) => { %>
+                  <option value="<%- user.id %>"><%- user.user_name %></option>
+                  <% }) %>
+                </select>
+              </p>
 
-  <p><input type="text" name="project_description" value=""></p>
-  <p><input type="submit" value="上記内容でプロジェクトを登録する"></p>
+              <% if(sessionErrors.user_id) { %>
+              <!-- エラーメッセージ -->
+              <div v-for="data in errors.delivery " class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%- sessionErrors.user_id %></p>
+              </div>
+              <!-- エラーメッセージ -->
+              <% } %>
+            </div>
+          </div>
 
-  <!-- 担当リーダーを設定 -->
-  <p>
-    <select name="user_id">
-      <% users.forEach((user, index) => { %>
-        <option value="<%- user.id %>">(<%- user.id %>)<%- user.user_name %></option>
-      <% }) %>
-    </select>
-  </p>
-</form>
+          <div class="row ">
+            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
+              <p>表示状態の指定</p>
+              <p>
+                <select class="form-control form-select" name="status">
+                  <% applicationConfig.displayStatus.forEach((status, index) => { %>
+                  <option value="<%- status.id %>"><%- status.value %></option>
+                  <% }) %>
+                </select>
+              </p>
+
+              <% if (sessionErrors.status) {%>
+              <!-- エラーメッセージ -->
+              <div v-for="data in errors.is_displayed " class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%- sessionErrors.status %></p>
+              </div>
+              <!-- エラーメッセージ -->
+              <% } %>
+            </div>
+          </div>
+
+          <div class="row ">
+            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6 ">
+              <p>プロジェクト詳細</p>
+              <p>
+                <textarea
+                  class="form-control"
+                  id="project_description"
+                  placeholder="注意事項がある場合は入力のこと"
+                  name="project_description" cols="50 " rows="10 "></textarea>
+              </p>
+
+              <% if (sessionErrors.project_description) { %>
+              <!-- エラーメッセージ -->
+              <div class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%- sessionErrors.project_description %></p>
+              </div>
+              <!-- エラーメッセージ -->
+              <% } %>
+            </div>
+          </div>
+
+          <div class="row ">
+            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6 ">
+              <p>上記内容でタスクを作成する</p>
+              <p>
+                <button class="btn btn-outline-primary" type="submit" >上記内容でタスクを作成する</button>
+              </p>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include("../common/footer") %>

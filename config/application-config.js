@@ -27,10 +27,15 @@ let applicationConfig = {
     {id: 6, value: "タスク終了"},
   ],
 
-  binary_type: {
+  binaryType: {
     on: 1,
     off: 0,
-  }
+  },
+
+  displayStatus: [
+    {id: 1, value: "表示する"},
+    {id: 0, value: "非表示にする"},
+  ]
 }
 
 module.exports = applicationConfig;
