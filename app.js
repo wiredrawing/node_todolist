@@ -17,6 +17,7 @@ const {check, validationResult } = require("express-validator");
 const { profileEnd } = require('console');
 
 const session = require("express-session");
+
 var app = express();
 
 // view engine setup

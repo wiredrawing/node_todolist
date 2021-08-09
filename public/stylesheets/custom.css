@@ -1,0 +1,22 @@
+::placeholder {
+  color: #EFEFEF;
+}
+/* 旧Edge対応 */
+::-ms-input-placeholder {
+  color: #EFEFEF;
+}
+/* IE対応 */
+:-ms-input-placeholder {
+  color: #EFEFEF;
+}
+
+.isHidden {
+    background-color: #EEEFEF;
+}
+
+#footer {
+  position: fixed;
+  bottom: 0px;
+  right: 0px;
+  width: 100%;
+}
