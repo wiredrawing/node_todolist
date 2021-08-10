@@ -247,18 +247,21 @@ router.post("/detail/:projectID", [
   let postData = req.body;
   let projectID = parseInt(req.params.projectID);
   return models.Project.findByPk(projectID).then(project => {
-    project.project_name = postData.project_name
-    project.project_description = postData.project_description
-    project.user_id = postData.user_id
 
     // promiseオブジェクトを必ず return する
-    return project.save().then((project) => {
+    return project.update({
+      project_name: postData.project_name,
+      project_description: postData.project_description,
+      user_id: postData.user_id,
+    }).then((project) => {
       console.log("project => ", project);
       if (project.id === projectID) {
         // 詳細画面に戻る
         return res.redirect("back");
       }
-      new Error("原因不明のエラーです｡");
+
+      return Promise.reject(new Error("原因不明のエラーです｡"));
+
     }).catch(error => {
       return Promise.reject(error);
     })

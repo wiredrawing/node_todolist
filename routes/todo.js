@@ -32,6 +32,7 @@ applicationConfig.statusList.forEach((status, index) => {
   }
   taskStatusNameList[status.id] = status.value;
 });
+
 let priorityStatusList = [];
 let priorityNameList = [];
 applicationConfig.priorityStatus.forEach((data, index) => {
@@ -42,10 +43,14 @@ applicationConfig.priorityStatus.forEach((data, index) => {
   priorityNameList[data.id] = data.value;
 });
 
+console.log(priorityStatusList);
+
+
 /**
  * 登録中のタスク一覧を表示させる
  */
 router.get('/', (req, res, next) => {
+
   let actionUrlToStar = '/todo/star';
   // プロジェクト情報取得用プロミス
   let projectPromise = models.Project.findAll({
@@ -63,7 +68,7 @@ router.get('/', (req, res, next) => {
     .then((response) => {
       let projects = response[0];
       let tasks = response[1];
-      console.log(tasks);
+      // // console.log(tasks);
       // ビューを表示
       res.render('./todo/index', {
         projects: projects,
@@ -168,7 +173,7 @@ router.post(
         priority: postData.priority,
       })
       .then((task) => {
-        console.log('task new record => ', task);
+        // console.log('task new record => ', task);
         // 挿入結果を取得する
         // レコードの新規追加が完了した場合は､リファラーでリダイレクト
         return res.redirect('back');
@@ -189,8 +194,8 @@ router.get('/detail/:taskID', (req, res, index) => {
     sessionErrors = req.session.sessionErrors;
   }
 
-  console.log(sessionErrors);
-  console.log('===>', sessionErrors);
+  // console.log(sessionErrors);
+  // console.log('===>', sessionErrors);
   // taskモデルのpromiseを取得
   let taskID = req.params.taskID;
   // userモデルのpromiseを取得
@@ -211,18 +216,19 @@ router.get('/detail/:taskID', (req, res, index) => {
       let users = data[0];
       let task = data[1];
       let projects = data[2];
-      console.log(task.created_at);
-      console.log(task.updated_at);
+      // console.log(task.created_at);
+      // console.log(task.updated_at);
       res.render('todo/detail', {
         task: task,
         users: users,
         projects: projects,
         taskStatusList: applicationConfig.statusList,
+        priorityStatus: applicationConfig.priorityStatus,
         sessionErrors: sessionErrors,
       });
     })
     .catch((error) => {
-      console.log(error);
+      // console.log(error);
       return next(new Error(error));
     });
 });
@@ -252,20 +258,21 @@ router.post(
       .isIn(userIDList)
       .withMessage('Error2'),
     check('status').isNumeric().isIn(taskStatusList).withMessage('タスクステータスは有効な値を設定して下さい｡'),
-    check('priority').isNumeric('優先度は正しい値で設定して下さい').isIn(priorityStatusList).withMessage('優先度は正しい値で設定して下さい'),
+    check('priority').isNumeric().isIn(priorityStatusList).withMessage('優先度は正しい値で設定して下さい'),
   ],
   (req, res, next) => {
     const errors = validationResult(req);
 
     // バリデーションチェック
     if (errors.isEmpty() !== true) {
-      console.log(errors.errors);
+      // console.log(errors.errors);
       let sessionErrors = {};
       // エラー内容をキーをカラムにして保存
       errors.errors.forEach((error, index) => {
         sessionErrors[error.param] = error.msg;
       });
       req.session.sessionErrors = sessionErrors;
+      console.log(sessionErrors);
       return res.redirect(301, '/todo/detail/' + req.params.taskID);
       // return (next(new Error(errors.errors)));
     }
@@ -275,28 +282,28 @@ router.post(
     models.task
       .findByPk(req.params.taskID)
       .then((task) => {
-        // primaryKeyで取得したレコードを更新する
-        task.task_name = postData.task_name;
-        task.task_description = postData.task_description;
-        task.user_id = postData.user_id;
-        task.status = postData.status;
-        task.project_id = postData.project_id;
-        return task
-          .save()
-          .then((result) => {
-            return result;
-          })
-          .catch((error) => {
-            console.log(error);
-            return next(new Error(error));
-          });
+        return task.update({
+          // primaryKeyで取得したレコードを更新する
+          task_name: postData.task_name,
+          task_description: postData.task_description,
+          user_id: postData.user_id,
+          status: postData.status,
+          project_id: postData.project_id,
+          priority: postData.priority,
+        }).then((result) => {
+          return result;
+        })
+        .catch((error) => {
+          // console.log(error);
+          return next(new Error(error));
+        });
       })
       .then((result) => {
         console.log('result => ', result);
         res.redirect(301, '/todo/detail/' + req.params.taskID);
       })
       .catch((error) => {
-        console.log(error);
+        // console.log(error);
         return next(new Error(error));
       });
   }
@@ -329,24 +336,51 @@ router.post(
 
     // バリデーションチェックを実行
     if (errors.isEmpty() !== true) {
-      console.log(errors.errors);
+      // console.log(errors.errors);
       return next(new Error('バリデーションエラー'));
     }
 
     let postData = req.body;
 
-    models.Star.create({
-      task_id: postData.task_id,
-      user_id: 1,
-    })
-      .then((data) => {
-        // スター追加後はもとページへリダイレクト
-        res.redirect(301, '/todo/');
-      })
-      .catch((error) => {
-        console.log(error);
-        return next(new Error(error));
+    // スターを送られたタスクレコードも更新のみ実行する
+    return models.sequelize.transaction().then((tx) => {
+
+      return models.Star.create({
+        task_id: postData.task_id,
+        user_id: 1,
+      },
+      {
+        transaction: tx,
+      }).then(star => {
+
+        // スターテーブルの更新完了後tasksレコードも更新させる
+        return models.task.findByPk(postData.task_id).then(task => {
+          task.updatedAt = new Date();
+          task.update({
+            updated_at: new Date(),
+          }, {
+            transaction: tx
+          }).then(task => {
+            // // console.log(task);
+            // 更新成功の場合
+            tx.commit();
+            req.__.e.emit("get_star", postData.task_id);
+            // スター追加後はもとページへリダイレクト
+            return res.redirect(301, '/todo/');
+          });
+        }).catch((error) => {
+          return new Error(error);
+        });
+
+      }).catch((error) => {
+        // // console.log(error);
+        return new Error(error);
       });
+
+    }).then((data) => {
+      tx.rollback();
+      return next(new Error(error));
+    })
   }
 );
 

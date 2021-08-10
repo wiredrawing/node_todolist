@@ -49,9 +49,7 @@
               <!-- エラーメッセージ -->
               <% } %>
             </div>
-          </div>
 
-          <div class="row ">
             <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
               <p>作業者ID</p>
               <p>
@@ -107,18 +105,25 @@
               </div>
               <!-- エラーメッセージ -->
             </div>
+
             <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
-              <p>表示状態の指定</p>
+              <p>優先度の設定</p>
               <p>
-                <select class="admin-shop-edit form-control form-select " v-model="shop.is_displayed ">
-                  <option v-for="data in display_status " v-bind:value="data.id ">{{data.value}}</option>
+                <select class="form-control form-select" name="priority">
+                  <% priorityStatus.forEach((priority, index) => { %>
+                  <option <% if (task.priority === priority.id) { %> selected="selected" <% } %> value="<%- priority.id %>" ><%- priority.value %></option>
+                  <% }) %>
                 </select>
               </p>
+
+              <% if(sessionErrors.priority) { %>
               <!-- エラーメッセージ -->
-              <div v-for="data in errors.is_displayed " class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger ">{{data}}</p>
+              <div class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%- sessionErrors.priority %></p>
               </div>
               <!-- エラーメッセージ -->
+              <% } %>
+
             </div>
           </div>
 

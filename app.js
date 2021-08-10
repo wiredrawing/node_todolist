@@ -18,6 +18,12 @@ const { profileEnd } = require('console');
 
 const session = require("express-session");
 
+const EventEmitter = require("events");
+let emitter = new EventEmitter();
+emitter.on("get_star", (task_id) => {
+  console.log("タスクID => "+ task_id + " にスターを獲得しました｡");
+});
+
 var app = express();
 
 // view engine setup
@@ -98,6 +104,7 @@ app.use((req, res, next) => {
       userIDList: userIDList,
       taskIDList: taskIDList,
       projectIDList: projectIDList,
+      e: emitter,
     }
     next();
   }).catch((error) => {

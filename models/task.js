@@ -28,11 +28,11 @@ module.exports = (sequelize, DataTypes) => {
     }
 
     formatted_created_at () {
-      return moment(this.created_at).format("Y年M月d日 H時m分s秒");
+      return moment(this.created_at).format("Y年M月D日 H時m分s秒");
     }
 
     formatted_updated_at () {
-      return moment(this.updated_at).format("Y年M月d日 H時m分s秒");
+      return moment(this.updated_at).format("Y年M月D日 H時m分s秒");
     }
   };
   task.init({
