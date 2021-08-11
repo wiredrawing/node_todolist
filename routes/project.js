@@ -19,7 +19,7 @@ applicationConfig.displayStatus.forEach((status, index) => {
 
 // プロジェクト一覧ページ
 router.get('/', function (req, res, next) {
-
+  console.log(req.cookies);
   let keyword = '';
   if (req.query.keyword) {
     keyword = req.query.keyword;
@@ -61,6 +61,8 @@ router.get('/create', (req, res, next) => {
   let sessionErrors = {};
   if (req.session.sessionErrors) {
     sessionErrors = req.session.sessionErrors;
+    // セッション内エラーを削除
+    req.session.sessionErrors = null;
   }
 
   // 現在のリクエストURLを変数に保持
