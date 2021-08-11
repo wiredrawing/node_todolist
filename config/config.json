@@ -9,7 +9,7 @@
     "define": {
       "timestamps": true
     },
-    "logging": false
+    "logging": true
   },
   "test": {
     "username": "root",

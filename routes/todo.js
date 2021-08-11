@@ -9,6 +9,7 @@ const moment = require('moment');
 const { resolveInclude } = require('ejs');
 const session = require('express-session');
 const { priorityStatus } = require('../config/application-config.js');
+const { Op } = require('sequelize');
 
 let userIDList = [];
 models.user
@@ -45,34 +46,43 @@ applicationConfig.priorityStatus.forEach((data, index) => {
 
 console.log(priorityStatusList);
 
-
 /**
  * 登録中のタスク一覧を表示させる
  */
 router.get('/', (req, res, next) => {
+  // 検索用キーワード
+  let keyword = '';
+  if (req.query.keyword) {
+    keyword = req.query.keyword;
+  }
 
   let actionUrlToStar = '/todo/star';
-  // プロジェクト情報取得用プロミス
-  let projectPromise = models.Project.findAll({
-    include: [{ model: models.task }],
-  });
 
   // タスク一覧を取得するプロミス
-  let taskPromise = models.task.findAll({
-    include: [{ model: models.Star }, { model: models.Project }, { model: models.user }],
-    order: [['id', 'desc']],
-  });
-
-  // プロミスの解決
-  Promise.all([projectPromise, taskPromise])
+  return models.task
+    .findAll({
+      where: {
+        [Op.or]: [
+          {
+            task_name: {
+              [Op.like]: '%' + keyword + '%',
+            },
+          },
+          {
+            task_description: {
+              [Op.like]: '%' + keyword + '%',
+            },
+          }
+        ]
+      },
+      include: [{ model: models.Star }, { model: models.Project }, { model: models.user }],
+      order: [['id', 'desc']],
+    })
     .then((response) => {
-      let projects = response[0];
-      let tasks = response[1];
       // // console.log(tasks);
       // ビューを表示
       res.render('./todo/index', {
-        projects: projects,
-        tasks: tasks,
+        tasks: response,
         actionUrlToStar: actionUrlToStar,
         taskStatusNameList: taskStatusNameList,
       });
@@ -282,21 +292,23 @@ router.post(
     models.task
       .findByPk(req.params.taskID)
       .then((task) => {
-        return task.update({
-          // primaryKeyで取得したレコードを更新する
-          task_name: postData.task_name,
-          task_description: postData.task_description,
-          user_id: postData.user_id,
-          status: postData.status,
-          project_id: postData.project_id,
-          priority: postData.priority,
-        }).then((result) => {
-          return result;
-        })
-        .catch((error) => {
-          // console.log(error);
-          return next(new Error(error));
-        });
+        return task
+          .update({
+            // primaryKeyで取得したレコードを更新する
+            task_name: postData.task_name,
+            task_description: postData.task_description,
+            user_id: postData.user_id,
+            status: postData.status,
+            project_id: postData.project_id,
+            priority: postData.priority,
+          })
+          .then((result) => {
+            return result;
+          })
+          .catch((error) => {
+            // console.log(error);
+            return next(new Error(error));
+          });
       })
       .then((result) => {
         console.log('result => ', result);
@@ -343,44 +355,55 @@ router.post(
     let postData = req.body;
 
     // スターを送られたタスクレコードも更新のみ実行する
-    return models.sequelize.transaction().then((tx) => {
-
-      return models.Star.create({
-        task_id: postData.task_id,
-        user_id: 1,
-      },
-      {
-        transaction: tx,
-      }).then(star => {
-
-        // スターテーブルの更新完了後tasksレコードも更新させる
-        return models.task.findByPk(postData.task_id).then(task => {
-          task.updatedAt = new Date();
-          task.update({
-            updated_at: new Date(),
-          }, {
-            transaction: tx
-          }).then(task => {
-            // // console.log(task);
-            // 更新成功の場合
-            tx.commit();
-            req.__.e.emit("get_star", postData.task_id);
-            // スター追加後はもとページへリダイレクト
-            return res.redirect(301, '/todo/');
+    return models.sequelize
+      .transaction()
+      .then((tx) => {
+        return models.Star.create(
+          {
+            task_id: postData.task_id,
+            user_id: 1,
+          },
+          {
+            transaction: tx,
+          }
+        )
+          .then((star) => {
+            // スターテーブルの更新完了後tasksレコードも更新させる
+            return models.task
+              .findByPk(postData.task_id)
+              .then((task) => {
+                task.updatedAt = new Date();
+                task
+                  .update(
+                    {
+                      updated_at: new Date(),
+                    },
+                    {
+                      transaction: tx,
+                    }
+                  )
+                  .then((task) => {
+                    // // console.log(task);
+                    // 更新成功の場合
+                    tx.commit();
+                    req.__.e.emit('get_star', postData.task_id);
+                    // スター追加後はもとページへリダイレクト
+                    return res.redirect(301, '/todo/');
+                  });
+              })
+              .catch((error) => {
+                return new Error(error);
+              });
+          })
+          .catch((error) => {
+            // // console.log(error);
+            return new Error(error);
           });
-        }).catch((error) => {
-          return new Error(error);
-        });
-
-      }).catch((error) => {
-        // // console.log(error);
-        return new Error(error);
+      })
+      .then((data) => {
+        tx.rollback();
+        return next(new Error(error));
       });
-
-    }).then((data) => {
-      tx.rollback();
-      return next(new Error(error));
-    })
   }
 );
 

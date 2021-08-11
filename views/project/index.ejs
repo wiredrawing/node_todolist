@@ -8,16 +8,18 @@
         </div>
       </div>
       <div class="panel-heading">
-        <div class="row">
-          <div class="col-6 mb-5">
-            <p>検索キーワード</p>
-            <input type="text" class="form-control" v-model="keyword">
+        <form action="" method="GET">
+          <div class="row">
+            <div class="col-6 mb-5">
+              <p>検索キーワード</p>
+              <input type="text" class="form-control" name="keyword">
+            </div>
+            <div class="col-6 mb-5">
+              <p>検索キーワード</p>
+              <input class="btn btn-primary" type="submit" value="プロジェクトの検索">
+            </div>
           </div>
-          <div class="col-6 mb-5">
-            <p>検索キーワード</p>
-            <input class="btn btn-primary" type="button" v-on:click="moveToThePage(0)" value="プロジェクトの検索">
-          </div>
-        </div>
+        </form>
       </div>
       <div class="panel-body">
         <table cellpadding="0" cellspacing="0" class="table table-bordered" id="example">
