@@ -44,7 +44,16 @@ let applicationConfig = {
     {id: 2, value: "中"},
     {id: 3, value: "高"},
     {id: 4, value: "緊急"},
-  ]
+  ],
+
+  // 許可された画像のmimeType
+  mimeTypeList: {
+    "image/jpeg": "jpeg",
+    "image/jpg": "jpeg",
+    "image/png": "png",
+    "image/gif": "gif",
+    "application/pdf": "pdf",
+  }
 }
 
 module.exports = applicationConfig;

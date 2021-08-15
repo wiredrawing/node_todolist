@@ -72,14 +72,18 @@ router.get('/', (req, res, next) => {
             task_description: {
               [Op.like]: '%' + keyword + '%',
             },
-          }
-        ]
+          },
+        ],
       },
-      include: [{ model: models.Star }, { model: models.Project }, { model: models.user }],
+      include: [
+        { model: models.Star },
+        { model: models.Project },
+        { model: models.user },
+        { model: models.TaskImage },
+      ],
       order: [['id', 'desc']],
-    })
-    .then((response) => {
-      // // console.log(tasks);
+    }).then((response) => {
+      console.log("response => ", response);
       // ビューを表示
       res.render('./todo/index', {
         tasks: response,
@@ -100,6 +104,7 @@ router.get('/create', (req, res, next) => {
   let sessionErrors = {};
   if (req.session.sessionErrors) {
     sessionErrors = req.session.sessionErrors;
+    console.log(sessionErrors);
     req.session.sessionErrors = null;
   }
 
@@ -152,6 +157,28 @@ router.post(
     check('project_id', '対応するプロジェクトを選択して下さい').not().isEmpty().isNumeric().withMessage('プロジェクトIDは数字で指定して下さい'),
     check('status').isIn(taskStatusList).withMessage('タスクステータスは有効な値を設定して下さい｡'),
     check('priority').isNumeric().withMessage('優先度は正しい値で設定して下さい').isIn(priorityStatusList).withMessage('優先度は正しい値で設定して下さい'),
+    check('image_id')
+      .isArray()
+      .custom(function (value) {
+        return models.Image.findAll({
+          where: {
+            id: {
+              [Op.in]: value,
+            },
+          },
+        })
+          .then((images) => {
+            console.log('images => ', images);
+            if (images.length !== value.length) {
+              return Promise.reject(new Error('指定した画像がアップロードされていません｡'));
+            }
+            return true;
+          })
+          .catch((error) => {
+            throw new Error(error);
+          });
+      })
+      .withMessage('指定した画像がアップロードされていません｡'),
   ],
   (req, res, next) => {
     // バリデーションチェック
@@ -173,24 +200,44 @@ router.post(
 
     // POSTされたデータを変数化
     let postData = req.body;
-    return task
-      .create({
+
+    return models.sequelize.transaction().then(tx => {
+      return task.create({
         task_name: postData.task_name,
         task_description: postData.task_description,
         user_id: postData.user_id,
         status: postData.status,
         project_id: postData.project_id,
         priority: postData.priority,
-      })
-      .then((task) => {
-        // console.log('task new record => ', task);
-        // 挿入結果を取得する
-        // レコードの新規追加が完了した場合は､リファラーでリダイレクト
-        return res.redirect('back');
-      })
-      .catch((error) => {
+      }, {
+        transaction: tx,
+      }).then((task) => {
+        // タスクの登録が完了したあと､画像とタスクを紐付ける
+        console.log('task new record => ', task);
+        let imageIDList = req.body.image_id;
+        let imagePromiseList = [];
+        imageIDList.forEach((imageID, index) => {
+          let pro = models.TaskImage.create({
+            image_id: imageID,
+            task_id: task.id,
+          }, {
+            transaction: tx,
+          });
+          imagePromiseList.push(pro);
+        });
+
+        return Promise.all(imagePromiseList).then((promiseList) => {
+          console.log("PromiseList => ", promiseList);
+          // トランザクションコミットを実行
+          console.log("tx.commit() => ", tx.commit());
+          // レコードの新規追加が完了した場合は､リファラーでリダイレクト
+          return res.redirect('back');
+        })
+      }).catch((error) => {
+        console.log("tx.rollback() => ", tx.rollback());
         return next(new Error(error));
       });
+    })
   }
 );
 

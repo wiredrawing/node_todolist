@@ -1,3 +1,9 @@
 /node_modules/*
-
 node_modules
+
+/uploaded_images/*
+uploaded_images
+
+/tmp/*
+tmp
+

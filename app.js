@@ -9,20 +9,22 @@ var indexRouter = require('./routes/index');
 var userRouter = require('./routes/user');
 let todoRouter = require('./routes/todo');
 let projectRouter = require('./routes/project');
+// API向けルーティング
+let imageApiRouter = require('./routes/api/image');
 
-let applicationConfig = require('./config/application-config');
 // es6 modules
 let models = require('./models/index.js');
 const { check, validationResult } = require('express-validator');
 const { profileEnd } = require('console');
 
 const session = require('express-session');
-
+const fileUpload = require('express-fileupload');
 const EventEmitter = require('events');
 let emitter = new EventEmitter();
 emitter.on('get_star', (task_id) => {
   console.log('タスクID => ' + task_id + ' にスターを獲得しました｡');
 });
+
 
 var app = express();
 
@@ -46,6 +48,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+
 app.use(
   session({
     secret: '暗号化ソルト',
@@ -54,6 +57,17 @@ app.use(
     cookie: {
       maxAge: 10 * 10000,
     },
+  })
+);
+
+// ファイルアップロードのためのミドルウェア
+app.use(
+  fileUpload({
+    createParentPath: true,
+    useTempFiles: true,
+    tempFileDir: 'tmp/',
+    setFileNames: true,
+    debug: true,
   })
 );
 
@@ -72,7 +86,7 @@ app.use((req, res, next) => {
   });
   Promise.all([users, tasks, projects])
     .then((data) => {
-      console.log("毎リクエストごとに動く");
+      console.log('毎リクエストごとに動く');
       let users = data[0];
       let tasks = data[1];
       let projects = data[2];
@@ -102,6 +116,7 @@ app.use((req, res, next) => {
         taskIDList: taskIDList,
         projectIDList: projectIDList,
         e: emitter,
+        applicationPath: __dirname,
       };
       return next();
     })
@@ -110,10 +125,15 @@ app.use((req, res, next) => {
     });
 });
 
+
+
 app.use('/', indexRouter);
 app.use('/user', userRouter);
 app.use('/todo', todoRouter);
 app.use('/project', projectRouter);
+
+// API用ルーティング
+app.use('/api/image', imageApiRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
