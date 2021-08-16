@@ -2,13 +2,7 @@ let express = require('express');
 let router = express.Router();
 let models = require('../models/index.js');
 const { check, validationResult } = require('express-validator');
-const { route } = require('./index.js');
 const applicationConfig = require('../config/application-config.js');
-const task = require('../models/task.js');
-const moment = require('moment');
-const { resolveInclude } = require('ejs');
-const session = require('express-session');
-const { priorityStatus } = require('../config/application-config.js');
 const { Op } = require('sequelize');
 
 let userIDList = [];
@@ -44,7 +38,8 @@ applicationConfig.priorityStatus.forEach((data, index) => {
   priorityNameList[data.id] = data.value;
 });
 
-console.log(priorityStatusList);
+console.log("priorityStatusList => ", priorityStatusList);
+
 
 /**
  * 登録中のタスク一覧を表示させる
@@ -85,7 +80,7 @@ router.get('/', (req, res, next) => {
     }).then((response) => {
       console.log("response => ", response);
       // ビューを表示
-      res.render('./todo/index', {
+      return res.render('./todo/index', {
         tasks: response,
         actionUrlToStar: actionUrlToStar,
         taskStatusNameList: taskStatusNameList,
@@ -241,41 +236,38 @@ router.post(
   }
 );
 
-/**
- * 指定したタスクの詳細情報を確認する
- *
- */
-router.get('/detail/:taskID', (req, res, index) => {
+
+router.get('/detail/:task_id', (req, res, next) => {
   let sessionErrors = {};
   if (req.session.sessionErrors) {
     sessionErrors = req.session.sessionErrors;
   }
-
-  // console.log(sessionErrors);
-  // console.log('===>', sessionErrors);
   // taskモデルのpromiseを取得
-  let taskID = req.params.taskID;
+  let taskID = req.params.task_id;
   // userモデルのpromiseを取得
   let users = models.user.findAll({
     order: [['id', 'asc']],
   });
   let task = models.task.findByPk(taskID, {
     include: [{ model: models.user }],
+  }).then((task) => {
+    if (task === null) {
+      return Promise.reject(new Error("指定したタスク情報が見つかりませんでした｡"));
+    }
+    return task;
   });
-
   let projects = models.Project.findAll({
     include: [{ model: models.task }],
   });
 
   // usersとtaskの両方が完了した段階で実行
-  Promise.all([users, task, projects])
-    .then((data) => {
+  Promise.all([users, task, projects]).then((data) => {
       let users = data[0];
       let task = data[1];
       let projects = data[2];
       // console.log(task.created_at);
       // console.log(task.updated_at);
-      res.render('todo/detail', {
+      res.render('todo/edit', {
         task: task,
         users: users,
         projects: projects,
@@ -290,11 +282,62 @@ router.get('/detail/:taskID', (req, res, index) => {
     });
 });
 
+
+/**
+ * 指定したタスクの詳細情報を確認する
+ *
+ */
+router.get('/edit/:task_id', (req, res, next) => {
+  let sessionErrors = {};
+  if (req.session.sessionErrors) {
+    sessionErrors = req.session.sessionErrors;
+  }
+  // taskモデルのpromiseを取得
+  let taskID = req.params.task_id;
+  // userモデルのpromiseを取得
+  let users = models.user.findAll({
+    order: [['id', 'asc']],
+  });
+  let task = models.task.findByPk(taskID, {
+    include: [{ model: models.user }],
+  }).then((task) => {
+    if (task === null) {
+      return Promise.reject(new Error("指定したタスク情報が見つかりませんでした｡"));
+    }
+    return task;
+  });
+  let projects = models.Project.findAll({
+    include: [{ model: models.task }],
+  });
+
+  // usersとtaskの両方が完了した段階で実行
+  Promise.all([users, task, projects]).then((data) => {
+      let users = data[0];
+      let task = data[1];
+      let projects = data[2];
+      // console.log(task.created_at);
+      // console.log(task.updated_at);
+      res.render('todo/edit', {
+        task: task,
+        users: users,
+        projects: projects,
+        taskStatusList: applicationConfig.statusList,
+        priorityStatus: applicationConfig.priorityStatus,
+        sessionErrors: sessionErrors,
+      });
+    })
+    .catch((error) => {
+      // console.log(error);
+      return next(new Error(error));
+    });
+});
+
+
 /**
  * 既存のタスク情報を更新する
  */
 router.post(
-  '/detail/:taskID',
+  '/edit/:taskID',
   [
     // バリデーションチェック
     check('task_name').isLength({ min: 1, max: 256 }).withMessage('タスク名を正しく入力して下さい｡'),

@@ -29,8 +29,9 @@
               <th>タスク名</th>
               <th>プロジェクト名</th>
               <th>担当者</th>
-              <th>作業ステータス</th>
+              <th><small>ステータス</small></th>
               <th>スター数</th>
+              <th>編集</th>
               <th>作成日<br>更新日</th>
             </tr>
           </thead>
@@ -39,7 +40,7 @@
             <tr>
               <td><%- data.id %></td>
               <td>
-                <a href="/todo/detail/<%- data.id %>">
+                <a class="btn btn-outline-primary" href="/todo/detail/<%- data.id %>">
                   <%- data.task_name %>
                 </a>
               </td>
@@ -53,7 +54,7 @@
               <td>
                 <%- data.user_id %>
                 <% if (data.user) { %>
-                (<%- data.user.id %>)<%- data.user.user_name %>
+                  <%- data.user.user_name %>/(<%- data.user.id %>)
                 <% } else { %>
                   ー
                 <% } %>
@@ -67,8 +68,13 @@
                 </form>
               </td>
               <td>
-                <%- data.formatted_created_at() %><br>
-                <%- data.formatted_updated_at() %>
+                <a class="btn btn-outline-info" href="/todo/edit/<%- data.id %>">
+                  編集
+                </a>
+              </td>
+              <td>
+                <small><%- data.formatted_created_at() %></small><br>
+                <small><%- data.formatted_updated_at() %></small>
               </td>
             </tr>
             <% }) %>
