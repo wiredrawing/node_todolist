@@ -38,6 +38,7 @@ module.exports = (sequelize, DataTypes) => {
     project_name: DataTypes.STRING,
     project_description: DataTypes.TEXT,
     user_id: DataTypes.BIGINT,
+    is_displayed: DataTypes.INTEGER,
   }, {
     sequelize,
     modelName: 'Project',

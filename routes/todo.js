@@ -40,6 +40,12 @@ applicationConfig.priorityStatus.forEach((data, index) => {
 
 console.log("priorityStatusList => ", priorityStatusList);
 
+let displayStatusList = [];
+applicationConfig.displayStatusList.forEach((status, index) => {
+  displayStatusList.push(status.id);
+});
+console.log("displayStatusList => ", displayStatusList);
+
 
 /**
  * 登録中のタスク一覧を表示させる
@@ -236,7 +242,10 @@ router.post(
   }
 );
 
-
+// --------------------------------------------------------
+// 閲覧専用のタスク情報を表示および
+// 当該のタスクに対してのコメントフォームを表示
+// --------------------------------------------------------
 router.get('/detail/:task_id', (req, res, next) => {
   let sessionErrors = {};
   if (req.session.sessionErrors) {
@@ -261,18 +270,19 @@ router.get('/detail/:task_id', (req, res, next) => {
   });
 
   // usersとtaskの両方が完了した段階で実行
-  Promise.all([users, task, projects]).then((data) => {
+  return Promise.all([users, task, projects]).then((data) => {
       let users = data[0];
       let task = data[1];
       let projects = data[2];
       // console.log(task.created_at);
       // console.log(task.updated_at);
-      res.render('todo/edit', {
+      res.render('todo/detail', {
         task: task,
         users: users,
         projects: projects,
         taskStatusList: applicationConfig.statusList,
         priorityStatus: applicationConfig.priorityStatus,
+        displayStatusList: applicationConfig.displayStatusList,
         sessionErrors: sessionErrors,
       });
     })
@@ -280,6 +290,24 @@ router.get('/detail/:task_id', (req, res, next) => {
       // console.log(error);
       return next(new Error(error));
     });
+});
+
+
+// --------------------------------------------------------
+// 指定したタスクに対してのコメント登録処理を実行
+// --------------------------------------------------------
+router.post("/comment/:task_id", [
+  check("comment", "コメントを必ず入力して下さい"),
+], (req, res, next) => {
+
+  const errors = validationResult(req);
+
+  if (errors.isEmpty() !== true) {
+    console.log("validation errors => ", errors);
+  }
+
+  console.log(req.body);
+  return res.redirect("back");
 });
 
 
@@ -311,22 +339,22 @@ router.get('/edit/:task_id', (req, res, next) => {
   });
 
   // usersとtaskの両方が完了した段階で実行
-  Promise.all([users, task, projects]).then((data) => {
+  return Promise.all([users, task, projects]).then((data) => {
       let users = data[0];
       let task = data[1];
       let projects = data[2];
       // console.log(task.created_at);
       // console.log(task.updated_at);
-      res.render('todo/edit', {
+      return res.render('todo/edit', {
         task: task,
         users: users,
         projects: projects,
         taskStatusList: applicationConfig.statusList,
         priorityStatus: applicationConfig.priorityStatus,
+        displayStatusList: applicationConfig.displayStatusList,
         sessionErrors: sessionErrors,
       });
-    })
-    .catch((error) => {
+    }).catch((error) => {
       // console.log(error);
       return next(new Error(error));
     });
@@ -357,8 +385,20 @@ router.post(
       .withMessage('Error1')
       .isIn(userIDList)
       .withMessage('Error2'),
+    check("project_id", "正しいプロジェクトIDを選択して下さい").isNumeric().custom((value, {req}) => {
+      return models.Project.findAll({
+        where: {
+          id: value,
+        }
+      }).then((project) => {
+        console.log("validation in project => ", project);
+      }).catch((error) => {
+        throw new Error(error);
+      });
+    }),
     check('status').isNumeric().isIn(taskStatusList).withMessage('タスクステータスは有効な値を設定して下さい｡'),
     check('priority').isNumeric().isIn(priorityStatusList).withMessage('優先度は正しい値で設定して下さい'),
+    check("is_displayed", "正しい表示状態を選択して下さい").isIn(displayStatusList),
   ],
   (req, res, next) => {
     const errors = validationResult(req);
@@ -373,41 +413,38 @@ router.post(
       });
       req.session.sessionErrors = sessionErrors;
       console.log(sessionErrors);
-      return res.redirect(301, '/todo/detail/' + req.params.taskID);
+      return res.redirect(301, '/todo/edit/' + req.params.taskID);
       // return (next(new Error(errors.errors)));
     }
     let postData = req.body;
 
     // 指定したtaskレコードをアップデートする
-    models.task
-      .findByPk(req.params.taskID)
-      .then((task) => {
-        return task
-          .update({
-            // primaryKeyで取得したレコードを更新する
-            task_name: postData.task_name,
-            task_description: postData.task_description,
-            user_id: postData.user_id,
-            status: postData.status,
-            project_id: postData.project_id,
-            priority: postData.priority,
-          })
-          .then((result) => {
-            return result;
-          })
-          .catch((error) => {
-            // console.log(error);
-            return next(new Error(error));
-          });
-      })
-      .then((result) => {
-        console.log('result => ', result);
-        res.redirect(301, '/todo/detail/' + req.params.taskID);
-      })
-      .catch((error) => {
-        // console.log(error);
-        return next(new Error(error));
-      });
+    return models.task.findByPk(req.params.taskID).then((task) => {
+      return task
+        .update({
+          // primaryKeyで取得したレコードを更新する
+          task_name: postData.task_name,
+          task_description: postData.task_description,
+          user_id: postData.user_id,
+          status: postData.status,
+          project_id: postData.project_id,
+          priority: postData.priority,
+          is_displayed: postData.is_displayed,
+        })
+        .then((result) => {
+          return result;
+        })
+        .catch((error) => {
+          // console.log(error);
+          return next(new Error(error));
+        });
+    }).then((result) => {
+      console.log('result => ', result);
+      res.redirect(301, '/todo/edit/' + req.params.taskID);
+    }).catch((error) => {
+      // console.log(error);
+      return next(new Error(error));
+    });
   }
 );
 

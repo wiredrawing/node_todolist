@@ -27,10 +27,8 @@
               <th>タスク名</th>
               <th>概要</th>
               <th>作業者</th>
-              <th>開始日</th>
-              <th>終了日</th>
-              <th>作成日</th>
-              <th>更新日</th>
+              <th>開始日<br>終了日</th>
+              <th>作成日<br>更新日</th>
             </tr>
           </thead>
           <tbody>
@@ -53,8 +51,14 @@
                 ー
                 <% } %>
               </td>
-              <td><%- data.formatted_created_at() %></td>
-              <td><%- data.formatted_updated_at() %></td>
+              <td>
+                ここには､タスク開始日を表示します｡<br>
+                ここには､タスク終了日を表示します｡
+              </td>
+              <td>
+                <%- data.formatted_created_at() %><br>
+                <%- data.formatted_updated_at() %>
+              </td>
             </tr>
             <% }) %>
           </tbody>

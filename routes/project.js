@@ -1,21 +1,19 @@
 var express = require('express');
-const { DatabaseError } = require('pg');
 var router = express.Router();
 
 // モデルロード
 const models = require('../models/index.js');
-const { route } = require('./index.js');
 
 // バリデーション用のモジュールを読み込み
 const { check, validationResult } = require('express-validator');
 const applicationConfig = require('../config/application-config');
-const session = require('express-session');
 const { Op } = require('sequelize');
 // 表示フラグのバリデーション用
-let displayStatus = [];
-applicationConfig.displayStatus.forEach((status, index) => {
-  displayStatus.push(status.id);
+let displayStatusList = [];
+applicationConfig.displayStatusList.forEach((status, index) => {
+  displayStatusList.push(status.id);
 });
+console.log("displayStatusList => ", displayStatusList);
 
 // プロジェクト一覧ページ
 router.get('/', function (req, res, next) {
@@ -120,7 +118,25 @@ router.post(
       }),
     check('project_name').isLength({ min: 1, max: 256 }).withMessage('プロジェクト名を入力して下さい'),
     check('project_description').isLength({ min: 1, max: 4096 }).withMessage('プロジェクトの概要を4000文字以内で入力して下さい｡'),
-    check('status').isIn(displayStatus).withMessage('正しい表示設定を選択して下さい'),
+    check('image_id', '指定した画像がアップロードされていません｡').isArray().custom(function (value) {
+        return models.Image.findAll({
+          where: {
+            id: {
+              [Op.in]: value,
+            },
+          },
+        })
+          .then((images) => {
+            console.log('images => ', images);
+            if (images.length !== value.length) {
+              return Promise.reject(new Error('指定した画像がアップロードされていません｡'));
+            }
+            return true;
+          })
+          .catch((error) => {
+            throw new Error(error);
+          });
+      }),
   ],
   (req, res, next) => {
     // POSTデータを取得
@@ -145,15 +161,13 @@ router.post(
       project_description: postData.project_description,
       // user_idは当該プロジェクトのリーダーになるID
       user_id: postData.user_id,
-    })
-      .then((data) => {
-        // returnする
-        return res.redirect(301, '/project/');
-      })
-      .catch((error) => {
-        // return
-        return next(new Error(error));
-      });
+    }).then((data) => {
+      // returnする
+      return res.redirect(301, '/project/');
+    }).catch((error) => {
+      // return
+      return next(new Error(error));
+    });
   }
 );
 
@@ -206,10 +220,12 @@ router.get(
       .then((data) => {
         let users = data[0];
         let project = data[1];
+        console.log("===> project.is_displayed => ", project.is_displayed);
         return res.render('project/detail', {
           users: users,
           project: project,
           sessionErrors: sessionErrors,
+          displayStatusList: applicationConfig.displayStatusList
         });
       })
       .catch((error) => {
@@ -241,7 +257,6 @@ router.post(
       }),
     check('project_name').isLength({ min: 1, max: 256 }).withMessage('プロジェクト名を入力して下さい'),
     check('project_description').isLength({ min: 1, max: 4096 }).withMessage('プロジェクトの概要を4000文字以内で入力して下さい｡'),
-    // check("status").isIn(displayStatus).withMessage("正しい表示設定を選択して下さい"),
     check('project_id')
       .isNumeric()
       .custom((value, { req }) => {
@@ -260,6 +275,7 @@ router.post(
           });
       })
       .withMessage('正しいフォーマットで入力して下さい'),
+    check("is_displayed", "表示状態を正しく選択して下さい").isIn(displayStatusList)
   ],
   (req, res, next) => {
     console.log('req.body => ', req.body);
@@ -284,6 +300,7 @@ router.post(
             project_name: postData.project_name,
             project_description: postData.project_description,
             user_id: postData.user_id,
+            is_displayed: postData.is_displayed,
           })
           .then((project) => {
             console.log('project => ', project);
@@ -304,6 +321,9 @@ router.post(
   }
 );
 
+// --------------------------------------------------
+// 指定したプロジェクトに紐づくタスク一覧を取得する
+// --------------------------------------------------
 router.get(
   '/task/:projectID',
   [
@@ -325,22 +345,22 @@ router.get(
       include: [
         {
           model: models.task,
-          include: [{ model: models.user }],
+          include: [
+            { model: models.user }
+          ],
         },
       ],
       order: [[models.task, 'id', 'desc']],
-    })
-      .then((project) => {
-        console.log(project);
-        // ビューを返却
-        return res.render('project/task', {
-          project: project,
-        });
-      })
-      .catch((error) => {
-        console.log(error);
-        return next(new Error(error));
+    }).then((project) => {
+      console.log("task/:projectID project => ", project);
+      // ビューを返却
+      return res.render('project/task', {
+        project: project,
       });
+    }).catch((error) => {
+      console.log(error);
+      return next(new Error(error));
+    });
   }
 );
 module.exports = router;

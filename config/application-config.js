@@ -32,7 +32,7 @@ let applicationConfig = {
     off: 0,
   },
 
-  displayStatus: [
+  displayStatusList: [
     {id: 1, value: "表示する"},
     {id: 0, value: "非表示にする"},
   ],

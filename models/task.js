@@ -46,6 +46,7 @@ module.exports = (sequelize, DataTypes) => {
     task_description: DataTypes.STRING,
     status: DataTypes.INTEGER,
     priority: DataTypes.INTEGER,
+    is_displayed: DataTypes.INTEGER,
     deleted_at: {
       type: DataTypes.DATE,
       // fieldName: "deleted_at",
@@ -60,6 +61,9 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       // fieldName: "updated_at",
       // underscored: true,
+    },
+    deleted_at: {
+      type: DataTypes.DATE,
     }
   }, {
     sequelize,

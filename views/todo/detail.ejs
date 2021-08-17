@@ -2,8 +2,8 @@
 
 <div class="col-xs-12 col-sm-12 col-md-10 ">
   <div class="content-box-large ">
-    <div class="panel-title ">登録中タスク内容</div>
-    <div class="row " id="app ">
+    <div class="panel-title ">登録中タスク内容 (表示用)</div>
+    <div class="row" id="app ">
       <div class="col-xl-12 ">
         <form method="POST" action="" accept-charset="UTF-8 " id="form-to-add-new-shop " class="form-group " ref="form ">
           <div class="row ">
@@ -156,11 +156,38 @@
       </div>
     </div>
   </div>
+
+  <div class="content-box-large">
+    <div class="panel-title">コメントフォーム</div>
+      <form method="POST" action="/todo/comment/<%- task.id %>" accept-charset="UTF-8" class="form-group">
+        <div class="row ">
+          <div class="col-sm-12 col-md-12 col-lg-12 col-xl-12">
+            <p>コメント内容</p>
+            <p>
+              <textarea class="form-control" id="task_description" placeholder="注意事項がある場合は入力のこと" name="task_description" cols="50 " rows="10 "><%- task.task_description %></textarea>
+            </p>
+
+            <% if (sessionErrors.comment) { %>
+            <!-- エラーメッセージ -->
+            <div class="col-md-12 col-lg-12 col-xl-12 ">
+              <p class="alert alert-danger "><%- sessionErrors.comment %></p>
+            </div>
+            <!-- エラーメッセージ -->
+            <% } %>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
+            <p>上記内容で店舗更新をする</p>
+            <p>
+              <button class="btn btn-outline-primary" type="submit" >コメントする</button>
+            </p>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
 </div>
-
-
-
-
-
-
 <%- include("../common/footer") %>

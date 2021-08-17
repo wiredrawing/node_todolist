@@ -16,18 +16,21 @@ module.exports = {
       project_description: {
         type: Sequelize.TEXT
       },
-      createdAt: {
+      is_displayed: {
+        type: Sequelize.INTEGER
+      },
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
         field: "created_at",
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
         // スネークケースで対応するため以下のプロパティを追記
         field: "updated_at",
       },
-      deletedAt: {
+      deleted_at: {
         allowNull: true,
         type: Sequelize.DATE,
         field: "deleted_at",
