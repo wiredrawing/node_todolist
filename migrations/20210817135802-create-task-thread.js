@@ -42,6 +42,6 @@ module.exports = {
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('TaskThreads');
+    await queryInterface.dropTable('task_threads');
   }
 };

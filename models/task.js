@@ -22,11 +22,16 @@ module.exports = (sequelize, DataTypes) => {
       });
       // projectsテーブルに紐づく
       task.belongsTo(models.Project, {
-        foreignKey: "project_id",
-        sourceKey: "id",
+        foreignKey: "id",
+        sourceKey: "project_id",
       });
       // 画像とタスクを紐付ける中間テーブルのリレーション
       task.hasMany(models.TaskImage, {
+        foreignKey: "task_id",
+        sourceKey: "id",
+      });
+      // タスクに紐づくコメント一覧を取得するリレーション
+      task.hasMany(models.TaskComment, {
         foreignKey: "task_id",
         sourceKey: "id",
       });

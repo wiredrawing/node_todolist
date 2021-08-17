@@ -2,6 +2,8 @@
 const {
   Model
 } = require('sequelize');
+const moment = require("moment");
+
 module.exports = (sequelize, DataTypes) => {
   class TaskComment extends Model {
     /**
@@ -11,8 +13,22 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      TaskComment.hasOne(models.user, {
+        foreignKey: "id",
+        sourceKey: "user_id",
+      });
     }
+
+    formatted_created_at() {
+      return moment(this.created_at).format("Y年M月d日 H時m分s秒");
+    }
+
+    formatted_updated_at() {
+      return moment(this.updated_at).format("Y年M月d日 H時m分s秒");
+    }
+
   };
+
   TaskComment.init({
     task_id: DataTypes.BIGINT,
     comment: DataTypes.TEXT,

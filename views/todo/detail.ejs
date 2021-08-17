@@ -1,193 +1,111 @@
 <%- include("../common/header") %>
 
 <div class="col-xs-12 col-sm-12 col-md-10 ">
-  <div class="content-box-large ">
-    <div class="panel-title ">登録中タスク内容 (表示用)</div>
-    <div class="row" id="app ">
-      <div class="col-xl-12 ">
-        <form method="POST" action="" accept-charset="UTF-8 " id="form-to-add-new-shop " class="form-group " ref="form ">
-          <div class="row ">
-            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6 ">
-              <p><label class="control-label ">タスクID</label></p>
-              <p>
-                <input class="form-control" type="text" disabled="disabled" value="<%- task.id %>">
-                <input type="hidden" name="task_id" value="<%- task.id %>">
-              </p>
-              <!-- エラーメッセージ -->
-              <div v-for="data in errors.nasse_shop_id " class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger ">{{data}}</p>
-              </div>
-              <!-- エラーメッセージ -->
-            </div>
-          </div>
+  <div class="content-box-large">
 
-          <!-- 作成日時及び更新日時-->
-          <div class="row ">
-            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
-              <p>作成日時</p>
-              <p><input type="text" disabled="disabled" class="form-control" value="<%- task.formatted_created_at() %>"></p>
-            </div>
-            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
-              <p>更新日時</p>
-              <p><input type="text" disabled="disabled" class="form-control" value="<%- task.formatted_updated_at() %>"></p>
-            </div>
-          </div>
+    <div class="row">
+      <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4">
+        <p><label class="control-label ">タスクID</label></p>
+        <p><input class="form-control" type="text" disabled="disabled" value="<%- task.id %>"></p>
+      </div>
+      <!-- 作成日時及び更新日時-->
+      <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4">
+        <p>作成日時</p>
+        <p><input type="text" disabled="disabled" class="form-control" value="<%- task.formatted_created_at() %>"></p>
+      </div>
+      <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4">
+        <p>更新日時</p>
+        <p><input type="text" disabled="disabled" class="form-control" value="<%- task.formatted_updated_at() %>"></p>
+      </div>
+    </div>
 
 
-          <div class="row ">
-            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
-              <p>タスク名</p>
-              <p>
-                <input type="text" class="form-control" name="task_name" value="<%- task.task_name %>">
-              </p>
+    <div class="row ">
+      <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
+        <p>タスク名</p>
+        <p><input type="text" class="form-control" name="task_name" value="<%- task.task_name %>"></p>
+      </div>
 
-              <% if (sessionErrors.task_name) { %>
-              <!-- エラーメッセージ -->
-              <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- sessionErrors.task_name %></p>
-              </div>
-              <!-- エラーメッセージ -->
-              <% } %>
-            </div>
+      <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
+        <p>作業者IDおよび作業者名</p>
+        <p>(<%- task.user_id %>) <%- task.user.user_name %></p>
+      </div>
 
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
-              <p>作業者ID</p>
-              <p>
-                <select class="form-control form-select" name="user_id" id="user_id">
-                  <% users.forEach((user, index) => { %>
-                  <option <% if(task.user_id === user.id) { %> selected="selected" <% } %> value="<%- user.id %>"><%- user.user_name %></option>
-                  <% }) %>
-                </select>
-              </p>
-              <!-- エラーメッセージ -->
-              <div v-for="data in errors.delivery " class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger ">{{data}}</p>
-              </div>
-              <!-- エラーメッセージ -->
-            </div>
+      <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
+        <p>タスクステータス</p>
+        <p><%- taskStatusNameList[task.status] %></p>
+      </div>
+    </div>
 
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
-              <p>タスクステータス</p>
-              <p>
-                <select class="form-control form-select " name="status">
-                  <% taskStatusList.forEach((status, index) => { %>
-                    <option <% if (status.id === task.status) { %> selected="selected" <% } %> value="<%- status.id%>">
-                      <%- status.value %>
-                    </option>
-                  <% }) %>
-                </select>
-              </p>
-              <% if (sessionErrors.status) {%>
-              <!-- エラーメッセージ -->
-              <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- sessionErrors.status %></p>
-              </div>
-              <!-- エラーメッセージ -->
-              <% } %>
-            </div>
-          </div>
+    <div class="row ">
+      <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
+        <p>紐づくプロジェクト</p>
+        <p><%- task.Project.project_name %></p>
+      </div>
 
-          <div class="row ">
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
-              <p>紐づくプロジェクト</p>
-              <p>
-                <select class="form-control form-select" name="project_id">
-                  <% projects.forEach((project, index) => { %>
-                    <option <% if (parseInt(task.project_id) === parseInt(project.id)) { %> selected="selected" <% } %> value="<%- project.id %>">
-                      <%- project.project_name %>　(<%- project.tasks.length %>件)
-                    </option>
-                  <% }) %>
-                </select>
-              </p>
-              <!-- エラーメッセージ -->
-              <div v-for="data in errors.is_displayed " class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger ">{{data}}</p>
-              </div>
-              <!-- エラーメッセージ -->
-            </div>
+      <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
+        <p>優先度の設定</p>
+        <p><%- priorityNameList[task.priority] %></p>
+      </div>
+    </div>
 
-            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
-              <p>優先度の設定</p>
-              <p>
-                <select class="form-control form-select" name="priority">
-                  <% priorityStatus.forEach((priority, index) => { %>
-                  <option <% if (task.priority === priority.id) { %> selected="selected" <% } %> value="<%- priority.id %>" ><%- priority.value %></option>
-                  <% }) %>
-                </select>
-              </p>
-
-              <% if(sessionErrors.priority) { %>
-              <!-- エラーメッセージ -->
-              <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- sessionErrors.priority %></p>
-              </div>
-              <!-- エラーメッセージ -->
-              <% } %>
-
-            </div>
-          </div>
-
-          <div class="row ">
-            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6 ">
-              <p>タスク詳細</p>
-              <p>
-                <textarea class="form-control" id="task_description" placeholder="注意事項がある場合は入力のこと" name="task_description" cols="50 " rows="10 "><%- task.task_description %></textarea>
-              </p>
-
-              <% if (sessionErrors.task_description) { %>
-              <!-- エラーメッセージ -->
-              <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- sessionErrors.task_description %></p>
-              </div>
-              <!-- エラーメッセージ -->
-              <% } %>
-            </div>
-          </div>
-
-          <div class="row ">
-            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6 ">
-              <p>上記内容で店舗更新をする</p>
-              <p>
-                <button class="btn btn-outline-primary " type="button " v-on:click="checkShop ">タスク内容を更新する</button>
-              </p>
-            </div>
-          </div>
-        </form>
+    <div class="row ">
+      <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6 ">
+        <p>タスク詳細</p>
+        <p><%- task.task_description %></p>
       </div>
     </div>
   </div>
 
   <div class="content-box-large">
-    <div class="panel-title">コメントフォーム</div>
+    <div class="row">
       <form method="POST" action="/todo/comment/<%- task.id %>" accept-charset="UTF-8" class="form-group">
+        <input type="hidden" name="task_id" value="<%- task.id %>">
+        <input type="hidden" name="user_id" value="2">
         <div class="row ">
           <div class="col-sm-12 col-md-12 col-lg-12 col-xl-12">
             <p>コメント内容</p>
             <p>
-              <textarea class="form-control" id="task_description" placeholder="注意事項がある場合は入力のこと" name="task_description" cols="50 " rows="10 "><%- task.task_description %></textarea>
+              <textarea class="form-control" id="task_description" placeholder="注意事項がある場合は入力のこと" name="comment" cols="50 " rows="10 "></textarea>
             </p>
-
-            <% if (sessionErrors.comment) { %>
-            <!-- エラーメッセージ -->
-            <div class="col-md-12 col-lg-12 col-xl-12 ">
-              <p class="alert alert-danger "><%- sessionErrors.comment %></p>
-            </div>
-            <!-- エラーメッセージ -->
-            <% } %>
           </div>
+          <% if (sessionErrors.comment) { %>
+          <!-- エラーメッセージ -->
+          <div class="col-md-12 col-lg-12 col-xl-12 ">
+            <p class="alert alert-danger "><%- sessionErrors.comment %></p>
+          </div>
+          <!-- エラーメッセージ -->
+          <% } %>
         </div>
 
         <div class="row">
           <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
             <p>上記内容で店舗更新をする</p>
-            <p>
-              <button class="btn btn-outline-primary" type="submit" >コメントする</button>
-            </p>
+            <p><button class="btn btn-outline-primary" type="submit" >コメントする</button></p>
           </div>
         </div>
       </form>
     </div>
-  </div>
 
+    <!-- 投稿されたコメント群 -->
+    <div class="row">
+      <% task.TaskComments.forEach((taskComment, index) => { %>
+        <div class="col-md-6 col-lg-6 col-xl-6">
+          <p class="form-control"><%- taskComment.comment %></p>
+        </div>
+        <div class="col-md-3 col-lg-3 col-xl-3">
+          <p class="form-control"><%- taskComment.user.user_name %></p>
+        </div>
+        <div class="col-md-3 col-lg-3 col-xl-3">
+          <p class="form-control">
+            <%- taskComment.formatted_created_at() %><br>
+            <%- taskComment.formatted_updated_at() %>
+          </p>
+        </div>
+      <% }) %>
+    </div>
+  </div>
 </div>
+
+
 <%- include("../common/footer") %>

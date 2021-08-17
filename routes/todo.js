@@ -257,8 +257,21 @@ router.get('/detail/:task_id', (req, res, next) => {
   let users = models.user.findAll({
     order: [['id', 'asc']],
   });
+
+  // タスク情報一覧
   let task = models.task.findByPk(taskID, {
-    include: [{ model: models.user }],
+    include: [
+      { model: models.user },
+      {
+        model: models.TaskComment,
+        include: models.user,
+      },
+      { model: models.Project }
+    ],
+    // 結合先のテーブルにたいしてsortさせる
+    order: [
+      [models.TaskComment, "id", "desc"]
+    ]
   }).then((task) => {
     if (task === null) {
       return Promise.reject(new Error("指定したタスク情報が見つかりませんでした｡"));
@@ -274,19 +287,20 @@ router.get('/detail/:task_id', (req, res, next) => {
       let users = data[0];
       let task = data[1];
       let projects = data[2];
-      // console.log(task.created_at);
-      // console.log(task.updated_at);
-      res.render('todo/detail', {
+
+      console.log("task ===> ", task);
+      return res.render('todo/detail', {
         task: task,
         users: users,
         projects: projects,
+        priorityNameList: priorityNameList,
+        taskStatusNameList: taskStatusNameList,
         taskStatusList: applicationConfig.statusList,
         priorityStatus: applicationConfig.priorityStatus,
         displayStatusList: applicationConfig.displayStatusList,
         sessionErrors: sessionErrors,
       });
-    })
-    .catch((error) => {
+    }).catch((error) => {
       // console.log(error);
       return next(new Error(error));
     });
@@ -304,10 +318,21 @@ router.post("/comment/:task_id", [
 
   if (errors.isEmpty() !== true) {
     console.log("validation errors => ", errors);
+    return res.redirect("back");
   }
 
-  console.log(req.body);
-  return res.redirect("back");
+  // task_commentsテーブルに追加
+  return models.TaskComment.create({
+    comment: req.body.comment,
+    task_id: req.body.task_id,
+    user_id: req.body.user_id,
+  }).then((taskComment) => {
+    console.log("taskComment ==> ", taskComment);
+    return res.redirect("back");
+  }).catch((error) => {
+    console.log(error);
+    return next(new Error(error));
+  });
 });
 
 
