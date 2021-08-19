@@ -20,10 +20,11 @@ const { profileEnd } = require('console');
 const session = require('express-session');
 const fileUpload = require('express-fileupload');
 const EventEmitter = require('events');
-let emitter = new EventEmitter();
-emitter.on('get_star', (task_id) => {
-  console.log('タスクID => ' + task_id + ' にスターを獲得しました｡');
-});
+
+// let emitter = new EventEmitter();
+// emitter.on('get_star', (task_id) => {
+//   console.log('タスクID => ' + task_id + ' にスターを獲得しました｡');
+// });
 
 
 var app = express();
@@ -115,7 +116,7 @@ app.use((req, res, next) => {
         userIDList: userIDList,
         taskIDList: taskIDList,
         projectIDList: projectIDList,
-        e: emitter,
+        // e: emitter,
         applicationPath: __dirname,
       };
       return next();

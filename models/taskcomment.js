@@ -19,6 +19,15 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
 
+    /**
+     * 改行済みのコメントを取得する
+     *
+     */
+    get_new_line_comment()
+    {
+      return this.comment.replace(/\n/g, "<br>");
+    }
+
     formatted_created_at() {
       return moment(this.created_at).format("Y年M月d日 H時m分s秒");
     }

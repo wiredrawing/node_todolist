@@ -23,7 +23,7 @@
     <div class="row ">
       <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
         <p>タスク名</p>
-        <p><input type="text" class="form-control" name="task_name" value="<%- task.task_name %>"></p>
+        <p><%- task.task_name %></p>
       </div>
 
       <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
@@ -90,17 +90,16 @@
     <!-- 投稿されたコメント群 -->
     <div class="row">
       <% task.TaskComments.forEach((taskComment, index) => { %>
-        <div class="col-md-6 col-lg-6 col-xl-6">
-          <p class="form-control"><%- taskComment.comment %></p>
-        </div>
         <div class="col-md-3 col-lg-3 col-xl-3">
+          <p class="form-control">コメントID:<%- taskComment.id %></p>
           <p class="form-control"><%- taskComment.user.user_name %></p>
-        </div>
-        <div class="col-md-3 col-lg-3 col-xl-3">
           <p class="form-control">
             <%- taskComment.formatted_created_at() %><br>
             <%- taskComment.formatted_updated_at() %>
           </p>
+        </div>
+        <div class="col-md-9 col-lg-9 col-xl-9">
+          <p class="form-control"><%- taskComment.get_new_line_comment() %></p>
         </div>
       <% }) %>
     </div>

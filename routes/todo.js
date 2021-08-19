@@ -4,6 +4,7 @@ let models = require('../models/index.js');
 const { check, validationResult } = require('express-validator');
 const applicationConfig = require('../config/application-config.js');
 const { Op } = require('sequelize');
+const session = require('express-session');
 
 let userIDList = [];
 models.user
@@ -100,9 +101,39 @@ router.get('/', (req, res, next) => {
 /**
  * 新規Todoリストの作成
  */
-router.get('/create', (req, res, next) => {
+router.get('/create/:project_id', [
+  check("project_id", "指定したプロジェクトが見つかりません｡").custom((value, obj) => {
+    let projectID = parseInt(value);
+
+    return models.Project.findByPy(projectID).then((project) => {
+      if (project.id === projectID) {
+        return true;
+      }
+      return Promise.reject(new Error("指定したプロジェクトを取得できませんでした"));
+    }).catch((error) => {
+      console.log("error ==> ", error);
+      return Promise.reject(new Error(error));
+    });
+  })
+], (req, res, next) => {
+
   // セッションにエラーを持っている場合
   let sessionErrors = {};
+
+  // バリデーションエラーチェック
+  const errors = validationResult(req);
+  if (errors.isEmpty() !== true) {
+    errors.errors.forEach((error, index) => {
+      sessionErrors[error.param] = error.msg;
+    });
+    console.log("errors.errors ===> ", errors);
+    req.session.sessionErrors = sessionErrors;
+    return res.redirect("back");
+  }
+
+  // 紐付けたいproject_idを取得する
+  let projectID = req.query.project_id;
+
   if (req.session.sessionErrors) {
     sessionErrors = req.session.sessionErrors;
     console.log(sessionErrors);
@@ -125,27 +156,25 @@ router.get('/create', (req, res, next) => {
     include: [{ model: models.task }],
   });
 
-  Promise.all([projectPromise, taskPromise, userPromise])
-    .then((response) => {
-      let actionUrl = req.originalUrl;
-      let projects = response[0];
-      let tasks = response[1];
-      let users = response[2];
-      // Promiseが解決されたらレスポンス返却
-      return res.render('todo/create', {
-        actionUrl: actionUrl,
-        projects: projects,
-        tasks: tasks,
-        users: users,
-        taskStatusList: applicationConfig.statusList,
-        priorityStatus: applicationConfig.priorityStatus,
-        sessionErrors: sessionErrors,
-      });
-    })
-    .catch((error) => {
-      // エラー時はnextメソッドを通じて次の処理へ移す
-      return next(new Error(error));
+  return Promise.all([projectPromise, taskPromise, userPromise]).then((response) => {
+    let actionUrl = req.originalUrl;
+    let projects = response[0];
+    let tasks = response[1];
+    let users = response[2];
+    // Promiseが解決されたらレスポンス返却
+    return res.render('todo/create', {
+      actionUrl: actionUrl,
+      projects: projects,
+      tasks: tasks,
+      users: users,
+      taskStatusList: applicationConfig.statusList,
+      priorityStatus: applicationConfig.priorityStatus,
+      sessionErrors: sessionErrors,
     });
+  }).catch((error) => {
+    // エラー時はnextメソッドを通じて次の処理へ移す
+    return next(new Error(error));
+  });
 });
 
 router.post(
@@ -477,85 +506,79 @@ router.post(
 router.post(
   '/star',
   [
-    check('task_id')
+    check('task_id', '指定したタスクIDが存在しませんでした｡')
       .custom(function (value, obj) {
         // カスタムバリデーション
         // この中でDBのtasksテーブルにPOSTされたtask_idとマッチするものがあるかを検証
-        return models.task
-          .findByPk(value)
-          .then((data) => {
+        return models.task.findByPk(value).then((data) => {
             if (Number(data.id) === Number(value)) {
               return true;
             }
-            return false;
-          })
-          .catch((error) => {
-            return false;
+            return Promise.reject(new Error("指定したタスク情報が見つかりませんでした｡"));
+          }).catch((error) => {
+            console.log("error => ", error);
+            return Promise.reject(new Error(error));
           });
-      })
-      .withMessage('指定したタスクIDが存在しませんでした｡'),
+      }),
   ],
   (req, res, next) => {
     const errors = validationResult(req);
 
-    // バリデーションチェックを実行
-    if (errors.isEmpty() !== true) {
-      // console.log(errors.errors);
-      return next(new Error('バリデーションエラー'));
-    }
-
     let postData = req.body;
 
-    // スターを送られたタスクレコードも更新のみ実行する
-    return models.sequelize
-      .transaction()
-      .then((tx) => {
-        return models.Star.create(
-          {
-            task_id: postData.task_id,
-            user_id: 1,
-          },
-          {
-            transaction: tx,
-          }
-        )
-          .then((star) => {
-            // スターテーブルの更新完了後tasksレコードも更新させる
-            return models.task
-              .findByPk(postData.task_id)
-              .then((task) => {
-                task.updatedAt = new Date();
-                task
-                  .update(
-                    {
-                      updated_at: new Date(),
-                    },
-                    {
-                      transaction: tx,
-                    }
-                  )
-                  .then((task) => {
-                    // // console.log(task);
-                    // 更新成功の場合
-                    tx.commit();
-                    req.__.e.emit('get_star', postData.task_id);
-                    // スター追加後はもとページへリダイレクト
-                    return res.redirect(301, '/todo/');
-                  });
-              })
-              .catch((error) => {
-                return new Error(error);
-              });
-          })
-          .catch((error) => {
-            // // console.log(error);
-            return new Error(error);
-          });
-      })
-      .then((data) => {
-        tx.rollback();
-        return next(new Error(error));
+    // バリデーションチェックを実行
+    if (errors.isEmpty() !== true) {
+      let sessionErrors = {};
+      errors.errors.forEach((error, index) => {
+        sessionErrors[error.param] = error.msg;
       });
+      // エラーをsessionに確保
+      req.session.sessionErrors = sessionErrors;
+      return res.redirect("back");
+    }
+
+    // スターを送られたタスクレコードも更新のみ実行する
+    return models.sequelize.transaction().then((tx) => {
+      // スコープ内にトランザクション変数を明示
+      let transaction = tx;
+
+      return models.Star.create(
+        {
+          task_id: postData.task_id,
+          user_id: 1,
+        },{
+          transaction: transaction,
+      }).then((star) => {
+        // 新規作成レコード
+        console.log("created star object => ", star);
+        // スターテーブルの更新完了後tasksレコードも更新させる
+        return models.task.findByPk(postData.task_id).then((task) => {
+          return task.update(
+            {
+              updated_at: new Date(),
+            },
+            {
+              transaction: transaction,
+            }
+          ).then((task) => {
+            console.log("task ==> ", task);
+            // 更新成功の場合
+            transaction.commit();
+            // req.__.e.emit('get_star', postData.task_id);
+            // スター追加後はもとページへリダイレクト
+            return res.redirect(301, '/todo/');
+          });
+        }).catch((error) => {
+          console.log("error => ", error);
+          return Promise.reject(new Error(error));
+        });
+      }).catch((error) => {
+        transaction.rollback();
+        return Promise.reject(new Error(error));
+      });
+    }).catch((error) => {
+      return next(new Error(error));
+    });
   }
 );
 
