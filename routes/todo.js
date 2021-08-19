@@ -341,6 +341,19 @@ router.get('/detail/:task_id', (req, res, next) => {
 // --------------------------------------------------------
 router.post("/comment/:task_id", [
   check("comment", "コメントを必ず入力して下さい"),
+  check("image_id", "添付ファイルが不正です").isArray().custom((value, obj) => {
+    console.log("value ==> ", value);
+    return models.Image.findAll({
+      where: {
+        id: value,
+      }
+    }).then((images) => {
+      console.log("image.length ==> ", images.length);
+      console.log("images ==> ", images);
+    }).catch((error) => {
+      console.log(error);
+    });
+  })
 ], (req, res, next) => {
 
   const errors = validationResult(req);
