@@ -29,10 +29,8 @@
               <th>プロジェクト名<br>登録タスク数</th>
               <th>概要</th>
               <th>責任者</th>
-              <th>開始日</th>
-              <th>終了日</th>
-              <th>作成日</th>
-              <th>更新日</th>
+              <th>開始日<br>終了日</th>
+              <th>作成日<br>更新日</th>
               <th>編集</th>
               <th>タスク作成</th>
             </tr>
@@ -57,10 +55,14 @@
                 ー
                 <% } %>
               </td>
-              <td><%- data.formatted_created_at() %></td>
-              <td><%- data.formatted_updated_at() %></td>
-              <td><%- data.formatted_created_at() %></td>
-              <td><%- data.formatted_updated_at() %></td>
+              <td>
+                <%- data.formatted_created_at() %><br>
+                <%- data.formatted_updated_at() %>
+              </td>
+              <td>
+                <%- data.formatted_created_at() %><br>
+                <%- data.formatted_updated_at() %>
+              </td>
               <td>
                 <a class="btn btn-outline-primary" href="/project/detail/<%- data.id %>">編集</a>
               </td>

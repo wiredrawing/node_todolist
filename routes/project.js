@@ -55,14 +55,18 @@ router.get('/', function (req, res, next) {
 
 // プロジェクトの新規作成
 router.get('/create', (req, res, next) => {
+  console.log("==============>" , res.locals);
   // バリデーションエラーを取得
   let sessionErrors = {};
   if (req.session.sessionErrors) {
+    // バリデーションエラーのヘルパー関数を登録
+    console.log(req.session.sessionErrors)
+    req.setValidationErrors(req.session.errors);
     sessionErrors = req.session.sessionErrors;
     // セッション内エラーを削除
     req.session.sessionErrors = null;
   }
-
+  console.log("==============>" , res.locals);
   // 現在のリクエストURLを変数に保持
   let actionUrl = req.originalUrl;
 
@@ -152,6 +156,7 @@ router.post(
       errors.errors.forEach((error, index) => {
         sessionErrors[error.param] = error.msg;
       });
+      req.session.errors = errors.errors;
       req.session.sessionErrors = sessionErrors;
       console.log(req.session.sessionErrors);
       return res.redirect('back');

@@ -64,10 +64,10 @@ app.use(
   })
 );
 
+// ------------------------------------------
+// POSTメソッドの場合は､req.bodyをセッションに格納する
+// ------------------------------------------
 app.use(function (req, res, next) {
-  // ------------------------------------------
-  // POSTメソッドの場合は､req.bodyをセッションに格納する
-  // ------------------------------------------
   let sessionPostData = null;
   if (req.method === "POST") {
     req.session.sessionPostData = req.body
@@ -98,6 +98,35 @@ app.use(function (req, res, next) {
   console.log("req.body ===> ", req.body);
   //
 
+  return next();
+});
+
+
+// ------------------------------------------
+// バリデーションエラーの内容をテンプレートで出力できるようにカスタム
+// ------------------------------------------
+app.use(function(req, res, next)  {
+  const setValidationErrors = function (errors) {
+    let sessionErrors = {};
+    errors.forEach((error, index) => {
+      sessionErrors[error.param] = error.msg;
+    });
+
+    // --------------------------------------
+    // Laravelの$errors関数のエミュレーション
+    // helper関数としてテンプレートに登録
+    // --------------------------------------
+    res.locals.errors = function (param) {
+      if (sessionErrors[param]) {
+        return sessionErrors[param]
+      }
+      return "";
+    };
+  }
+
+  req.setValidationErrors = setValidationErrors;
+  // エラーの初期化
+  req.setValidationErrors([]);
   return next();
 });
 

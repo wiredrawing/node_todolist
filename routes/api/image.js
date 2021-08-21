@@ -6,7 +6,6 @@ const applicationConfig = require("../../config/application-config.js");
 const moment = require("moment");
 const fs = require("fs");
 
-
 // ファイルのアップロード処理
 router.post("/upload", function (req, res, next) {
   // プライマリキーを生成
