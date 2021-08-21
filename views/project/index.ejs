@@ -34,6 +34,7 @@
               <th>作成日</th>
               <th>更新日</th>
               <th>編集</th>
+              <th>タスク作成</th>
             </tr>
           </thead>
           <tbody>
@@ -45,9 +46,7 @@
                 </a>
               </td>
               <td>
-                <a href="/project/task/<%- data.id %>">
-                  <%- data.project_name %>(<%- data.tasks.length %>件)
-                </a>
+                <%- data.project_name %>(<%- data.tasks.length %>件)
               </td>
               <td><%- data.project_description %></td>
               <td>
@@ -60,8 +59,14 @@
               </td>
               <td><%- data.formatted_created_at() %></td>
               <td><%- data.formatted_updated_at() %></td>
+              <td><%- data.formatted_created_at() %></td>
+              <td><%- data.formatted_updated_at() %></td>
               <td>
                 <a class="btn btn-outline-primary" href="/project/detail/<%- data.id %>">編集</a>
+              </td>
+              <td>
+                <a class="mb-1 btn btn-outline-primary" href="/todo/create/<%- data.id %>">作成</a><br>
+                <a class="btn btn-outline-info" href="/project/task/<%- data.id %>">一覧</a>
               </td>
             </tr>
             <% }) %>

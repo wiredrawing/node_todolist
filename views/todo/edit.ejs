@@ -13,11 +13,6 @@
                 <input class="form-control" type="text" disabled="disabled" value="<%- task.id %>">
                 <input type="hidden" name="task_id" value="<%- task.id %>">
               </p>
-              <!-- エラーメッセージ -->
-              <div v-for="data in errors.nasse_shop_id " class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger ">{{data}}</p>
-              </div>
-              <!-- エラーメッセージ -->
             </div>
           </div>
 
@@ -38,7 +33,7 @@
             <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
               <p>タスク名</p>
               <p>
-                <input type="text" class="form-control" name="task_name" value="<%- task.task_name %>">
+                <input type="text" class="form-control" name="task_name" value="<%- old("task_name", task.task_name) %>">
               </p>
 
               <% if (sessionErrors.task_name) { %>
@@ -59,11 +54,6 @@
                   <% }) %>
                 </select>
               </p>
-              <!-- エラーメッセージ -->
-              <div v-for="data in errors.delivery " class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger ">{{data}}</p>
-              </div>
-              <!-- エラーメッセージ -->
             </div>
 
             <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
@@ -162,7 +152,13 @@
             <div class="col-sm-12 col-md-12 col-lg-12 col-xl-12">
               <p>タスク詳細</p>
               <p>
-                <textarea class="form-control" id="task_description" placeholder="注意事項がある場合は入力のこと" name="task_description" cols="50 " rows="10 "><%- task.task_description %></textarea>
+                <textarea
+                  class="form-control"
+                  id="task_description"
+                  placeholder="注意事項がある場合は入力のこと"
+                  name="task_description"
+                  cols="50"
+                  rows="10"><%- old("task_description", task.task_description) %></textarea>
               </p>
 
               <% if (sessionErrors.task_description) { %>

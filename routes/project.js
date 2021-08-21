@@ -80,6 +80,7 @@ router.get('/create', (req, res, next) => {
   // Promiseの解決
   Promise.all([users, projects])
     .then(function (response) {
+      console.log(req.old);
       let users = response[0];
       let projects = response[1];
       return res.render('project/create', {
@@ -88,6 +89,7 @@ router.get('/create', (req, res, next) => {
         actionUrl: actionUrl,
         sessionErrors: sessionErrors,
         applicationConfig: applicationConfig,
+        // old: req.old,
       });
     })
     .catch((error) => {
@@ -156,7 +158,7 @@ router.post(
     }
 
     // バリデーションチェックを通過した場合
-    let project = models.Project.create({
+    return models.Project.create({
       project_name: postData.project_name,
       project_description: postData.project_description,
       // user_idは当該プロジェクトのリーダーになるID
@@ -346,7 +348,8 @@ router.get(
         {
           model: models.task,
           include: [
-            { model: models.user }
+            { model: models.user },
+            { model: models.Star },
           ],
         },
       ],

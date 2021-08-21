@@ -6,10 +6,11 @@
     <div class="row " id="app ">
       <div class="col-xl-12 ">
         <form method="POST" action="/todo/create" class="form-group">
+          <input type="hidden" name="project_id" value="<%- projectID %>">
           <div class="row ">
             <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
               <p>タスク名</p>
-              <p><input type="text" class="form-control" name="task_name" value=""></p>
+              <p><input type="text" class="form-control" name="task_name" value="<%- old("task_name") %>"></p>
 
               <% if (sessionErrors.task_name) { %>
               <!-- エラーメッセージ -->
@@ -40,7 +41,9 @@
           <!-- アップロード済み画像をpushしていく-->
           <div id="uploaded-file-block" class="row">
             <div class="uploaded-file-block-unit col-sm-3 col-md-3 col-lg-3 col-xl-3">
-              <p><a href="" target="_blank" class="btn btn-outline-primary uploaded-file-url" >アップロード済み画像</a></p>
+              <p>
+                <a href="" target="_blank" class="btn btn-outline-primary uploaded-file-url" >アップロード済み画像</a>
+              </p>
               <input type="hidden" name="image_id[]" value="">
             </div>
           </div>
@@ -52,7 +55,11 @@
               <p>
                 <select class="form-control form-select" name="user_id" id="user_id">
                   <% users.forEach((user, index) => { %>
-                  <option value="<%- user.id %>"><%- user.user_name %></option>
+                  <option
+                  <% if (Number(user.id) === old("user_id")) {%>
+                  selected="selected"
+                  <% } %>
+                  value="<%- user.id %>"><%- user.user_name %></option>
                   <% }) %>
                 </select>
               </p>
@@ -72,7 +79,11 @@
               <p>
                 <select class="form-control form-select " name="status">
                   <% taskStatusList.forEach((status, index) => { %>
-                    <option  value="<%- status.id%>">
+                    <option
+                    <% if (Number(status.id) === old("status")) {%>
+                      selected="selected"
+                    <% } %>
+                    value="<%- status.id%>">
                       <%- status.value %>
                     </option>
                   <% }) %>
@@ -90,36 +101,15 @@
 
           <div class="row ">
             <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
-              <p>紐づくプロジェクト</p>
-              <p>
-                <select class="form-control form-select" name="project_id">
-                  <% projects.forEach((project, index) => { %>
-                    <option value="<%- project.id %>">
-                      <%- project.project_name %>　(<%- project.tasks.length %>件)
-                    </option>
-                  <% }) %>
-                </select>
-              </p>
-
-              <% if (sessionErrors.project_id ) { %>
-              <!-- エラーメッセージ -->
-              <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger"><%- sessionErrors.project_id %></p>
-              </div>
-              <!-- エラーメッセージ -->
-              <% } %>
-
-            </div>
-
-          </div>
-
-          <div class="row ">
-            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
               <p>優先度の設定</p>
               <p>
                 <select class="form-control form-select" name="priority">
                   <% priorityStatus.forEach((data, index) => { %>
-                    <option value="<%- data.id %>">
+                    <option
+                    <% if (Number(data.id) === old("priority")) {%>
+                      selected="selected"
+                    <% } %>
+                    value="<%- data.id %>">
                       <%- data.value %>
                     </option>
                   <% }) %>
@@ -140,7 +130,7 @@
             <div class="col-sm-12 col-md-12 col-lg-12 col-xl-12">
               <p>タスク詳細</p>
               <p>
-                <textarea class="form-control" id="task_description" placeholder="注意事項がある場合は入力のこと" name="task_description" cols="50 " rows="10 "></textarea>
+                <textarea class="form-control" id="task_description" placeholder="注意事項がある場合は入力のこと" name="task_description" cols="50 " rows="10 "><%- old("task_description") %></textarea>
               </p>
 
               <% if (sessionErrors.task_description) { %>

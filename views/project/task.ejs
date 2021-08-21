@@ -11,11 +11,11 @@
         <div class="row">
           <div class="col-6 mb-5">
             <p>検索キーワード</p>
-            <input type="text" class="form-control" v-model="keyword">
+            <input type="text" class="form-control">
           </div>
           <div class="col-6 mb-5">
             <p>検索キーワード</p>
-            <input class="btn btn-primary" type="button" v-on:click="moveToThePage(0)" value="プロジェクトの検索">
+            <input class="btn btn-primary" type="button" value="プロジェクトの検索">
           </div>
         </div>
       </div>
@@ -29,15 +29,15 @@
               <th>作業者</th>
               <th>開始日<br>終了日</th>
               <th>作成日<br>更新日</th>
+              <th>編集</th>
+              <th>スター★</th>
             </tr>
           </thead>
           <tbody>
             <% project.tasks.forEach((data, index) =>  { %>
             <tr>
               <td>
-                <a class="btn btn-outline-info" href="/todo/detail/<%- data.id %>">
-                  <%- data.id %>
-                </a>
+                <%- data.id %>
               </td>
               <td>
                 <%- data.task_name %>
@@ -56,9 +56,13 @@
                 ここには､タスク終了日を表示します｡
               </td>
               <td>
-                <%- data.formatted_created_at() %><br>
-                <%- data.formatted_updated_at() %>
+                <small><%- data.formatted_created_at() %><br>
+                <%- data.formatted_updated_at() %></small>
               </td>
+              <td>
+                <a class="btn btn-outline-info" href="/todo/detail/<%- data.id %>">編集</a>
+              </td>
+              <td><%- data.Stars.length %>個</td>
             </tr>
             <% }) %>
           </tbody>

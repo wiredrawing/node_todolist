@@ -81,12 +81,16 @@ router.get('/', (req, res, next) => {
         { model: models.Star },
         { model: models.Project },
         { model: models.user },
+        { model: models.user, as: "belongsToUser"},
         { model: models.TaskImage },
       ],
       order: [['id', 'desc']],
     }).then((response) => {
       console.log("response => ", response);
       // ビューを表示
+      response.forEach((data, index) => {
+        console.log(data.Project);
+      });
       return res.render('./todo/index', {
         tasks: response,
         actionUrlToStar: actionUrlToStar,
@@ -102,10 +106,10 @@ router.get('/', (req, res, next) => {
  * 新規Todoリストの作成
  */
 router.get('/create/:project_id', [
+  // URLパラメータproject_idのバリデーション
   check("project_id", "指定したプロジェクトが見つかりません｡").custom((value, obj) => {
     let projectID = parseInt(value);
-
-    return models.Project.findByPy(projectID).then((project) => {
+    return models.Project.findByPk(projectID).then((project) => {
       if (project.id === projectID) {
         return true;
       }
@@ -116,6 +120,8 @@ router.get('/create/:project_id', [
     });
   })
 ], (req, res, next) => {
+  // タスク登録時の親テーブルのID
+  let projectID = req.params.project_id;
 
   // セッションにエラーを持っている場合
   let sessionErrors = {};
@@ -131,42 +137,38 @@ router.get('/create/:project_id', [
     return res.redirect("back");
   }
 
-  // 紐付けたいproject_idを取得する
-  let projectID = req.query.project_id;
-
   if (req.session.sessionErrors) {
     sessionErrors = req.session.sessionErrors;
     console.log(sessionErrors);
     req.session.sessionErrors = null;
   }
-
-  // プロジェクト情報取得用プロミス
-  let projectPromise = models.Project.findAll({
-    include: [{ model: models.task }],
-  });
-
   // タスク一覧を取得するプロミス
   let taskPromise = models.task.findAll({
-    include: [{ model: models.Star }, { model: models.Project }, { model: models.user }],
+    include: [
+      { model: models.Star },
+      { model: models.Project },
+      { model: models.user }],
     order: [['id', 'desc']],
   });
 
   // 担当者一覧
   let userPromise = models.user.findAll({
     include: [{ model: models.task }],
+    order: [
+      ["id", "desc"],
+    ]
   });
 
-  return Promise.all([projectPromise, taskPromise, userPromise]).then((response) => {
+  return Promise.all([taskPromise, userPromise]).then((response) => {
     let actionUrl = req.originalUrl;
-    let projects = response[0];
-    let tasks = response[1];
-    let users = response[2];
+    let tasks = response[0];
+    let users = response[1];
     // Promiseが解決されたらレスポンス返却
     return res.render('todo/create', {
       actionUrl: actionUrl,
-      projects: projects,
       tasks: tasks,
       users: users,
+      projectID: projectID,
       taskStatusList: applicationConfig.statusList,
       priorityStatus: applicationConfig.priorityStatus,
       sessionErrors: sessionErrors,
@@ -239,6 +241,7 @@ router.post(
         status: postData.status,
         project_id: postData.project_id,
         priority: postData.priority,
+        is_displayed: applicationConfig.binaryType.on,
       }, {
         transaction: tx,
       }).then((task) => {
@@ -293,7 +296,9 @@ router.get('/detail/:task_id', (req, res, next) => {
       { model: models.user },
       {
         model: models.TaskComment,
-        include: models.user,
+        include: [
+          {model: models.user},
+        ]
       },
       { model: models.Project }
     ],
@@ -302,6 +307,7 @@ router.get('/detail/:task_id', (req, res, next) => {
       [models.TaskComment, "id", "desc"]
     ]
   }).then((task) => {
+    console.log(task);
     if (task === null) {
       return Promise.reject(new Error("指定したタスク情報が見つかりませんでした｡"));
     }

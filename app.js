@@ -5,10 +5,13 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 let bodyParser = require('body-parser');
 
+// テンプレート用ルーティング
 var indexRouter = require('./routes/index');
 var userRouter = require('./routes/user');
 let todoRouter = require('./routes/todo');
 let projectRouter = require('./routes/project');
+let imageRouter = require("./routes/image.js");
+
 // API向けルーティング
 let imageApiRouter = require('./routes/api/image');
 
@@ -19,7 +22,7 @@ const { profileEnd } = require('console');
 
 const session = require('express-session');
 const fileUpload = require('express-fileupload');
-const EventEmitter = require('events');
+// const EventEmitter = require('events');
 
 // let emitter = new EventEmitter();
 // emitter.on('get_star', (task_id) => {
@@ -61,6 +64,43 @@ app.use(
   })
 );
 
+app.use(function (req, res, next) {
+  // ------------------------------------------
+  // POSTメソッドの場合は､req.bodyをセッションに格納する
+  // ------------------------------------------
+  let sessionPostData = null;
+  if (req.method === "POST") {
+    req.session.sessionPostData = req.body
+  } else {
+    if (req.session.sessionPostData) {
+      sessionPostData = req.session.sessionPostData;
+      req.session.sessionPostData = null;
+    }
+  }
+  const old = (function (postData) {
+    console.log("postData ===> ", postData);
+    return function (param, defaultValue = '') {
+      if (postData && postData[param]) {
+        if (isNaN(postData[param])) {
+          return postData[param];
+        }
+        // 数値型の場合は､Numberにキャストする
+        return Number(postData[param]);
+      }
+      return defaultValue;
+    };
+  }(sessionPostData));
+  req.old = old;
+  // ejsテンプレート上にhelper関数として登録
+  res.locals.old = old;
+  console.log("req.ejs ===>", req.locals);
+  console.log("req.method ===> ", req.method);
+  console.log("req.body ===> ", req.body);
+  //
+
+  return next();
+});
+
 // ファイルアップロードのためのミドルウェア
 app.use(
   fileUpload({
@@ -87,7 +127,6 @@ app.use((req, res, next) => {
   });
   Promise.all([users, tasks, projects])
     .then((data) => {
-      console.log('毎リクエストごとに動く');
       let users = data[0];
       let tasks = data[1];
       let projects = data[2];
@@ -132,6 +171,7 @@ app.use('/', indexRouter);
 app.use('/user', userRouter);
 app.use('/todo', todoRouter);
 app.use('/project', projectRouter);
+app.use("/image", imageRouter);
 
 // API用ルーティング
 app.use('/api/image', imageApiRouter);

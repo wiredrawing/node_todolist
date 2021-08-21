@@ -10,7 +10,7 @@
             <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
               <p>プロジェクト名</p>
               <p>
-                <input type="text" class="form-control" name="project_name" value="">
+                <input type="text" class="form-control" name="project_name" value="<%- old("project_name", "") %>">
               </p>
 
               <% if (sessionErrors.project_name) { %>
@@ -51,9 +51,14 @@
             <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
               <p>責任者ID</p>
               <p>
+                <%- old("user_id") %>
                 <select class="form-control form-select" name="user_id" id="user_id">
                   <% users.forEach((user, index) => { %>
-                  <option value="<%- user.id %>"><%- user.user_name %></option>
+                  <option
+                  <% if (Number(user.id) === old("user_id")) { %>
+                  selected="selected"
+                  <% } %>
+                  value="<%- user.id %>"><%- user.user_name %></option>
                   <% }) %>
                 </select>
               </p>
@@ -70,9 +75,14 @@
             <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
               <p>表示状態の指定</p>
               <p>
+                <%- old("status") %>
                 <select class="form-control form-select" name="status">
                   <% applicationConfig.displayStatusList.forEach((status, index) => { %>
-                  <option value="<%- status.id %>"><%- status.value %></option>
+                  <option
+                  <% if (Number(status.id) === old("status")) { %>
+                  selected="selected"
+                  <% } %>
+                  value="<%- status.id %>"><%- status.value %></option>
                   <% }) %>
                 </select>
               </p>
@@ -95,7 +105,7 @@
                   class="form-control"
                   id="project_description"
                   placeholder="注意事項がある場合は入力のこと"
-                  name="project_description" cols="50 " rows="10 "></textarea>
+                  name="project_description" cols="50 " rows="10 "><%- old("project_description", "") %></textarea>
               </p>
 
               <% if (sessionErrors.project_description) { %>

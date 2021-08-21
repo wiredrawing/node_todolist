@@ -22,11 +22,11 @@ module.exports = (sequelize, DataTypes) => {
     }
 
     formatted_created_at() {
-      return moment(this.created_at).format("Y年M月d日 H時m分s秒");
+      return moment(this.createdAt).format("Y年M月D日 H時m分s秒");
     }
 
     formatted_updated_at() {
-      return moment(this.updated_at).format("Y年M月d日 H時m分s秒");
+      return moment(this.updatedAt).format("Y年M月D日 H時m分s秒");
     }
 
   };
@@ -40,13 +40,13 @@ module.exports = (sequelize, DataTypes) => {
     },
     created_at: {
       type: DataTypes.DATE,
-      fieldName: "created_at",
+      // fieldName: "created_at",
       // underscored: true,
     },
     updated_at: {
       type: DataTypes.DATE,
-      field: "updated_at",
-      fieldName: "updated_at",
+      // field: "updated_at",
+      // fieldName: "updated_at",
       // underscored: true,
     }
   }, {

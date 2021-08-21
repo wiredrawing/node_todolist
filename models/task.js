@@ -11,9 +11,17 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
+      // belongsToで代替可能だが...
+      task.hasOne(models.user, {
+        foreignKey: "id",
+        sourceKey: "user_id",
+      });
+      // belongsToUserで代替した場合
+      // かつ､エイリアスで別名を付与
       task.belongsTo(models.user, {
-        foreignKey: "user_id",
+        foreignKey:"user_id",
         sourceKey: "id",
+        as: "belongsToUser",
       });
       // starsテーブルに紐づく
       task.hasMany(models.Star, {
@@ -21,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: "id",
       });
       // projectsテーブルに紐づく
-      task.belongsTo(models.Project, {
+      task.hasOne(models.Project, {
         foreignKey: "id",
         sourceKey: "project_id",
       });
@@ -37,13 +45,14 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
 
-    formatted_created_at () {
-      return moment(this.created_at).format("Y年M月D日 H時m分s秒");
+    formatted_created_at() {
+      return moment(this.createdAt).format("Y年M月D日 H時m分s秒");
     }
 
-    formatted_updated_at () {
-      return moment(this.updated_at).format("Y年M月D日 H時m分s秒");
+    formatted_updated_at() {
+      return moment(this.updatedAt).format("Y年M月D日 H時m分s秒");
     }
+
   };
   task.init({
     task_name: DataTypes.STRING,
