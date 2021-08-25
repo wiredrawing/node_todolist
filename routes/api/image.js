@@ -24,7 +24,7 @@ router.post("/upload", function (req, res, next) {
     file_name: fileName,
     mimetype: uploadFile.mimetype,
   }).then((image) => {
-    console.log(image);
+    // console.log(image);
     // DBへの挿入が確定後､アップロードされたファイルを確定ディレクトリへ移動させる
     let destinationFilePath = "uploaded_images/" + moment(this.updated_at).format("Y/M/D/H") + "/" + fileName;
     return uploadFile.mv(destinationFilePath).then((result) => {
@@ -78,12 +78,12 @@ router.get("/show/:image_id", (req, res, next) => {
     if (image === null) {
       return Promise.reject(new Error("指定した画像が見つかりませんでした｡"));
     }
-    console.log(image);
+    // console.log(image);
     let destinationFilePath = req.__.applicationPath + "/uploaded_images/" + moment(image.createdAt).format("Y/M/D/H") + "/" + image.file_name;
 
     // 画像ファイルを読み込み出力する
     fs.readFile(destinationFilePath, function (error, result) {
-      console.log(error);
+      // console.log(error);
       if (error !== null) {
         return next(new Error(error));
       }

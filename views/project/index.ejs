@@ -1,81 +1,89 @@
 <%- include("../common/header") %>
 
-  <div class="col-md-10" id="app">
-    <div class="content-box-large">
-      <div class="panel-heading">
-        <div class="row mb-5">
-          <div class="panel-title">現在登録中プロジェクトの一覧</div>
-        </div>
-      </div>
-      <div class="panel-heading">
-        <form action="" method="GET">
-          <div class="row">
-            <div class="col-6 mb-5">
-              <p>検索キーワード</p>
-              <input type="text" class="form-control" name="keyword">
-            </div>
-            <div class="col-6 mb-5">
-              <p>検索キーワード</p>
-              <input class="btn btn-primary" type="submit" value="プロジェクトの検索">
-            </div>
-          </div>
-        </form>
-      </div>
-      <div class="panel-body">
-        <table cellpadding="0" cellspacing="0" class="table table-bordered" id="example">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>プロジェクト名<br>登録タスク数</th>
-              <th>概要</th>
-              <th>責任者</th>
-              <th>開始日<br>終了日</th>
-              <th>作成日<br>更新日</th>
-              <th>編集</th>
-              <th>タスク作成</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% projects.forEach((data, index) =>  { %>
-            <tr>
-              <td>
-                <a class="btn btn-outline-info" href="/project/detail/<%- data.id %>">
-                  <%- data.id %>
-                </a>
-              </td>
-              <td>
-                <%- data.project_name %>(<%- data.tasks.length %>件)
-              </td>
-              <td><%- data.project_description %></td>
-              <td>
-                <!-- userデータがnull出ない場合 -->
-                <% if (data.user !== null) { %>
-                (<%- data.user.id %>)<%- data.user.user_name %>
-                <% } else { %>
-                ー
-                <% } %>
-              </td>
-              <td>
-                <%- data.formatted_created_at() %><br>
-                <%- data.formatted_updated_at() %>
-              </td>
-              <td>
-                <%- data.formatted_created_at() %><br>
-                <%- data.formatted_updated_at() %>
-              </td>
-              <td>
-                <a class="btn btn-outline-primary" href="/project/detail/<%- data.id %>">編集</a>
-              </td>
-              <td>
-                <a class="mb-1 btn btn-outline-primary" href="/todo/create/<%- data.id %>">作成</a><br>
-                <a class="btn btn-outline-info" href="/project/task/<%- data.id %>">一覧</a>
-              </td>
-            </tr>
-            <% }) %>
-          </tbody>
-        </table>
+<div class="col-md-10" id="app">
+  <div class="content-box-large">
+    <div class="panel-heading">
+      <div class="row mb-5">
+        <div class="panel-title">現在登録中プロジェクトの一覧</div>
       </div>
     </div>
+    <div class="panel-heading">
+      <form action="" method="GET">
+        <div class="row">
+          <div class="col-6 mb-5">
+            <p>検索キーワード</p>
+            <input type="text" class="form-control" name="keyword">
+          </div>
+          <div class="col-6 mb-5">
+            <p>検索キーワード</p>
+            <input class="btn btn-primary" type="submit" value="プロジェクトの検索">
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="panel-body">
+      <table cellpadding="0" cellspacing="0" class="table table-bordered" id="example">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>プロジェクト名<br>登録タスク数</th>
+            <th>概要</th>
+            <th>責任者</th>
+            <th>開始日<br>終了日</th>
+            <th>作成日<br>更新日</th>
+            <th>編集</th>
+            <th>タスク作成</th>
+            <th>削除</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% projects.forEach((data, index) =>  { %>
+          <tr
+          <% if (data.is_displayed !== 1) { %> style="background-color: #ddd;" <% } %>
+          >
+            <td>
+              <a class="btn btn-outline-info" href="/project/detail/<%- data.id %>">
+                <%- data.id %>
+              </a>
+            </td>
+            <td>
+              <%- data.project_name %>(<%- data.tasks.length %>件)
+            </td>
+            <td><%- data.project_description %></td>
+            <td>
+              <!-- userデータがnull出ない場合 -->
+              <% if (data.user !== null) { %>
+              (<%- data.user.id %>)<%- data.user.user_name %>
+              <% } else { %>
+              ー
+              <% } %>
+            </td>
+            <td>
+              <%- data.formatted_created_at() %><br>
+              <%- data.formatted_updated_at() %>
+            </td>
+            <td>
+              <%- data.formatted_created_at() %><br>
+              <%- data.formatted_updated_at() %>
+            </td>
+            <td>
+              <a class="btn btn-outline-primary" href="/project/detail/<%- data.id %>">編集</a>
+            </td>
+            <td>
+              <a class="mb-1 btn btn-outline-primary" href="/todo/create/<%- data.id %>">作成</a><br>
+              <a class="btn btn-outline-info" href="/project/task/<%- data.id %>">一覧</a>
+            </td>
+            <td>
+              <form action="/project/delete/<%- data.id %>" method="post">
+                <input type="submit" class="btn btn-outline-danger" value="削除">
+              </form>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
   </div>
+</div>
 
 <%- include("../common/footer") %>

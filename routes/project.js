@@ -371,4 +371,32 @@ router.get(
     });
   }
 );
+
+router.post("/delete/:project_id", [
+  check("project_id").isNumeric().custom(function(value, obj) {
+    let projectID = parseInt(value);
+    return models.Project.findByPk(projectID).then(function (project) {
+      console.log("project ===> ", project);
+    });
+  }),
+], function (req, res, next) {
+  console.log("req ===> ", req);
+  console.log("req.res === res ===> ", req.res === res);
+  const errors = validationResult(req);
+  if (errors.isEmpty() !== true) {
+    return req.res.redirect("back");
+  }
+  let body = req.body;
+
+  return models.Project.findByPk(body.project_id).then((project) => {
+    console.log("project ==> ", project);
+    return project.destroy().then((project) => {
+      console.log("project ==> ", project);
+    }).catch (error => {
+      throw new Error(error);
+    });
+  }).catch(error => {
+    return next(new Error(error));
+  });
+})
 module.exports = router;

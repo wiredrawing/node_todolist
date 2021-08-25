@@ -32,6 +32,7 @@
             <th><small>ステータス</small></th>
             <th>スター数</th>
             <th>編集</th>
+            <th>削除</th>
             <th>作成日<br>更新日</th>
           </tr>
         </thead>
@@ -71,6 +72,12 @@
               <a class="btn btn-outline-info" href="/todo/edit/<%- data.id %>">
                 編集
               </a>
+            </td>
+            <td>
+              <form action="/todo/delete/<%- data.id %>" method="post">
+                <input type="hidden" name="task_id" value="<%- data.id %>">
+                <input type="submit" class="btn btn-outline-danger" value="削除">
+              </form>
             </td>
             <td>
               <small><%- data.formatted_created_at() %></small><br>

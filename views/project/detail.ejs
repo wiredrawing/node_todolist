@@ -26,7 +26,7 @@
             <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
               <p>プロジェクト名</p>
               <p>
-                <input type="text" class="form-control" name="project_name" value="<%- project.project_name %>">
+                <input type="text" class="form-control" name="project_name" value="<%- old("project_name", project.project_name) %>">
               </p>
 
               <% if (sessionErrors.project_name) { %>
@@ -67,12 +67,12 @@
               <p>
                 <select class="form-control form-select">
                   <% project.tasks.forEach((task, index) => { %>
-                    <option value="<%- project.id %>">
-                      [<%- task.id %>]<%- task.task_name %>
-                      <% if (task.user !== null) { %>
-                        ([<%- task.user.id %>]<%- task.user.user_name %>)
-                      <% } %>
-                    </option>
+                  <option value="<%- project.id %>">
+                    [<%- task.id %>]<%- task.task_name %>
+                    <% if (task.user !== null) { %>
+                    ([<%- task.user.id %>]<%- task.user.user_name %>)
+                    <% } %>
+                  </option>
                   <% }) %>
                 </select>
               </p>
@@ -107,7 +107,13 @@
             <div class="col-sm-12 col-md-12 col-lg-12 col-xl-12">
               <p>タスク詳細</p>
               <p>
-                <textarea class="form-control" id="project_description" placeholder="注意事項がある場合は入力のこと" name="project_description" cols="50 " rows="10 "><%- project.project_description %></textarea>
+                <textarea
+                  class="form-control"
+                  id="project_description"
+                  placeholder="注意事項がある場合は入力のこと"
+                  name="project_description"
+                  cols="50"
+                  rows="10 "><%- old("project_description", project.project_description) %></textarea>
               </p>
 
               <% if (sessionErrors.project_description) { %>

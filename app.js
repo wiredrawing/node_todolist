@@ -26,7 +26,7 @@ const fileUpload = require('express-fileupload');
 
 // let emitter = new EventEmitter();
 // emitter.on('get_star', (task_id) => {
-//   console.log('タスクID => ' + task_id + ' にスターを獲得しました｡');
+//   // console.log('タスクID => ' + task_id + ' にスターを獲得しました｡');
 // });
 
 
@@ -78,7 +78,7 @@ app.use(function (req, res, next) {
     }
   }
   const old = (function (postData) {
-    console.log("postData ===> ", postData);
+    // console.log("postData ===> ", postData);
     return function (param, defaultValue = '') {
       if (postData && postData[param]) {
         if (isNaN(postData[param])) {
@@ -93,10 +93,9 @@ app.use(function (req, res, next) {
   req.old = old;
   // ejsテンプレート上にhelper関数として登録
   res.locals.old = old;
-  console.log("req.ejs ===>", req.locals);
-  console.log("req.method ===> ", req.method);
-  console.log("req.body ===> ", req.body);
-  //
+  // // console.log("req.ejs ===>", req.locals);
+  // // console.log("req.method ===> ", req.method);
+  // // console.log("req.body ===> ", req.body);
 
   return next();
 });
@@ -212,7 +211,7 @@ app.use(function (req, res, next) {
 
 // error handler
 app.use(function (err, req, res, next) {
-  console.log(err.message);
+  // console.log(err.message);
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

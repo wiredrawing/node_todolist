@@ -1,7 +1,5 @@
 var express = require('express');
-const { DatabaseError } = require('pg');
 var router = express.Router();
-
 // モデルロード
 const models = require('../models/index.js');
 const { check, validationResult } = require("express-validator");
@@ -9,17 +7,17 @@ const { check, validationResult } = require("express-validator");
 // 画像一覧を取得
 router.get('/list', function (req, res, next) {
 
-  console.log("next => ", next);
+  // console.log("next => ", next);
   return models.Image.findAll().then((images) => {
 
-    console.log(images);
+    // console.log(images);
     req.images = images;
+    return next();
     return res.render("image/index", {
       images: req.images,
     });
-    return next();
   }).catch((error) => {
-    console.log("===>");
+    console.log("===>", error);
     return next(new Error(error));
   });
 });
@@ -37,9 +35,14 @@ router.get('/list', function (req, res, next) {
 // 指定したimage_idを削除する
 // ------------------------------------------------------
 router.post("/delete/:image_id", [
-  check("image_id", "削除対象の画像が存在しません").isNumeric().custom(function (value, obj) {
-    let imageID = Number(value);
+  check("image_id", "削除対象の画像が存在しません").custom(function (value, obj) {
+    // value uuid型
+    let imageID = value;
     return models.Image.findByPk(imageID).then((image) => {
+      console.log("imageID ===> ", imageID);
+      console.log("image.id ===> ", image.id);
+      console.log(typeof(imageID));
+      console.log(typeof(image.id));
       if (image.id !== imageID) {
         return Promise.reject("削除対象の画像が見つかりません");
       }
@@ -50,11 +53,13 @@ router.post("/delete/:image_id", [
   }),
 ],
 (req, res, next) => {
+  console.log(req.body);
   // postデータを変数化
   const postData = req.body;
 
   const errors = validationResult(req);
   if (errors.isEmpty() !== true) {
+    console.log(errors.errors);
     req.session.sessionErrors = errors.errors;
     return res.redirect("back");
   }

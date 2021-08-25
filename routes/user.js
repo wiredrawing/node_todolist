@@ -1,10 +1,8 @@
 var express = require('express');
 var router = express.Router();
 let models = require('../models/index.js');
-const { route } = require('./todo.js');
 const { check, validationResult } = require('express-validator');
 const applicationConfig = require('../config/application-config.js');
-const user = require('../models/user.js');
 const {Op} = require('Sequelize');
 
 let sectionTypeIDList = [];

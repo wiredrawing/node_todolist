@@ -222,12 +222,12 @@ body {
   .content-box, .content-box-large {
      margin-bottom:30px;
      background:#fff;
-     border-radius:10px;
+     /* border-radius:10px; */
      padding:10px;
-     border-left:1px solid #eee;
-     border-top:1px solid #eee;
-     border-right:2px solid #eee;
-     border-bottom:2px solid #eee;
+     border-left:1px solid #ccc;
+     border-top:1px solid #ccc;
+     border-right:1px solid #ccc;
+     border-bottom:1px solid #ccc;
   }
 
   .content-box-large {
