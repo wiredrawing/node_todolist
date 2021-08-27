@@ -30,15 +30,15 @@ applicationConfig.statusList.forEach((status, index) => {
 });
 
 let priorityStatusList = [];
-let priorityNameList = [];
-applicationConfig.priorityStatus.forEach((data, index) => {
+let priorityStatusNameList = [];
+applicationConfig.priorityStatusList.forEach((data, index) => {
   if (data.id > 0) {
     // バリデーション用に1以上を保持
     priorityStatusList.push(data.id);
   }
-  priorityNameList[data.id] = data.value;
+  priorityStatusNameList[data.id] = data.value;
 });
-
+console.log('priorityStatusNameList => ', priorityStatusNameList);
 console.log('priorityStatusList => ', priorityStatusList);
 
 let displayStatusList = [];
@@ -89,6 +89,7 @@ router.get('/', (req, res, next) => {
         tasks: response,
         actionUrlToStar: actionUrlToStar,
         taskStatusNameList: taskStatusNameList,
+        priorityStatusNameList: priorityStatusNameList,
       });
     })
     .catch((error) => {
@@ -165,7 +166,7 @@ router.get(
           users: users,
           projectID: projectID,
           taskStatusList: applicationConfig.statusList,
-          priorityStatus: applicationConfig.priorityStatus,
+          priorityStatusList: applicationConfig.priorityStatusList,
           sessionErrors: sessionErrors,
         });
       })
@@ -302,26 +303,39 @@ router.get('/detail/:task_id', (req, res, next) => {
   });
 
   // タスク情報一覧
-  let task = models.task
-    .findByPk(taskID, {
+  let task = models.task.findByPk(taskID, {
       include: [
         { model: models.user },
+        { model: models.Project },
         {
           model: models.TaskComment,
-          include: [{ model: models.user }],
+          include: [
+            { model: models.user },
+            {
+              model: models.CommentImage,
+              include: [
+                { model: models.Image },
+              ]
+            },
+          ],
         },
-        { model: models.Project },
+        {
+          model: models.TaskImage,
+          include: [
+            { model: models.Image },
+          ]
+        },
       ],
       // 結合先のテーブルにたいしてsortさせる
       order: [[models.TaskComment, 'id', 'desc']],
-    })
-    .then((task) => {
-      console.log(task);
-      if (task === null) {
-        return Promise.reject(new Error('指定したタスク情報が見つかりませんでした｡'));
-      }
-      return task;
     });
+    // .then((task) => {
+    //   console.log(task);
+    //   if (task === null) {
+    //     return Promise.reject(new Error('指定したタスク情報が見つかりませんでした｡'));
+    //   }
+    //   return task;
+    // });
   let projects = models.Project.findAll({
     include: [{ model: models.task }],
   });
@@ -333,15 +347,21 @@ router.get('/detail/:task_id', (req, res, next) => {
       let task = data[1];
       let projects = data[2];
 
-      console.log('task ===> ', task);
+      task.TaskComments.forEach((comment, index) => {
+        comment.CommentImages.forEach((commentImage) => {
+          console.log("image ===> ", commentImage.Image.getShowImageUrl());
+        });
+      });
+      // console.log("task.TaskImages ====> ", task.TaskImages);
+      // console.log('task ===> ', task);
       return res.render('todo/detail', {
         task: task,
         users: users,
         projects: projects,
-        priorityNameList: priorityNameList,
+        priorityStatusNameList: priorityStatusNameList,
         taskStatusNameList: taskStatusNameList,
         taskStatusList: applicationConfig.statusList,
-        priorityStatus: applicationConfig.priorityStatus,
+        priorityStatusList: applicationConfig.priorityStatusList,
         displayStatusList: applicationConfig.displayStatusList,
         sessionErrors: sessionErrors,
       });
@@ -355,9 +375,7 @@ router.get('/detail/:task_id', (req, res, next) => {
 // --------------------------------------------------------
 // 指定したタスクに対してのコメント登録処理を実行
 // --------------------------------------------------------
-router.post(
-  '/comment/:task_id',
-  [
+router.post('/comment/:task_id', [
     check('comment', 'コメントを必ず入力して下さい'),
     check('image_id', '添付ファイルが不正です')
       .isArray()
@@ -376,8 +394,7 @@ router.post(
             console.log(error);
           });
       }),
-  ],
-  (req, res, next) => {
+], (req, res, next) => {
     const errors = validationResult(req);
 
     if (errors.isEmpty() !== true) {
@@ -385,20 +402,38 @@ router.post(
       return res.redirect('back');
     }
 
-    // task_commentsテーブルに追加
-    return models.TaskComment.create({
+    // タスクコメントデータを登録するpromiseを生成
+    let taskComment = models.TaskComment.create( {
       comment: req.body.comment,
       task_id: req.body.task_id,
       user_id: req.body.user_id,
-    })
-      .then((taskComment) => {
-        console.log('taskComment ==> ', taskComment);
-        return res.redirect('back');
+    }).then((taskComment) => {
+      // 確定したcomment_idを取得する
+      let commentID = taskComment.id;
+      let createCommentImages = [];
+      req.body.image_id.forEach((image_id) => {
+        createCommentImages.push({
+          comment_id: commentID,
+          image_id: image_id,
+        });
       })
-      .catch((error) => {
-        console.log(error);
-        return next(new Error(error));
+
+      console.log("commentID ===> ", commentID);
+      console.log('taskComment ==> ', taskComment);
+      console.log("image_id[] ===> ", req.body.image_id);
+
+      return models.CommentImage.bulkCreate(createCommentImages).then((images) => {
+        console.log("images ===> ", images);
+        return res.redirect('back');
+      }).catch((error) => {
+        return Promise.reject(new Error(error));
       });
+    }).catch((error) => {
+      console.log(error);
+      return next(new Error(error));
+    });
+
+    return taskComment;
   }
 );
 
@@ -444,7 +479,7 @@ router.get('/edit/:task_id', (req, res, next) => {
         users: users,
         projects: projects,
         taskStatusList: applicationConfig.statusList,
-        priorityStatus: applicationConfig.priorityStatus,
+        priorityStatusList: applicationConfig.priorityStatusList,
         displayStatusList: applicationConfig.displayStatusList,
         sessionErrors: sessionErrors,
       });

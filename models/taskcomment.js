@@ -17,6 +17,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "id",
         sourceKey: "user_id",
       });
+      TaskComment.hasMany(models.CommentImage, {
+        foreignKey: "comment_id",
+        sourceKey: "id",
+      });
     }
 
     /**

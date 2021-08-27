@@ -13,7 +13,7 @@ let displayStatusList = [];
 applicationConfig.displayStatusList.forEach((status, index) => {
   displayStatusList.push(status.id);
 });
-console.log("displayStatusList => ", displayStatusList);
+console.log('displayStatusList => ', displayStatusList);
 
 // プロジェクト一覧ページ
 router.get('/', function (req, res, next) {
@@ -55,18 +55,18 @@ router.get('/', function (req, res, next) {
 
 // プロジェクトの新規作成
 router.get('/create', (req, res, next) => {
-  console.log("==============>" , res.locals);
+  console.log('==============>', res.locals);
   // バリデーションエラーを取得
   let sessionErrors = {};
   if (req.session.sessionErrors) {
     // バリデーションエラーのヘルパー関数を登録
-    console.log(req.session.sessionErrors)
+    console.log(req.session.sessionErrors);
     req.setValidationErrors(req.session.errors);
     sessionErrors = req.session.sessionErrors;
     // セッション内エラーを削除
     req.session.sessionErrors = null;
   }
-  console.log("==============>" , res.locals);
+  console.log('==============>', res.locals);
   // 現在のリクエストURLを変数に保持
   let actionUrl = req.originalUrl;
 
@@ -124,7 +124,9 @@ router.post(
       }),
     check('project_name').isLength({ min: 1, max: 256 }).withMessage('プロジェクト名を入力して下さい'),
     check('project_description').isLength({ min: 1, max: 4096 }).withMessage('プロジェクトの概要を4000文字以内で入力して下さい｡'),
-    check('image_id', '指定した画像がアップロードされていません｡').isArray().custom(function (value) {
+    check('image_id', '指定した画像がアップロードされていません｡')
+      .isArray()
+      .custom(function (value) {
         return models.Image.findAll({
           where: {
             id: {
@@ -168,13 +170,15 @@ router.post(
       project_description: postData.project_description,
       // user_idは当該プロジェクトのリーダーになるID
       user_id: postData.user_id,
-    }).then((data) => {
-      // returnする
-      return res.redirect(301, '/project/');
-    }).catch((error) => {
-      // return
-      return next(new Error(error));
-    });
+    })
+      .then((data) => {
+        // returnする
+        return res.redirect(301, '/project/');
+      })
+      .catch((error) => {
+        // return
+        return next(new Error(error));
+      });
   }
 );
 
@@ -227,12 +231,12 @@ router.get(
       .then((data) => {
         let users = data[0];
         let project = data[1];
-        console.log("===> project.is_displayed => ", project.is_displayed);
+        console.log('===> project.is_displayed => ', project.is_displayed);
         return res.render('project/detail', {
           users: users,
           project: project,
           sessionErrors: sessionErrors,
-          displayStatusList: applicationConfig.displayStatusList
+          displayStatusList: applicationConfig.displayStatusList,
         });
       })
       .catch((error) => {
@@ -282,7 +286,7 @@ router.post(
           });
       })
       .withMessage('正しいフォーマットで入力して下さい'),
-    check("is_displayed", "表示状態を正しく選択して下さい").isIn(displayStatusList)
+    check('is_displayed', '表示状態を正しく選択して下さい').isIn(displayStatusList),
   ],
   (req, res, next) => {
     console.log('req.body => ', req.body);
@@ -352,51 +356,61 @@ router.get(
       include: [
         {
           model: models.task,
-          include: [
-            { model: models.user },
-            { model: models.Star },
-          ],
+          include: [{ model: models.user }, { model: models.Star }],
         },
       ],
       order: [[models.task, 'id', 'desc']],
-    }).then((project) => {
-      console.log("task/:projectID project => ", project);
-      // ビューを返却
-      return res.render('project/task', {
-        project: project,
+    })
+      .then((project) => {
+        console.log('task/:projectID project => ', project);
+        // ビューを返却
+        return res.render('project/task', {
+          project: project,
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+        return next(new Error(error));
       });
-    }).catch((error) => {
-      console.log(error);
-      return next(new Error(error));
-    });
   }
 );
 
-router.post("/delete/:project_id", [
-  check("project_id").isNumeric().custom(function(value, obj) {
-    let projectID = parseInt(value);
-    return models.Project.findByPk(projectID).then(function (project) {
-      console.log("project ===> ", project);
-    });
-  }),
-], function (req, res, next) {
-  console.log("req ===> ", req);
-  console.log("req.res === res ===> ", req.res === res);
-  const errors = validationResult(req);
-  if (errors.isEmpty() !== true) {
-    return req.res.redirect("back");
-  }
-  let body = req.body;
+router.post(
+  '/delete/:project_id',
+  [
+    check('project_id')
+      .isNumeric()
+      .custom(function (value, obj) {
+        let projectID = parseInt(value);
+        return models.Project.findByPk(projectID).then(function (project) {
+          console.log('project ===> ', project);
+        });
+      }),
+  ],
+  function (req, res, next) {
+    console.log('req ===> ', req);
+    console.log('req.res === res ===> ', req.res === res);
+    const errors = validationResult(req);
+    if (errors.isEmpty() !== true) {
+      return req.res.redirect('back');
+    }
+    let body = req.body;
 
-  return models.Project.findByPk(body.project_id).then((project) => {
-    console.log("project ==> ", project);
-    return project.destroy().then((project) => {
-      console.log("project ==> ", project);
-    }).catch (error => {
-      throw new Error(error);
-    });
-  }).catch(error => {
-    return next(new Error(error));
-  });
-})
+    return models.Project.findByPk(body.project_id)
+      .then((project) => {
+        console.log('project ==> ', project);
+        return project
+          .destroy()
+          .then((project) => {
+            console.log('project ==> ', project);
+          })
+          .catch((error) => {
+            throw new Error(error);
+          });
+      })
+      .catch((error) => {
+        return next(new Error(error));
+      });
+  }
+);
 module.exports = router;

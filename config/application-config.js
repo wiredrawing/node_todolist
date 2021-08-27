@@ -38,7 +38,7 @@ let applicationConfig = {
   ],
 
   // 作業優先度設定
-  priorityStatus: [
+  priorityStatusList: [
     {id: 0, value: "未設定"},
     {id: 1, value: "低"},
     {id: 2, value: "中"},

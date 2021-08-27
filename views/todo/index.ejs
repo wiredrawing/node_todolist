@@ -29,7 +29,10 @@
             <th>タスク名</th>
             <th>プロジェクト名</th>
             <th>担当者</th>
-            <th><small>ステータス</small></th>
+            <th>
+              <small>ステータス</small><br>
+              <small>優先度</small>
+            </th>
             <th>スター数</th>
             <th>編集</th>
             <th>削除</th>
@@ -41,7 +44,7 @@
           <tr>
             <td><%- data.id %></td>
             <td>
-              <a class="btn btn-outline-primary" href="/todo/detail/<%- data.id %>">
+              <a href="/todo/detail/<%- data.id %>">
                 <%- data.task_name %>
               </a>
             </td>
@@ -60,7 +63,10 @@
               ー
               <% } %>
             </td>
-            <td><%- taskStatusNameList[data.status] %></td>
+            <td>
+              <%- taskStatusNameList[data.status] %><br>
+              <%- priorityStatusNameList[data.priority] %><br>
+            </td>
             <td>
               <%- data.Stars.length %>個
               <form action="<%- actionUrlToStar %>" method="POST">
