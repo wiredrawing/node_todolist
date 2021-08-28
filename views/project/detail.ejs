@@ -40,6 +40,41 @@
             </div>
           </div>
 
+
+          <!-- 画像ファイルのアップロード -->
+          <div class="row ">
+            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
+              <p>添付ファイルを付与</p>
+              <p><input type="file" class="form-control" name="upload_file" id="upload_file"></p>
+
+              <% if (errors("image_id").length > 0) {%>
+              <!-- エラーメッセージ -->
+              <div v-for="data in errors.upload_file" class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%- errors("image_id") %></p>
+              </div>
+              <!-- エラーメッセージ -->
+              <% } %>
+            </div>
+          </div>
+
+          <!-- アップロード済み画像をpushしていく-->
+          <div id="uploaded-file-block" class="row">
+            <% if (project.ProjectImages.length > 0) {%>
+            <% project.ProjectImages.forEach((projectImage, index) => { %>
+            <div class="uploaded-file-block-unit col-sm-3 col-md-3 col-lg-3 col-xl-3">
+              <p><a href="/api/image/show/<%- projectImage.Image.id %>" target="_blank" class="btn btn-outline-primary uploaded-file-url">アップロード済み画像</a></p>
+              <input type="hidden" name="image_id[]" value="<%- projectImage.Image.id %>">
+            </div>
+            <% }) %>
+            <% } else { %>
+            <div class="uploaded-file-block-unit col-sm-3 col-md-3 col-lg-3 col-xl-3">
+              <p><a href="" target="_blank" class="btn btn-outline-primary uploaded-file-url">アップロード済み画像</a></p>
+              <input type="hidden" name="image_id[]" value="">
+            </div>
+            <% } %>
+          </div>
+
+
           <div class="row ">
             <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
               <p>責任者ID</p>
@@ -107,13 +142,7 @@
             <div class="col-sm-12 col-md-12 col-lg-12 col-xl-12">
               <p>タスク詳細</p>
               <p>
-                <textarea
-                  class="form-control"
-                  id="project_description"
-                  placeholder="注意事項がある場合は入力のこと"
-                  name="project_description"
-                  cols="50"
-                  rows="10 "><%- old("project_description", project.project_description) %></textarea>
+                <textarea class="form-control" id="project_description" placeholder="注意事項がある場合は入力のこと" name="project_description" cols="50" rows="10 "><%- old("project_description", project.project_description) %></textarea>
               </p>
 
               <% if (sessionErrors.project_description) { %>
@@ -140,4 +169,65 @@
     </div>
   </div>
 </div>
+<script>
+  $(function(e) {
+
+    let uploadInput = $("input[name='upload_file']");
+    let uploadedFileUrlList = [];
+    let uploadedFileIDList = [];
+    let uploadedFileObjectList = [];
+    // 画像選択時のイベントを付与
+    console.log(uploadInput);
+    console.log(uploadInput[0]);
+    uploadInput[0].addEventListener("change", function(e) {
+      console.log("raw e===>", e);
+      console.log("raw this ====> ", $(this));
+      console.log(e.target === this);
+    });
+    uploadInput.on("change", function(e) {
+      console.log(this);
+      console.log(e.currentTarget);
+      let targetObject = e.target;
+      let fileList = targetObject.files;
+
+      // filesオブジェクトをループ
+      Object.keys(fileList).forEach((index) => {
+
+        // ファイル用フォームオブジェクト
+        let formData = new FormData();
+        formData.append("upload_file", fileList[index])
+
+        // 画像ファイルをPOSTする
+        axios.post("/api/image/upload", formData).then((result) => {
+          if (result.data.status) {
+            uploadedFileObjectList.push(result.data.response.image);
+          } else {
+            return Promise.reject(new Error("画像アップロードに失敗しました｡"));
+          }
+        }).then((response) => {
+          let divBlock = [];
+          let div = $(".uploaded-file-block-unit").eq(0).clone();
+          uploadedFileObjectList.forEach((image, index) => {
+            let clone = div.clone();
+            clone.find("a").attr("href", image.show_image_url);
+            clone.find("input").val(image.id);
+            divBlock.push(clone);
+          });
+          $("#uploaded-file-block").empty();
+          console.log(divBlock);
+
+          divBlock.forEach(function(div, index) {
+            console.log(div);
+            $("#uploaded-file-block").append(div);
+          });
+        }).catch((error) => {
+          console.log(error);
+          alert(error.message);
+        });
+
+      });
+    });
+
+  });
+</script>
 <%- include("../common/footer") %>

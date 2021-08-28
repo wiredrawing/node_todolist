@@ -347,11 +347,11 @@ router.get('/detail/:task_id', (req, res, next) => {
       let task = data[1];
       let projects = data[2];
 
-      task.TaskComments.forEach((comment, index) => {
-        comment.CommentImages.forEach((commentImage) => {
-          console.log("image ===> ", commentImage.Image.getShowImageUrl());
-        });
-      });
+      // task.TaskComments.forEach((comment, index) => {
+      //   comment.CommentImages.forEach((commentImage) => {
+      //     console.log("image ===> ", commentImage.Image.getShowImageUrl());
+      //   });
+      // });
       // console.log("task.TaskImages ====> ", task.TaskImages);
       // console.log('task ===> ', task);
       return res.render('todo/detail', {
@@ -623,9 +623,7 @@ router.post(
     }
 
     // スターを送られたタスクレコードも更新のみ実行する
-    return models.sequelize
-      .transaction()
-      .then((tx) => {
+    return models.sequelize.transaction().then((tx) => {
         // スコープ内にトランザクション変数を明示
         let transaction = tx;
 

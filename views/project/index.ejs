@@ -75,6 +75,7 @@
             </td>
             <td>
               <form action="/project/delete/<%- data.id %>" method="post">
+                <input type="hidden" name="project_id" value="<%- data.id %>">
                 <input type="submit" class="btn btn-outline-danger" value="削除">
               </form>
             </td>

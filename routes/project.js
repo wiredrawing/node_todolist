@@ -1,24 +1,25 @@
-var express = require('express');
+var express = require("express");
 var router = express.Router();
 
 // モデルロード
-const models = require('../models/index.js');
+const models = require("../models/index.js");
 
 // バリデーション用のモジュールを読み込み
-const { check, validationResult } = require('express-validator');
-const applicationConfig = require('../config/application-config');
-const { Op } = require('sequelize');
+const { check, validationResult } = require("express-validator");
+const applicationConfig = require("../config/application-config");
+const { Op } = require("sequelize");
+const projectimage = require("../models/projectimage.js");
 // 表示フラグのバリデーション用
 let displayStatusList = [];
 applicationConfig.displayStatusList.forEach((status, index) => {
   displayStatusList.push(status.id);
 });
-console.log('displayStatusList => ', displayStatusList);
+console.log("displayStatusList => ", displayStatusList);
 
 // プロジェクト一覧ページ
-router.get('/', function (req, res, next) {
+router.get("/", function (req, res, next) {
   console.log(req.cookies);
-  let keyword = '';
+  let keyword = "";
   if (req.query.keyword) {
     keyword = req.query.keyword;
   }
@@ -28,22 +29,22 @@ router.get('/', function (req, res, next) {
       [Op.or]: [
         {
           project_name: {
-            [Op.like]: '%' + keyword + '%',
+            [Op.like]: "%" + keyword + "%",
           },
         },
         {
           project_description: {
-            [Op.like]: '%' + keyword + '%',
+            [Op.like]: "%" + keyword + "%",
           },
         },
       ],
     },
     include: [{ model: models.task }, { model: models.user }],
-    order: [['id', 'desc']],
+    order: [["id", "desc"]],
   })
     .then((projects) => {
       // console.log(projects);
-      return res.render('project/index', {
+      return res.render("project/index", {
         projects: projects,
       });
     })
@@ -54,8 +55,8 @@ router.get('/', function (req, res, next) {
 });
 
 // プロジェクトの新規作成
-router.get('/create', (req, res, next) => {
-  console.log('==============>', res.locals);
+router.get("/create", (req, res, next) => {
+  console.log("==============>", res.locals);
   // バリデーションエラーを取得
   let sessionErrors = {};
   if (req.session.sessionErrors) {
@@ -66,19 +67,19 @@ router.get('/create', (req, res, next) => {
     // セッション内エラーを削除
     req.session.sessionErrors = null;
   }
-  console.log('==============>', res.locals);
+  console.log("==============>", res.locals);
   // 現在のリクエストURLを変数に保持
   let actionUrl = req.originalUrl;
 
   // 現在登録中のプロジェクト一覧を取得する
   let projects = models.Project.findAll({
     include: [{ model: models.task }],
-    order: [['id', 'desc']],
+    order: [["id", "desc"]],
   });
 
   // 登録中のユーザー一覧
   let users = models.user.findAll({
-    order: [['id', 'desc']],
+    order: [["id", "desc"]],
   });
 
   // Promiseの解決
@@ -87,7 +88,7 @@ router.get('/create', (req, res, next) => {
       console.log(req.old);
       let users = response[0];
       let projects = response[1];
-      return res.render('project/create', {
+      return res.render("project/create", {
         users: users,
         projects: projects,
         actionUrl: actionUrl,
@@ -103,10 +104,10 @@ router.get('/create', (req, res, next) => {
 });
 
 router.post(
-  '/create',
+  "/create",
   [
     // カスタムバリデーター
-    check('user_id')
+    check("user_id")
       .isNumeric()
       .custom(function (value, request) {
         // user_idがDBレコードに存在するかバリデーションする
@@ -116,15 +117,15 @@ router.post(
             if (data.id == value) {
               return true;
             }
-            return Promise.reject('DBレコードに一致しません｡');
+            return Promise.reject("DBレコードに一致しません｡");
           })
           .catch((error) => {
             throw new Error(error);
           });
       }),
-    check('project_name').isLength({ min: 1, max: 256 }).withMessage('プロジェクト名を入力して下さい'),
-    check('project_description').isLength({ min: 1, max: 4096 }).withMessage('プロジェクトの概要を4000文字以内で入力して下さい｡'),
-    check('image_id', '指定した画像がアップロードされていません｡')
+    check("project_name").isLength({ min: 1, max: 256 }).withMessage("プロジェクト名を入力して下さい"),
+    check("project_description").isLength({ min: 1, max: 4096 }).withMessage("プロジェクトの概要を4000文字以内で入力して下さい｡"),
+    check("image_id", "指定した画像がアップロードされていません｡")
       .isArray()
       .custom(function (value) {
         return models.Image.findAll({
@@ -135,9 +136,9 @@ router.post(
           },
         })
           .then((images) => {
-            console.log('images => ', images);
+            console.log("images => ", images);
             if (images.length !== value.length) {
-              return Promise.reject(new Error('指定した画像がアップロードされていません｡'));
+              return Promise.reject(new Error("指定した画像がアップロードされていません｡"));
             }
             return true;
           })
@@ -161,24 +162,51 @@ router.post(
       req.session.errors = errors.errors;
       req.session.sessionErrors = sessionErrors;
       console.log(req.session.sessionErrors);
-      return res.redirect('back');
+      return res.redirect("back");
     }
 
-    // バリデーションチェックを通過した場合
-    return models.Project.create({
-      project_name: postData.project_name,
-      project_description: postData.project_description,
-      // user_idは当該プロジェクトのリーダーになるID
-      user_id: postData.user_id,
-    })
-      .then((data) => {
-        // returnする
-        return res.redirect(301, '/project/');
-      })
-      .catch((error) => {
-        // return
-        return next(new Error(error));
-      });
+    return models.sequelize.transaction((tx) => {
+      let transaction = tx;
+      // バリデーションチェックを通過した場合
+      return models.Project.create(
+        {
+          project_name: postData.project_name,
+          project_description: postData.project_description,
+          // user_idは当該プロジェクトのリーダーになるID
+          user_id: postData.user_id,
+          is_displayed: applicationConfig.binaryType.off,
+        },
+        {
+          transaction: transaction,
+        }
+      )
+        .then((data) => {
+          // lastInsertIDを取得
+          let projectID = data.id;
+          let projectImagesForBulk = [];
+          req.body.image_id.forEach((id, index) => {
+            projectImagesForBulk.push({
+              image_id: id,
+              project_id: projectID,
+            });
+          });
+
+          return models.ProjectImage.bulkCreate(projectImagesForBulk, {
+            transaction: transaction,
+          })
+            .then((projectImages) => {
+              console.log("projectImages ===> ", projectImages);
+              return res.redirect("back");
+            })
+            .catch((error) => {
+              throw new Error(error);
+            });
+        })
+        .catch((error) => {
+          // return
+          return next(new Error(error));
+        });
+    });
   }
 );
 
@@ -187,19 +215,20 @@ router.post(
  *
  */
 router.get(
-  '/detail/:projectID',
+  "/detail/:projectID",
   [
-    check('projectID')
-      .custom((value, { req }) => {
-        let projectIDList = req.__.projectIDList;
-        value = parseInt(value);
-        if (projectIDList.includes(value)) {
+    check("projectID").isNumeric().custom((value, { req }) => {
+      let projectID = parseInt(value);
+
+      return models.Project.findByPk(projectID).then(function(project) {
+        if (project.id === projectID) {
           return true;
-        } else {
-          return false;
         }
-      })
-      .withMessage('指定したプロジェクトデータが見つかりません｡'),
+        return Promise.reject("指定したプロジェクトデータが見つかりません");
+      }).catch(error => {
+        throw new Error(error);
+      });
+    }).withMessage("指定したプロジェクトデータが見つかりません｡"),
   ],
   function (req, res, next) {
     // URLパラメータの取得
@@ -223,16 +252,21 @@ router.get(
           model: models.task,
           include: [{ model: models.user }],
         },
+        {
+          model: models.ProjectImage,
+          include: [{ model: models.Image }],
+        },
       ],
-      order: [[models.task, 'id', 'desc']],
+      order: [[models.task, "id", "desc"]],
     });
 
     Promise.all([users, project])
       .then((data) => {
         let users = data[0];
         let project = data[1];
-        console.log('===> project.is_displayed => ', project.is_displayed);
-        return res.render('project/detail', {
+        console.log("===> project => ", project);
+        console.log("===> project.is_displayed => ", project.is_displayed);
+        return res.render("project/detail", {
           users: users,
           project: project,
           sessionErrors: sessionErrors,
@@ -247,10 +281,10 @@ router.get(
 );
 
 router.post(
-  '/detail/:projectID',
+  "/detail/:projectID",
   [
     // カスタムバリデーター
-    check('user_id')
+    check("user_id")
       .isNumeric()
       .custom(function (value, request) {
         // user_idがDBレコードに存在するかバリデーションする
@@ -260,45 +294,44 @@ router.post(
             if (data.id == value) {
               return true;
             }
-            return Promise.reject('DBレコードに一致しません｡');
+            return Promise.reject("DBレコードに一致しません｡");
           })
           .catch((error) => {
             throw new Error(error);
           });
       }),
-    check('project_name').isLength({ min: 1, max: 256 }).withMessage('プロジェクト名を入力して下さい'),
-    check('project_description').isLength({ min: 1, max: 4096 }).withMessage('プロジェクトの概要を4000文字以内で入力して下さい｡'),
-    check('project_id')
+    check("project_name").isLength({ min: 1, max: 256 }).withMessage("プロジェクト名を入力して下さい"),
+    check("project_description").isLength({ min: 1, max: 4096 }).withMessage("プロジェクトの概要を4000文字以内で入力して下さい｡"),
+    check("project_id")
       .isNumeric()
       .custom((value, { req }) => {
-        let projectID = value;
         // DBに存在するproject_idかどうかをチェックする
-        return models.Project.findByPk(value)
+        return models.Project.findByPk(parseInt(value))
           .then((project) => {
             // 正しいproject_id
             if (parseInt(project.id) === parseInt(value)) {
               return true;
             }
-            return Promise.reject('プロジェクトが見つかりませんでした');
+            return Promise.reject("プロジェクトが見つかりませんでした");
           })
           .catch((error) => {
             throw new Error(error);
           });
       })
-      .withMessage('正しいフォーマットで入力して下さい'),
-    check('is_displayed', '表示状態を正しく選択して下さい').isIn(displayStatusList),
+      .withMessage("正しいフォーマットで入力して下さい"),
+    check("is_displayed", "表示状態を正しく選択して下さい").isIn(displayStatusList),
   ],
   (req, res, next) => {
-    console.log('req.body => ', req.body);
+    console.log("req.body => ", req.body);
     const errors = validationResult(req);
     if (errors.isEmpty() !== true) {
       let sessionErrors = {};
       errors.errors.forEach((error, index) => {
         sessionErrors[error.param] = error.msg;
       });
-      console.log('errors.errors => ', errors.errors);
+      console.log("errors.errors => ", errors.errors);
       req.session.sessionErrors = sessionErrors;
-      return res.redirect('back');
+      return res.redirect("back");
     }
 
     let postData = req.body;
@@ -314,13 +347,13 @@ router.post(
             is_displayed: postData.is_displayed,
           })
           .then((project) => {
-            console.log('project => ', project);
+            console.log("project => ", project);
             if (project.id === projectID) {
               // 詳細画面に戻る
-              return res.redirect('back');
+              return res.redirect("back");
             }
 
-            return Promise.reject(new Error('原因不明のエラーです｡'));
+            return Promise.reject(new Error("原因不明のエラーです｡"));
           })
           .catch((error) => {
             return Promise.reject(error);
@@ -336,9 +369,9 @@ router.post(
 // 指定したプロジェクトに紐づくタスク一覧を取得する
 // --------------------------------------------------
 router.get(
-  '/task/:projectID',
+  "/task/:projectID",
   [
-    check('projectID')
+    check("projectID")
       .custom((value, { req }) => {
         value = parseInt(value);
         return models.Project.findByPk(value)
@@ -347,7 +380,7 @@ router.get(
             return Promise.reject(error);
           });
       })
-      .withMessage('指定したプロジェクトが見つかりません｡'),
+      .withMessage("指定したプロジェクトが見つかりません｡"),
   ],
   function (req, res, next) {
     let projectID = req.params.projectID;
@@ -359,12 +392,12 @@ router.get(
           include: [{ model: models.user }, { model: models.Star }],
         },
       ],
-      order: [[models.task, 'id', 'desc']],
+      order: [[models.task, "id", "desc"]],
     })
       .then((project) => {
-        console.log('task/:projectID project => ', project);
+        console.log("task/:projectID project => ", project);
         // ビューを返却
-        return res.render('project/task', {
+        return res.render("project/task", {
           project: project,
         });
       })
@@ -376,33 +409,34 @@ router.get(
 );
 
 router.post(
-  '/delete/:project_id',
+  "/delete/:project_id",
   [
-    check('project_id')
+    check("project_id")
       .isNumeric()
       .custom(function (value, obj) {
         let projectID = parseInt(value);
         return models.Project.findByPk(projectID).then(function (project) {
-          console.log('project ===> ', project);
+          console.log("project ===> ", project);
         });
       }),
   ],
   function (req, res, next) {
-    console.log('req ===> ', req);
-    console.log('req.res === res ===> ', req.res === res);
+    console.log("req.res === res ===> ", req.res === res);
     const errors = validationResult(req);
     if (errors.isEmpty() !== true) {
-      return req.res.redirect('back');
+      return req.res.redirect("back");
     }
     let body = req.body;
-
-    return models.Project.findByPk(body.project_id)
+    console.log(body.project_id);
+    console.log("req.body ==> ", req.body);
+    return models.Project.findByPk(parseInt(body.project_id))
       .then((project) => {
-        console.log('project ==> ', project);
+        console.log("project ==> ", project);
         return project
           .destroy()
           .then((project) => {
-            console.log('project ==> ', project);
+            console.log("project ==> ", project);
+            return res.redirect("back");
           })
           .catch((error) => {
             throw new Error(error);

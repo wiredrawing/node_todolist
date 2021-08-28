@@ -32,8 +32,11 @@ module.exports = (sequelize, DataTypes) => {
   };
   user.init({
     user_name: DataTypes.STRING,
+    email: DataTypes.STRING,
     section_type: DataTypes.STRING,
-    deletedAt: {
+    description: DataTypes.STRING,
+    password: DataTypes.STRING,
+    deleted_at: {
       type: DataTypes.DATE,
       // fieldName: "deleted_at",
       // underscored: true,

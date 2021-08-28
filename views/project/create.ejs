@@ -136,7 +136,16 @@
     let uploadedFileIDList = [];
     let uploadedFileObjectList = [];
     // 画像選択時のイベントを付与
+    console.log(uploadInput);
+    console.log(uploadInput[0]);
+    uploadInput[0].addEventListener("change", function (e) {
+      console.log("raw e===>", e);
+      console.log("raw this ====> ", $(this));
+      console.log(e.target === this);
+    });
     uploadInput.on("change", function(e) {
+      console.log(this);
+      console.log(e.currentTarget);
       let targetObject = e.target;
       let fileList = targetObject.files;
 

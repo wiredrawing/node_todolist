@@ -72,7 +72,7 @@
         <!-- アップロード済み画像をpushしていく-->
         <div id="uploaded-file-block" class="row">
           <div class="uploaded-file-block-unit col-sm-3 col-md-3 col-lg-3 col-xl-3">
-            <p><a href="" target="_blank" class="btn btn-outline-primary uploaded-file-url" >アップロード済み画像</a></p>
+            <p><a href="" target="_blank" class="btn btn-outline-primary uploaded-file-url">アップロード済み画像</a></p>
             <input type="hidden" name="image_id[]" value="">
           </div>
         </div>
@@ -96,7 +96,7 @@
         <div class="row">
           <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
             <p>上記内容で店舗更新をする</p>
-            <p><button class="btn btn-outline-primary" type="submit" >コメントする</button></p>
+            <p><button class="btn btn-outline-primary" type="submit">コメントする</button></p>
           </div>
         </div>
       </form>
@@ -105,31 +105,39 @@
     <!-- 投稿されたコメント群 -->
     <div class="row">
       <% task.TaskComments.forEach((taskComment, index) => { %>
+      <div class="col-md-3 col-lg-3 col-xl-3">
+        <p>コメントID:<%- taskComment.id %></p>
+        <p><%- taskComment.user.user_name %></p>
+        <p>
+          <%- taskComment.formatted_created_at() %><br>
+          <%- taskComment.formatted_updated_at() %>
+        </p>
+      </div>
+      <div class="col-md-9 col-lg-9 col-xl-9">
+        <p><%- taskComment.get_new_line_comment() %></p>
+      </div>
+      <div class="row mb-3">
+        <%- taskComment %>
+        <% taskComment.CommentImages.forEach((image, index) => { %>
         <div class="col-md-3 col-lg-3 col-xl-3">
-          <p class="form-control">コメントID:<%- taskComment.id %></p>
-          <p class="form-control"><%- taskComment.user.user_name %></p>
-          <p class="form-control">
-            <%- taskComment.formatted_created_at() %><br>
-            <%- taskComment.formatted_updated_at() %>
-          </p>
+          <img class="mb-3 img-fluid img-thumbnail" src="<%- image.Image.getShowImageUrl() %>">
         </div>
-        <div class="col-md-9 col-lg-9 col-xl-9">
-          <p class="form-control"><%- taskComment.get_new_line_comment() %></p>
-        </div>
+        <% }); %>
+      </div>
       <% }) %>
     </div>
   </div>
 </div>
 
 <script>
-  $(function (e) {
+  $(function(e) {
 
     let uploadInput = $("input[name='upload_file']");
     let uploadedFileUrlList = [];
     let uploadedFileIDList = [];
     let uploadedFileObjectList = [];
     // 画像選択時のイベントを付与
-    uploadInput.on("change", function (e) {
+    uploadInput.on("change", function(e) {
       let targetObject = e.target;
       let fileList = targetObject.files;
 
@@ -159,7 +167,7 @@
           $("#uploaded-file-block").empty();
           console.log(divBlock);
 
-          divBlock.forEach(function (div, index) {
+          divBlock.forEach(function(div, index) {
             console.log(div);
             $("#uploaded-file-block").append(div);
           });

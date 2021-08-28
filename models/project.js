@@ -22,6 +22,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "id",
         sourceKey: "user_id",
       });
+      Project.hasMany(models.ProjectImage, {
+        foreignKey: "project_id",
+        sourceKey: "id",
+      })
       // define association here
     }
 

@@ -107,7 +107,7 @@
               <p>優先度の設定</p>
               <p>
                 <select class="form-control form-select" name="priority">
-                  <% priorityStatus.forEach((data, index) => { %>
+                  <% priorityStatusList.forEach((data, index) => { %>
                   <option <% if (Number(data.id) === old("priority")) {%> selected="selected" <% } %> value="<%- data.id %>">
                     <%- data.value %>
                   </option>

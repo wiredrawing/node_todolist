@@ -1,3 +1,5 @@
+// 一度にすべてのテーブルを削除する場合
+//  sequelize db:migrate:undo:all
 'use strict';
 module.exports = {
   up: async (queryInterface, Sequelize) => {
@@ -15,6 +17,17 @@ module.exports = {
       // 担当部署
       section_type: {
         type: Sequelize.INTEGER
+      },
+      // ログインID
+      email: {
+        type: Sequelize.STRING(512),
+      },
+      // 自己紹介
+      description: {
+        type: Sequelize.STRING(2048),
+      },
+      password: {
+        type: Sequelize.STRING(2048),
       },
       createdAt: {
         allowNull: false,
