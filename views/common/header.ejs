@@ -45,6 +45,8 @@
   </div>
   <div class="page-content">
     <div class="row">
+
+      <% if (req.envParam.hasMenu) { %>
       <!-- メニューテンプレート -->
       <div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-xxl-2">
         <div class="sidebar content-box">
@@ -71,3 +73,4 @@
           </ul>
         </div>
       </div>
+      <% } %>

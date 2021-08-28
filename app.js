@@ -4,6 +4,7 @@ var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 let bodyParser = require("body-parser");
+let parseUrl = require("parseUrl");
 
 // テンプレート用ルーティング
 var indexRouter = require("./routes/index");
@@ -11,6 +12,7 @@ var userRouter = require("./routes/user");
 let todoRouter = require("./routes/todo");
 let projectRouter = require("./routes/project");
 let imageRouter = require("./routes/image.js");
+let loginRouter = require("./routes/login");
 
 // API向けルーティング
 let imageApiRouter = require("./routes/api/image");
@@ -191,7 +193,23 @@ app.use((req, res, next) => {
     });
 });
 
+app.use((req, res, next) => {
+  let pathname = parseUrl(req).pathname;
+  if (pathname.substr(-1) !== "/") {
+    pathname += "/";
+  }
+  console.log(pathname);
+  let envParam = {};
+  if (pathname === "/login/") {
+    envParam.hasMenu = false;
+  }
+  req.envParam = envParam;
+  res.locals.req = req;
+  return next();
+});
+
 app.use("/", indexRouter);
+app.use("/login", loginRouter);
 app.use("/user", userRouter);
 app.use("/todo", todoRouter);
 app.use("/project", projectRouter);
@@ -200,6 +218,7 @@ app.use("/image", imageRouter);
 // API用ルーティング
 app.use("/api/image", imageApiRouter);
 app.use("/api/project", projectApiRouter);
+
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
