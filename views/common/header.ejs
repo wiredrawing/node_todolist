@@ -75,7 +75,7 @@
           <ul class="nav row">
             <li>
               <a id="logout-button" href="/logout">ログアウト</a>
-              <form id="logout" action="/login" method="post">
+              <form id="logout" action="/logout" method="post">
                 <input type="hidden" name="isLoggedIn" value="1">
               </form>
             </li>
@@ -86,6 +86,7 @@
         $(function() {
           // ログアウトボタン押下時
           $("#logout-button").on("click", function(e) {
+            e.preventDefault();
             if (confirm("ログアウトします｡よろしいですか?")) {
               $("#logout").trigger("submit");
             } else {
