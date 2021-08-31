@@ -13,6 +13,7 @@ let todoRouter = require("./routes/todo");
 let projectRouter = require("./routes/project");
 let imageRouter = require("./routes/image.js");
 let loginRouter = require("./routes/login");
+let logoutRouter = require("./routes/logout");
 
 // API向けルーティング
 let imageApiRouter = require("./routes/api/image");
@@ -20,17 +21,12 @@ let projectApiRouter = require("./routes/api/project");
 
 // es6 modules
 let models = require("./models/index.js");
-const { check, validationResult } = require("express-validator");
-const { profileEnd } = require("console");
 
 const session = require("express-session");
 const fileUpload = require("express-fileupload");
-// const EventEmitter = require('events');
-
-// let emitter = new EventEmitter();
-// emitter.on('get_star', (task_id) => {
-//   // console.log('タスクID => ' + task_id + ' にスターを獲得しました｡');
-// });
+// session用のpostgresql storeの実行用
+const { Pool } = require("pg");
+let pgSession = require("connect-pg-simple")(session);
 
 var app = express();
 
@@ -54,14 +50,33 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
+const pool = new Pool({
+  host: "localhost",
+  user: "admin",
+  password: "admin",
+  database: "todo-list",
+  port: 15432,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+});
+
+// ------------------------------------------
+// ログイン情報の保持にセッションを利用する
+// ------------------------------------------
 app.use(
   session({
+    store: new pgSession({
+      pool: pool, // Connection pool
+      tableName: "session", // Use another table-name than the default "session" one
+    }),
     secret: "暗号化ソルト",
-    resave: true,
+    resave: false,
     saveUninitialized: false,
-    cookie: {
-      maxAge: 10 * 10000,
-    },
+    name: "task-managing-tool-cookie",
+    rolling: true,
+    // 30 日間
+    cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 },
   })
 );
 
@@ -194,22 +209,30 @@ app.use((req, res, next) => {
 });
 
 app.use((req, res, next) => {
+  console.log("req.sessionID ===> ", req.sessionID);
   let pathname = parseUrl(req).pathname;
   if (pathname.substr(-1) !== "/") {
     pathname += "/";
   }
-  console.log(pathname);
-  let envParam = {};
-  if (pathname === "/login/") {
-    envParam.hasMenu = false;
+  console.log("req.session.isLoggedIn ===> ", req.session.isLoggedIn);
+  // ログイン状態が確認できない場合は､ログインへリダイレクト
+  if (pathname.indexOf("/login/") === -1 && req.session.isLoggedIn !== true) {
+    return res.redirect("/login");
   }
-  req.envParam = envParam;
+
+  if (req.session.isLoggedIn === true) {
+    req.isLoggedIn = req.session.isLoggedIn;
+  } else {
+    req.isLoggedIn = false;
+  }
+
   res.locals.req = req;
   return next();
 });
 
 app.use("/", indexRouter);
 app.use("/login", loginRouter);
+app.use("/logout", logoutRouter);
 app.use("/user", userRouter);
 app.use("/todo", todoRouter);
 app.use("/project", projectRouter);
@@ -218,7 +241,6 @@ app.use("/image", imageRouter);
 // API用ルーティング
 app.use("/api/image", imageApiRouter);
 app.use("/api/project", projectApiRouter);
-
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

@@ -28,11 +28,15 @@ router.post("/authenticate", function(req, res, next) {
     // emailからユーザーの存在確認後,パスワードの認証をする
     console.log(user);
     bcrypt.compare(password, user.password).then(function (authenticate) {
-      console.log(authenticate);
+      console.log("authenticate ===> ", authenticate);
       if (authenticate !== true) {
         return Promise.reject("ユーザー認証に失敗しました｡");
       }
-
+      // requestオブジェクトにフラグをセット
+      req.session.isLoggedIn = authenticate;
+      console.log("req.session.isLoggedIn ===> ", req.session.isLoggedIn)
+      // プロジェクト一覧ページへリダイレクト
+      return res.redirect("/project");
     });
   }).catch(function(error) {
     return next(new Error(error));

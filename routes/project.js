@@ -18,7 +18,7 @@ console.log("displayStatusList => ", displayStatusList);
 
 // プロジェクト一覧ページ
 router.get("/", function (req, res, next) {
-  console.log(req.cookies);
+  // console.log(req.cookies);
   let keyword = "";
   if (req.query.keyword) {
     keyword = req.query.keyword;
