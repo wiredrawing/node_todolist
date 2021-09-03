@@ -22,6 +22,9 @@ let projectApiRouter = require("./routes/api/project");
 // es6 modules
 let models = require("./models/index.js");
 
+let config = require("./config/config.json");
+console.log("config ====> ", config);
+
 const session = require("express-session");
 const fileUpload = require("express-fileupload");
 // session用のpostgresql storeの実行用
@@ -50,12 +53,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
+// sequelizeの設定ファイルと共有する
 const pool = new Pool({
-  host: "localhost",
-  user: "admin",
-  password: "admin",
-  database: "todo-list",
-  port: 15432,
+  host: config.development.host,
+  user: config.development.username,
+  password: config.development.password,
+  database: config.development.database,
+  port: config.development.port,
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
