@@ -390,7 +390,7 @@ router.post('/comment/:task_id', [
           },
         })
           .then((images) => {
-            console.log('image.length ==> ', images.length);
+            console.log('images.length ==> ', images.length);
             console.log('images ==> ', images);
           })
           .catch((error) => {
@@ -418,25 +418,35 @@ router.post('/comment/:task_id', [
         let commentID = taskComment.id;
         let createCommentImages = [];
         // postデータに画像IDが含まれているかどうか
-        if (Array.isArray(req.body.image_id) && req.body.image_id.length > 0) {
-          req.body.image_id.forEach((image_id) => {
+        console.log("req.body.image_id ======>", req.body.image_id);
+        req.body.image_id.forEach((image_id) => {
+          if (image_id.length > 0) {
             createCommentImages.push({
               comment_id: commentID,
               image_id: image_id,
             });
-          })
+          }
+        })
 
+        if (createCommentImages.length > 0) {
           return models.CommentImage.bulkCreate(createCommentImages, {
             transaction: transaction
           }).then((images) => {
             console.log("images ===> ", images);
+            let result = transaction.commit();
+            console.log("result ====> ", result);
             return res.redirect('back');
           }).catch((error) => {
             return Promise.reject(new Error(error));
           });
         }
+        let result = transaction.commit();
+        console.log("result ====> ", result);
         // 画像がpostされなかった場合即リダイレクト
         return res.redirect('back');
+      }).catch((error) => {
+        transaction.rollback();
+        throw new Error(error);
       });
       // console.log("commentID ===> ", commentID);
       // console.log('taskComment ==> ', taskComment);
@@ -445,8 +455,6 @@ router.post('/comment/:task_id', [
       console.log(error);
       return next(new Error(error));
     });
-
-    return taskComment;
   }
 );
 
