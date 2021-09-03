@@ -61,7 +61,8 @@
     <div class="row">
       <form method="POST" action="/todo/comment/<%- task.id %>" accept-charset="UTF-8" class="form-group">
         <input type="hidden" name="task_id" value="<%- task.id %>">
-        <input type="hidden" name="user_id" value="2">
+        <!-- ログイン中ユーザのID -->
+        <input type="hidden" name="user_id" value="<%- user.id %>">
         <div class="row ">
           <div class="col-sm-12 col-md-12 col-lg-12 col-xl-12">
             <p>添付ファイルを付与</p>
@@ -116,9 +117,9 @@
       <div class="col-md-9 col-lg-9 col-xl-9">
         <p><%- taskComment.get_new_line_comment() %></p>
       </div>
-      <div class="row mb-3">
-        <%- taskComment %>
+      <div class="row mb-3"></div>
         <% taskComment.CommentImages.forEach((image, index) => { %>
+        <%- image.Image %>
         <div class="col-md-3 col-lg-3 col-xl-3">
           <img class="mb-3 img-fluid img-thumbnail" src="<%- image.Image.getShowImageUrl() %>">
         </div>

@@ -32,14 +32,17 @@ router.post("/authenticate", function(req, res, next) {
       if (authenticate !== true) {
         return Promise.reject("ユーザー認証に失敗しました｡");
       }
-      // requestオブジェクトにフラグをセット
+      // ログイン情報をセッションに保持
       req.session.isLoggedIn = authenticate;
+      req.session.user = user;
+      console.log("user ====> ", user);
       console.log("req.session.isLoggedIn ===> ", req.session.isLoggedIn)
       // プロジェクト一覧ページへリダイレクト
       return res.redirect("/project");
     });
   }).catch(function(error) {
-    return next(new Error(error));
+    return res.redirect("back");
+    // return next(new Error(error));
   });
 });
 

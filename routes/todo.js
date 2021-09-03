@@ -347,6 +347,7 @@ router.get('/detail/:task_id', (req, res, next) => {
       let task = data[1];
       let projects = data[2];
 
+      console.log("task =====> ", task);
       // task.TaskComments.forEach((comment, index) => {
       //   comment.CommentImages.forEach((commentImage) => {
       //     console.log("image ===> ", commentImage.Image.getShowImageUrl());
@@ -364,6 +365,8 @@ router.get('/detail/:task_id', (req, res, next) => {
         priorityStatusList: applicationConfig.priorityStatusList,
         displayStatusList: applicationConfig.displayStatusList,
         sessionErrors: sessionErrors,
+        // ログイン情報を渡す
+        user: req.session.user,
       });
     })
     .catch((error) => {
@@ -403,31 +406,41 @@ router.post('/comment/:task_id', [
     }
 
     // タスクコメントデータを登録するpromiseを生成
-    let taskComment = models.TaskComment.create( {
-      comment: req.body.comment,
-      task_id: req.body.task_id,
-      user_id: req.body.user_id,
-    }).then((taskComment) => {
-      // 確定したcomment_idを取得する
-      let commentID = taskComment.id;
-      let createCommentImages = [];
-      req.body.image_id.forEach((image_id) => {
-        createCommentImages.push({
-          comment_id: commentID,
-          image_id: image_id,
-        });
-      })
+    return models.sequelize.transaction().then(function (tx) {
+      let transaction = tx;
+      let insertComment = {
+        comment: req.body.comment,
+        task_id: req.body.task_id,
+        user_id: req.body.user_id,
+      };
+      return models.TaskComment.create(insertComment, {transaction: transaction}).then((taskComment) => {
+        // 確定したcomment_idを取得する
+        let commentID = taskComment.id;
+        let createCommentImages = [];
+        // postデータに画像IDが含まれているかどうか
+        if (Array.isArray(req.body.image_id) && req.body.image_id.length > 0) {
+          req.body.image_id.forEach((image_id) => {
+            createCommentImages.push({
+              comment_id: commentID,
+              image_id: image_id,
+            });
+          })
 
-      console.log("commentID ===> ", commentID);
-      console.log('taskComment ==> ', taskComment);
-      console.log("image_id[] ===> ", req.body.image_id);
-
-      return models.CommentImage.bulkCreate(createCommentImages).then((images) => {
-        console.log("images ===> ", images);
+          return models.CommentImage.bulkCreate(createCommentImages, {
+            transaction: transaction
+          }).then((images) => {
+            console.log("images ===> ", images);
+            return res.redirect('back');
+          }).catch((error) => {
+            return Promise.reject(new Error(error));
+          });
+        }
+        // 画像がpostされなかった場合即リダイレクト
         return res.redirect('back');
-      }).catch((error) => {
-        return Promise.reject(new Error(error));
       });
+      // console.log("commentID ===> ", commentID);
+      // console.log('taskComment ==> ', taskComment);
+      // console.log("image_id[] ===> ", req.body.image_id);
     }).catch((error) => {
       console.log(error);
       return next(new Error(error));
