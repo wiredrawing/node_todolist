@@ -5,7 +5,8 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 let bodyParser = require("body-parser");
 let parseUrl = require("parseUrl");
-
+const { check, validationResult } = require("express-validator");
+const validationRules = require("./config/validationRules.js");
 // テンプレート用ルーティング
 var indexRouter = require("./routes/index");
 var userRouter = require("./routes/user");
@@ -14,6 +15,7 @@ let projectRouter = require("./routes/project");
 let imageRouter = require("./routes/image.js");
 let loginRouter = require("./routes/login");
 let logoutRouter = require("./routes/logout");
+let registerRouter = require("./routes/register");
 
 // API向けルーティング
 let imageApiRouter = require("./routes/api/image");
@@ -120,33 +122,6 @@ app.use(function (req, res, next) {
   return next();
 });
 
-// ------------------------------------------
-// バリデーションエラーの内容をテンプレートで出力できるようにカスタム
-// ------------------------------------------
-app.use(function (req, res, next) {
-  const setValidationErrors = function (errors) {
-    let sessionErrors = {};
-    errors.forEach((error, index) => {
-      sessionErrors[error.param] = error.msg;
-    });
-
-    // --------------------------------------
-    // Laravelの$errors関数のエミュレーション
-    // helper関数としてテンプレートに登録
-    // --------------------------------------
-    res.locals.errors = function (param) {
-      if (sessionErrors[param]) {
-        return sessionErrors[param];
-      }
-      return "";
-    };
-  };
-
-  req.setValidationErrors = setValidationErrors;
-  // エラーの初期化
-  req.setValidationErrors([]);
-  return next();
-});
 
 // ファイルアップロードのためのミドルウェア
 app.use(
@@ -159,82 +134,50 @@ app.use(
   })
 );
 
-// 本アプリケーション独自のミドルウェア
-app.use((req, res, next) => {
-  let users = models.user.findAll({
-    order: [["id", "desc"]],
-    include: [{ model: models.task }],
-  });
-  let tasks = models.task.findAll({
-    order: [["id", "desc"]],
-    include: [{ model: models.user }, { model: models.Star }],
-  });
-  let projects = models.Project.findAll({
-    order: [["id", "desc"]],
-  });
-  Promise.all([users, tasks, projects])
-    .then((data) => {
-      let users = data[0];
-      let tasks = data[1];
-      let projects = data[2];
-      let userIDList = [];
-      let taskIDList = [];
-      let projectIDList = [];
-      // usersテーブルのIDのみの配列
-      users.forEach((user, index) => {
-        userIDList.push(user.id);
-      });
-
-      // tasksテーブルのIDのみの配列
-      tasks.forEach((task, index) => {
-        taskIDList.push(task.id);
-      });
-
-      // projectsテーブルのIDのみの配列
-      projects.forEach((project, index) => {
-        projectIDList.push(project.id);
-      });
-
-      req.__ = {
-        users: users,
-        tasks: tasks,
-        projects: projects,
-        userIDList: userIDList,
-        taskIDList: taskIDList,
-        projectIDList: projectIDList,
-        // e: emitter,
-        applicationPath: __dirname,
-      };
-      return next();
-    })
-    .catch((error) => {
-      return next(new Error(error));
-    });
-});
 
 app.use((req, res, next) => {
-  console.log("req.sessionID ===> ", req.sessionID);
-  let pathname = parseUrl(req).pathname;
-  if (pathname.substr(-1) !== "/") {
-    pathname += "/";
-  }
-  console.log("req.session.isLoggedIn ===> ", req.session.isLoggedIn);
-  // ログイン状態が確認できない場合は､ログインへリダイレクト
-  if (pathname.indexOf("/login/") === -1 && req.session.isLoggedIn !== true) {
-    return res.redirect("/login");
-  }
 
-  if (req.session.isLoggedIn === true) {
-    req.isLoggedIn = req.session.isLoggedIn;
-  } else {
-    req.isLoggedIn = false;
+  let validationErrors = {};
+  if (req.session.validationErrors !== null) {
+    validationErrors = req.session.validationErrors;
+    req.session.validationErrors = null;
   }
-
+  res.locals.errors = function (param) {
+    if (validationErrors[param]) {
+      return validationErrors[param];
+    }
+    return "";
+  };
+  // // 未ログインの場合のみアクセスできるURL
+  // console.log(1);
+  // let notRequiredList = ["/login/", "/register/create/"];
+  // let pathname = parseUrl(req).pathname;
+  // if (pathname.substr(-1) !== "/") {
+  //   pathname += "/";
+  // }
+  // console.log(2);
+  // console.log("req.session.user ===> ", req.session.user);
+  // console.log(pathname);
+  // if (notRequiredList.includes(pathname)) {
+  //   console.log(3);
+  //   if (req.session.user) {
+  //     console.log(4);
+  //     return res.redirect("/project");
+  //   }
+  // } else {
+  //   console.log(5);
+  //   if (req.session.user === null || req.session.user === undefined) {
+  //     console.log(6);
+  //     return res.redirect("/login");
+  //   }
+  // }
+  // console.log(7);
   res.locals.req = req;
   return next();
 });
 
 app.use("/", indexRouter);
+app.use("/register", registerRouter);
 app.use("/login", loginRouter);
 app.use("/logout", logoutRouter);
 app.use("/user", userRouter);

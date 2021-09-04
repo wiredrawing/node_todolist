@@ -1,4 +1,7 @@
+// シーダーファイルを生成する
 // sequelize seed:generate --name test-users
+// 作成したシーダーファイルを実行する
+// sequelize db:seed:all
 "use strict";
 
 let bc = require("bcrypt");

@@ -4,7 +4,8 @@ let models = require('../models/index.js');
 const { check, validationResult } = require('express-validator');
 const applicationConfig = require('../config/application-config.js');
 const { Op } = require('sequelize');
-const session = require('express-session');
+const makeTaskCode = require("../config/makeCodeNumber.js");
+const makeCodeNumber = require('../config/makeCodeNumber.js');
 
 let userIDList = [];
 models.user
@@ -225,6 +226,8 @@ router.post(
       return res.redirect('back');
     }
 
+    let codeNumber = makeCodeNumber(12);
+    console.log("taskCode ======> ", codeNumber);
     let task = models.task;
     // モデルを使ってtasksテーブルにタスクレコードを挿入する
 
@@ -243,6 +246,7 @@ router.post(
             project_id: postData.project_id,
             priority: postData.priority,
             is_displayed: applicationConfig.binaryType.on,
+            code_number: codeNumber,
           },
           {
             transaction: tx,

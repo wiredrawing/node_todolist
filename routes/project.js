@@ -3,12 +3,12 @@ var router = express.Router();
 
 // モデルロード
 const models = require("../models/index.js");
-
 // バリデーション用のモジュールを読み込み
 const { check, validationResult } = require("express-validator");
 const applicationConfig = require("../config/application-config");
 const { Op } = require("sequelize");
-const projectimage = require("../models/projectimage.js");
+// 識別使用コード生成関数
+const makeCodeNumber = require("../config/makeCodeNumber.js");
 // 表示フラグのバリデーション用
 let displayStatusList = [];
 applicationConfig.displayStatusList.forEach((status, index) => {
@@ -59,14 +59,14 @@ router.get("/create", (req, res, next) => {
   console.log("==============>", res.locals);
   // バリデーションエラーを取得
   let sessionErrors = {};
-  if (req.session.sessionErrors) {
-    // バリデーションエラーのヘルパー関数を登録
-    console.log(req.session.sessionErrors);
-    req.setValidationErrors(req.session.errors);
-    sessionErrors = req.session.sessionErrors;
-    // セッション内エラーを削除
-    req.session.sessionErrors = null;
-  }
+  // if (req.session.sessionErrors) {
+  //   // バリデーションエラーのヘルパー関数を登録
+  //   console.log(req.session.sessionErrors);
+  //   req.setValidationErrors(req.session.errors);
+  //   sessionErrors = req.session.sessionErrors;
+  //   // セッション内エラーを削除
+  //   req.session.sessionErrors = null;
+  // }
   console.log("==============>", res.locals);
   // 現在のリクエストURLを変数に保持
   let actionUrl = req.originalUrl;
@@ -83,8 +83,7 @@ router.get("/create", (req, res, next) => {
   });
 
   // Promiseの解決
-  Promise.all([users, projects])
-    .then(function (response) {
+  Promise.all([users, projects]).then(function (response) {
       console.log(req.old);
       let users = response[0];
       let projects = response[1];
@@ -167,6 +166,7 @@ router.post(
 
     return models.sequelize.transaction((tx) => {
       let transaction = tx;
+      let codeNumber = makeCodeNumber(12);
       // バリデーションチェックを通過した場合
       return models.Project.create(
         {
@@ -175,6 +175,7 @@ router.post(
           // user_idは当該プロジェクトのリーダーになるID
           user_id: postData.user_id,
           is_displayed: applicationConfig.binaryType.off,
+          code_number: codeNumber,
         },
         {
           transaction: transaction,

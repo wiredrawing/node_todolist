@@ -4,16 +4,20 @@
   <div class="content-box-large">
 
     <div class="row">
-      <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4">
+      <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
         <p><label class="control-label ">タスクID</label></p>
         <p><input class="form-control" type="text" disabled="disabled" value="<%= task.id %>"></p>
       </div>
+      <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
+        <p><label class="control-label ">タスクコード</label></p>
+        <p><input class="form-control" type="text" disabled="disabled" value="<%= task.code_number %>"></p>
+      </div>
       <!-- 作成日時及び更新日時-->
-      <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4">
+      <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
         <p>作成日時</p>
         <p><input type="text" disabled="disabled" class="form-control" value="<%= task.formatted_created_at() %>"></p>
       </div>
-      <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4">
+      <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
         <p>更新日時</p>
         <p><input type="text" disabled="disabled" class="form-control" value="<%= task.formatted_updated_at() %>"></p>
       </div>

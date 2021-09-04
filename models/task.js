@@ -61,6 +61,7 @@ module.exports = (sequelize, DataTypes) => {
     status: DataTypes.INTEGER,
     priority: DataTypes.INTEGER,
     is_displayed: DataTypes.INTEGER,
+    code_number: DataTypes.STRING,
     deleted_at: {
       type: DataTypes.DATE,
       // fieldName: "deleted_at",

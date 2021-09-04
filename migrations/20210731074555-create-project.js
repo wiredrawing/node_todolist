@@ -16,6 +16,10 @@ module.exports = {
       project_description: {
         type: Sequelize.TEXT
       },
+      // 識別用のタスクコード
+      code_number: {
+        type: Sequelize.STRING(64),
+      },
       is_displayed: {
         type: Sequelize.INTEGER
       },

@@ -30,6 +30,10 @@ module.exports = {
       is_displayed: {
         type: Sequelize.INTEGER(2),
       },
+      // 識別用のタスクコード
+      code_number: {
+        type: Sequelize.STRING(64),
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE
