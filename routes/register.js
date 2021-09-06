@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const models = require("../models/index.js");
 const validationRules = require("../config/validationRules.js");
 const { check, validationResult } = require("express-validator");
+const { urlencoded } = require("express");
 
 
 
@@ -26,14 +27,14 @@ router.get("/create", function (req, res, next) {
 // バリデーションエラーの内容をテンプレートで出力できるようにカスタム
 // ------------------------------------------
 router.post("/create", validationRules["register.create"], function (req, res, next) {
-  let validationErrors = {};
+
+  // -----------------------------------
+  // バリデーションチェック
+  // -----------------------------------
   const errors = validationResult(req);
-  req.session.validationErrors = null;
   if (errors.isEmpty() !== true) {
-    errors.errors.forEach((error, index) => {
-      validationErrors[error.param] = error.msg;
-    });
-    req.session.validationErrors = validationErrors;
+    req.session.validationErrors = errors.errors;
+    console.log(errors);
     return res.redirect("back");
   }
 

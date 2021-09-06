@@ -28,10 +28,14 @@ let validationRules = {
     // 確認用パスワード
     check("password_confirmation").isLength({min: 10, max: 64}).withMessage("10文字以上64文字以内で入力して下さい").custom(function (value, obj) {
       if (obj.req.body.password) {
+        console.log("password_confirmation = ", value);
+        console.log("password = ", obj.req.body.password);
         if (obj.req.body.password === value) {
+          console.log("いいいいいいいいいい")
           return true;
         }
       }
+      console.log("あああああああああああああああああ")
       return Promise.reject(new Error("パスワードが一致しません｡"));
     })
   ]

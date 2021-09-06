@@ -90,7 +90,8 @@ app.use(
 // POSTメソッドの場合は､req.bodyをセッションに格納する
 // ------------------------------------------
 app.use(function (req, res, next) {
-  let sessionPostData = null;
+  console.log("req.session.user ==> ", req.session.user);
+  let sessionPostData = {};
   if (req.method === "POST") {
     req.session.sessionPostData = req.body;
   } else {
@@ -115,10 +116,6 @@ app.use(function (req, res, next) {
   req.old = old;
   // ejsテンプレート上にhelper関数として登録
   res.locals.old = old;
-  // // console.log("req.ejs ===>", req.locals);
-  // // console.log("req.method ===> ", req.method);
-  // // console.log("req.body ===> ", req.body);
-
   return next();
 });
 
@@ -135,19 +132,44 @@ app.use(
 );
 
 
+// app.use(function (req, res, next) {
+//   let validationErrors = {};
+//   let errors = req.session.validationErrors;
+//   if (Array.isArray(errors) && errors.length > 0) {
+//     errors.forEach((error, index) => {
+//       validationErrors[error.param] = error.msg;
+//     });
+//   }
+//   req.session.validationErrors = null;
+//   res.locals.errors = function (param) {
+//     if (validationErrors[param]) {
+//       return validationErrors[param];
+//     }
+//     return "";
+//   }
+//   return next();
+// });
+
 app.use((req, res, next) => {
 
-  let validationErrors = {};
-  if (req.session.validationErrors !== null) {
-    validationErrors = req.session.validationErrors;
-    req.session.validationErrors = null;
-  }
-  res.locals.errors = function (param) {
-    if (validationErrors[param]) {
-      return validationErrors[param];
+
+  let checkValidationErrors = function (request) {
+    let validationErrors = [];
+    let errors = request.session.validationErrors;
+    if (Array.isArray(errors) && errors.length > 0) {
+      errors.forEach((error, index) => {
+        validationErrors[error.param] = error.msg;
+      });
     }
-    return "";
+    request.session.validationErrors = null;
+    return function (param) {
+      if (validationErrors[param]) {
+        return validationErrors[param];
+      }
+      return "";
+    }
   };
+  res.locals.errors = checkValidationErrors(req);
   // // 未ログインの場合のみアクセスできるURL
   // console.log(1);
   // let notRequiredList = ["/login/", "/register/create/"];
@@ -175,7 +197,6 @@ app.use((req, res, next) => {
   res.locals.req = req;
   return next();
 });
-
 app.use("/", indexRouter);
 app.use("/register", registerRouter);
 app.use("/login", loginRouter);
