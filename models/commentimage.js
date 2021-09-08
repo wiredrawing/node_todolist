@@ -38,6 +38,7 @@ module.exports = (sequelize, DataTypes) => {
     modelName: 'CommentImage',
     tableName: 'comment_images',
     underscored: true,
+    paranoid: true,
   });
   return CommentImage;
 };

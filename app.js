@@ -25,7 +25,6 @@ let projectApiRouter = require("./routes/api/project");
 let models = require("./models/index.js");
 
 let config = require("./config/config.json");
-console.log("config ====> ", config);
 
 const session = require("express-session");
 const fileUpload = require("express-fileupload");
@@ -90,7 +89,7 @@ app.use(
 // POSTメソッドの場合は､req.bodyをセッションに格納する
 // ------------------------------------------
 app.use(function (req, res, next) {
-  console.log("req.session.user ==> ", req.session.user);
+
   let sessionPostData = {};
   if (req.method === "POST") {
     req.session.sessionPostData = req.body;
@@ -101,7 +100,6 @@ app.use(function (req, res, next) {
     }
   }
   const old = (function (postData) {
-    // console.log("postData ===> ", postData);
     return function (param, defaultValue = "") {
       if (postData && postData[param]) {
         if (isNaN(postData[param])) {
@@ -151,6 +149,22 @@ app.use(
 // });
 
 app.use((req, res, next) => {
+
+  // applicationPath
+  req.applicationPath = __dirname;
+
+  let executeValidationCheck = function (request) {
+    // バリデーション検証
+    const errors = validationResult(request);
+    // バリデーションエラー無し
+    if (errors.isEmpty() === true) {
+      request.session.validationErrors = null;
+      return true;
+    }
+    request.session.validationErrors = errors.errors;
+    return false;
+  }
+  req.executeValidationCheck = executeValidationCheck;
 
 
   let checkValidationErrors = function (request) {
@@ -217,7 +231,6 @@ app.use(function (req, res, next) {
 
 // error handler
 app.use(function (err, req, res, next) {
-  // console.log(err.message);
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get("env") === "development" ? err : {};

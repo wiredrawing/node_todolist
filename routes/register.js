@@ -31,12 +31,13 @@ router.post("/create", validationRules["register.create"], function (req, res, n
   // -----------------------------------
   // バリデーションチェック
   // -----------------------------------
-  const errors = validationResult(req);
-  if (errors.isEmpty() !== true) {
-    req.session.validationErrors = errors.errors;
-    console.log(errors);
-    return res.redirect("back");
-  }
+  req.executeValidationCheck(req, res);
+  // const errors = validationResult(req);
+  // if (errors.isEmpty() !== true) {
+  //   req.session.validationErrors = errors.errors;
+  //   console.log(errors);
+  //   return res.redirect("back");
+  // }
 
   return next();
 });

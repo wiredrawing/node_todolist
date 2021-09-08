@@ -79,7 +79,7 @@ router.get("/show/:image_id", (req, res, next) => {
       return Promise.reject(new Error("指定した画像が見つかりませんでした｡"));
     }
     // console.log(image);
-    let destinationFilePath = req.__.applicationPath + "/uploaded_images/" + moment(image.createdAt).format("Y/M/D/H") + "/" + image.file_name;
+    let destinationFilePath = req.applicationPath + "/uploaded_images/" + moment(image.createdAt).format("Y/M/D/H") + "/" + image.file_name;
 
     // 画像ファイルを読み込み出力する
     fs.readFile(destinationFilePath, function (error, result) {
