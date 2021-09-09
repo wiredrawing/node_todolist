@@ -4,8 +4,8 @@ let models = require("../models/index.js");
 const { check, validationResult } = require("express-validator");
 const applicationConfig = require("../config/application-config.js");
 const { Op } = require("sequelize");
-const makeTaskCode = require("../config/makeCodeNumber.js");
 const makeCodeNumber = require("../config/makeCodeNumber.js");
+const validationRules = require("../config/validationRules.js");
 
 let userIDList = [];
 models.user
@@ -178,51 +178,9 @@ router.get(
   }
 );
 
-router.post(
-  "/create",
-  [
-    // postデータのバリデーションチェック
-    check("task_name", "タスク名は必須項目です").not().isEmpty().isLength({ min: 1, max: 256 }),
-    check("task_description", "1文字以上2000文字以内で入力して下さい").not().isEmpty().isLength({ min: 1, max: 2048 }),
-    check("user_id", "作業者を設定して下さい").isIn(userIDList),
-    check("project_id", "対応するプロジェクトを選択して下さい").not().isEmpty().isNumeric().withMessage("プロジェクトIDは数字で指定して下さい"),
-    check("status").isIn(taskStatusList).withMessage("タスクステータスは有効な値を設定して下さい｡"),
-    check("priority").isNumeric().withMessage("優先度は正しい値で設定して下さい").isIn(priorityStatusList).withMessage("優先度は正しい値で設定して下さい"),
-    check("image_id")
-      .isArray()
-      .custom(function (value) {
-        return models.Image.findAll({
-          where: {
-            id: {
-              [Op.in]: value,
-            },
-          },
-        })
-          .then((images) => {
-            console.log("images => ", images);
-            if (images.length !== value.length) {
-              return Promise.reject(new Error("指定した画像がアップロードされていません｡"));
-            }
-            return true;
-          })
-          .catch((error) => {
-            throw new Error(error);
-          });
-      })
-      .withMessage("指定した画像がアップロードされていません｡"),
-  ],
-  (req, res, next) => {
+router.post("/create", validationRules["create.task"], (req, res, next) => {
     // バリデーションチェック
-    const errors = validationResult(req);
-    // バリデーション成功の場合
-    if (errors.isEmpty() !== true) {
-      // バリデーションエラーが有る場合は､セッションにエラーを保持
-      let sessionErrors = {};
-      errors.errors.forEach(function (error, index) {
-        sessionErrors[error.param] = error.msg;
-      });
-      req.session.sessionErrors = sessionErrors;
-      // Back the previous page.
+    if (req.executeValidationCheck(req) !== true) {
       return res.redirect("back");
     }
 

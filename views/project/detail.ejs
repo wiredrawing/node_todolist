@@ -191,6 +191,11 @@
 <script>
   $(function(e) {
 
+    // simpleMED
+    let simplemde = new SimpleMDE({
+      element: document.getElementById("project_description"),
+    });
+
     let uploadInput = $("input[name='upload_file']");
     let uploadedFileUrlList = [];
     let uploadedFileIDList = [];

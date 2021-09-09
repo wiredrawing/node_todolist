@@ -12,13 +12,14 @@
               <p>タスク名</p>
               <p><input type="text" class="form-control" name="task_name" value="<%- old("task_name") %>"></p>
 
-              <% if (sessionErrors.task_name) { %>
+              <% if(errors("task_name").length > 0) { %>
               <!-- エラーメッセージ -->
               <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- sessionErrors.task_name %></p>
+                <p class="alert alert-danger "><%- errors("task_name") %></p>
               </div>
               <!-- エラーメッセージ -->
               <% } %>
+
             </div>
           </div>
 
@@ -28,13 +29,14 @@
               <p>添付ファイルを付与</p>
               <p><input type="file" class="form-control form-select" name="upload_file" id="upload_file"></p>
 
-              <% if (sessionErrors.image_id) { %>
+              <% if(errors("upload_file").length > 0) { %>
               <!-- エラーメッセージ -->
-              <div v-for="data in errors.upload_file" class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- sessionErrors.image_id %></p>
+              <div class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%- errors("upload_file") %></p>
               </div>
               <!-- エラーメッセージ -->
               <% } %>
+
             </div>
           </div>
 
@@ -71,10 +73,10 @@
                 </select>
               </p>
 
-              <% if (sessionErrors.user_id ) { %>
+              <% if(errors("user_id").length > 0) { %>
               <!-- エラーメッセージ -->
               <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger"><%- sessionErrors.user_id %></p>
+                <p class="alert alert-danger "><%- errors("user_id") %></p>
               </div>
               <!-- エラーメッセージ -->
               <% } %>
@@ -92,13 +94,15 @@
                   <% }) %>
                 </select>
               </p>
-              <% if (sessionErrors.status) {%>
+
+              <% if(errors("status").length > 0) { %>
               <!-- エラーメッセージ -->
               <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- sessionErrors.status %></p>
+                <p class="alert alert-danger "><%- errors("status") %></p>
               </div>
               <!-- エラーメッセージ -->
               <% } %>
+
             </div>
           </div>
 
@@ -115,13 +119,14 @@
                 </select>
               </p>
 
-              <% if (sessionErrors.priority) { %>
+              <% if(errors("priority").length > 0) { %>
               <!-- エラーメッセージ -->
-              <div v-for="data in errors.is_displayed " class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- sessionErrors.priority %></p>
+              <div class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%- errors("priority") %></p>
               </div>
               <!-- エラーメッセージ -->
               <% } %>
+
             </div>
           </div>
 
@@ -132,13 +137,14 @@
                 <textarea class="form-control" id="task_description" placeholder="注意事項がある場合は入力のこと" name="task_description" cols="50 " rows="10 "><%- old("task_description") %></textarea>
               </p>
 
-              <% if (sessionErrors.task_description) { %>
+              <% if(errors("task_description").length > 0) { %>
               <!-- エラーメッセージ -->
               <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- sessionErrors.task_description %></p>
+                <p class="alert alert-danger "><%- errors("task_description") %></p>
               </div>
               <!-- エラーメッセージ -->
               <% } %>
+
             </div>
           </div>
 

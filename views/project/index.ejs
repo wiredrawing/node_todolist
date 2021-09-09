@@ -25,15 +25,15 @@
       <table cellpadding="0" cellspacing="0" class="table table-bordered" id="example">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>プロジェクト名<br>登録タスク数</th>
-            <th>概要</th>
-            <th>責任者</th>
-            <th>開始日<br>終了日</th>
-            <th>作成日<br>更新日</th>
-            <th>編集</th>
-            <th>タスク作成</th>
-            <th>削除</th>
+            <th width="2%">ID</th>
+            <th width="5%">プロジェクト名<br>登録タスク数</th>
+            <th width="10%">概要</th>
+            <th width="5%">責任者</th>
+            <th width="5%">開始日<br>終了日</th>
+            <th width="5%">作成日<br>更新日</th>
+            <th width="2%">編集</th>
+            <th width="4%">タスク作成</th>
+            <th width="2%">削除</th>
           </tr>
         </thead>
         <tbody>
@@ -42,9 +42,7 @@
           <% if (data.is_displayed !== 1) { %> style="background-color: #ddd;" <% } %>
           >
             <td>
-              <a class="btn btn-outline-info" href="/project/detail/<%- data.id %>">
-                <%- data.id %>
-              </a>
+              <%- data.id %>
             </td>
             <td>
               <%- data.project_name %>(<%- data.tasks.length %>件)

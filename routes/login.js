@@ -13,12 +13,6 @@ router.get("/", function (req, res, next) {
 // 認証処理
 router.post("/authenticate", validationRules["login.index"], function(req, res, next) {
 
-  // // バリデーション検証
-  // const errors = validationResult(req);
-  // if (errors.isEmpty() !== true) {
-  //   req.session.validationErrors = errors.errors;
-  //   return res.redirect("back");
-  // }
   console.log('req.executeValidationCheck(req, res) ==>  ', req.executeValidationCheck(req));
   console.log("=============================あ");
   let email = req.body.email;

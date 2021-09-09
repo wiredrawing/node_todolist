@@ -7,13 +7,16 @@
           <div class="col-md-12 mb-3">
             <div class="form-group">
               <label for="email">メールアドレス</label>
-              <input id="email" type="text" name="email" class="form-control form-control-lg" aria-describedby="emailHelp" placeholder="Enter email">
+              <input value="<%= old("email") %>" id="email" type="text" name="email" class="form-control form-control-lg" aria-describedby="emailHelp" placeholder="Enter email">
             </div>
           </div>
+
+          <% if (errors("email").length > 0) { %>
           <div class="col-md-12">
             <!-- バリデーションエラー -->
-            <p class="alert alert-danger"></p>
+            <p class="alert alert-danger"><%- errors("email") %></p>
           </div>
+          <% } %>
         </div>
 
         <div class="row">
@@ -24,10 +27,12 @@
             </div>
           </div>
 
+          <% if (errors("password").length > 0) { %>
           <div class="col-md-12">
             <!-- バリデーションエラー -->
-            <p class="alert alert-danger"></p>
+            <p class="alert alert-danger"><%- errors("password") %></p>
           </div>
+          <% } %>
         </div>
         <button type="submit" class="btn btn-primary">ログイン</button>
       </form>

@@ -7,6 +7,7 @@ let bodyParser = require("body-parser");
 let parseUrl = require("parseUrl");
 const { check, validationResult } = require("express-validator");
 const validationRules = require("./config/validationRules.js");
+const validationMiddleware = require("./config/validationMiddleware.js");
 // テンプレート用ルーティング
 var indexRouter = require("./routes/index");
 var userRouter = require("./routes/user");
@@ -161,6 +162,7 @@ app.use((req, res, next) => {
       request.session.validationErrors = null;
       return true;
     }
+    console.log(errors.errors);
     request.session.validationErrors = errors.errors;
     return false;
   }

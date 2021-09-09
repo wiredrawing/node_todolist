@@ -6,6 +6,7 @@ const models = require("../models/index.js");
 // バリデーション用のモジュールを読み込み
 const { check, validationResult } = require("express-validator");
 const applicationConfig = require("../config/application-config");
+const validationRules = require("../config/validationRules.js");
 const { Op } = require("sequelize");
 // 識別使用コード生成関数
 const makeCodeNumber = require("../config/makeCodeNumber.js");
@@ -83,7 +84,8 @@ router.get("/create", (req, res, next) => {
   });
 
   // Promiseの解決
-  Promise.all([users, projects]).then(function (response) {
+  Promise.all([users, projects])
+    .then(function (response) {
       console.log(req.old);
       let users = response[0];
       let projects = response[1];
@@ -102,114 +104,60 @@ router.get("/create", (req, res, next) => {
     });
 });
 
-router.post(
-  "/create",
-  [
-    // カスタムバリデーター
-    check("user_id")
-      .isNumeric()
-      .custom(function (value, request) {
-        // user_idがDBレコードに存在するかバリデーションする
-        return models.user
-          .findByPk(value)
-          .then((data) => {
-            if (data.id == value) {
-              return true;
-            }
-            return Promise.reject("DBレコードに一致しません｡");
-          })
-          .catch((error) => {
-            throw new Error(error);
-          });
-      }),
-    check("project_name").isLength({ min: 1, max: 256 }).withMessage("プロジェクト名を入力して下さい"),
-    check("project_description").isLength({ min: 1, max: 4096 }).withMessage("プロジェクトの概要を4000文字以内で入力して下さい｡"),
-    check("image_id", "指定した画像がアップロードされていません｡")
-      .isArray()
-      .custom(function (value) {
-        return models.Image.findAll({
-          where: {
-            id: {
-              [Op.in]: value,
-            },
-          },
-        })
-          .then((images) => {
-            console.log("images => ", images);
-            if (images.length !== value.length) {
-              return Promise.reject(new Error("指定した画像がアップロードされていません｡"));
-            }
-            return true;
-          })
-          .catch((error) => {
-            throw new Error(error);
-          });
-      }),
-  ],
-  (req, res, next) => {
-    // POSTデータを取得
-    const postData = req.body;
-    // express-validatorを使ったバリデーション結果を取得する
-    const errors = validationResult(req);
-
-    if (errors.isEmpty() !== true) {
-      let sessionErrors = {};
-      console.log(errors.errors);
-      errors.errors.forEach((error, index) => {
-        sessionErrors[error.param] = error.msg;
-      });
-      req.session.errors = errors.errors;
-      req.session.sessionErrors = sessionErrors;
-      console.log(req.session.sessionErrors);
-      return res.redirect("back");
-    }
-
-    return models.sequelize.transaction((tx) => {
-      let transaction = tx;
-      let codeNumber = makeCodeNumber(12);
-      // バリデーションチェックを通過した場合
-      return models.Project.create(
-        {
-          project_name: postData.project_name,
-          project_description: postData.project_description,
-          // user_idは当該プロジェクトのリーダーになるID
-          user_id: postData.user_id,
-          is_displayed: applicationConfig.binaryType.off,
-          code_number: codeNumber,
-        },
-        {
-          transaction: transaction,
-        }
-      )
-        .then((data) => {
-          // lastInsertIDを取得
-          let projectID = data.id;
-          let projectImagesForBulk = [];
-          req.body.image_id.forEach((id, index) => {
-            projectImagesForBulk.push({
-              image_id: id,
-              project_id: projectID,
-            });
-          });
-
-          return models.ProjectImage.bulkCreate(projectImagesForBulk, {
-            transaction: transaction,
-          })
-            .then((projectImages) => {
-              console.log("projectImages ===> ", projectImages);
-              return res.redirect("back");
-            })
-            .catch((error) => {
-              throw new Error(error);
-            });
-        })
-        .catch((error) => {
-          // return
-          return next(new Error(error));
-        });
-    });
+router.post("/create", validationRules["project.create"], (req, res, next) => {
+  // POSTデータを取得
+  const postData = req.body;
+  // express-validatorを使ったバリデーション結果を取得する
+  const errors = validationResult(req);
+  if (req.executeValidationCheck(req) !== true) {
+    return res.redirect("back");
   }
-);
+
+  return models.sequelize.transaction((tx) => {
+    let transaction = tx;
+    let codeNumber = makeCodeNumber(12);
+    // バリデーションチェックを通過した場合
+    return models.Project.create(
+      {
+        project_name: postData.project_name,
+        project_description: postData.project_description,
+        // user_idは当該プロジェクトのリーダーになるID
+        user_id: postData.user_id,
+        is_displayed: postData.is_displayed,
+        code_number: codeNumber,
+      },
+      {
+        transaction: transaction,
+      }
+    )
+      .then((data) => {
+        // lastInsertIDを取得
+        let projectID = data.id;
+        let projectImagesForBulk = [];
+        req.body.image_id.forEach((id, index) => {
+          projectImagesForBulk.push({
+            image_id: id,
+            project_id: projectID,
+          });
+        });
+
+        return models.ProjectImage.bulkCreate(projectImagesForBulk, {
+          transaction: transaction,
+        })
+          .then((projectImages) => {
+            console.log("projectImages ===> ", projectImages);
+            return res.redirect("back");
+          })
+          .catch((error) => {
+            throw new Error(error);
+          });
+      })
+      .catch((error) => {
+        // return
+        return next(new Error(error));
+      });
+  });
+});
 
 /**
  * プロジェクトの編集および更新入力画面
@@ -218,18 +166,23 @@ router.post(
 router.get(
   "/detail/:projectID",
   [
-    check("projectID").isNumeric().custom((value, { req }) => {
-      let projectID = parseInt(value);
+    check("projectID")
+      .isNumeric()
+      .custom((value, { req }) => {
+        let projectID = parseInt(value);
 
-      return models.Project.findByPk(projectID).then(function(project) {
-        if (project.id === projectID) {
-          return true;
-        }
-        return Promise.reject("指定したプロジェクトデータが見つかりません");
-      }).catch(error => {
-        throw new Error(error);
-      });
-    }).withMessage("指定したプロジェクトデータが見つかりません｡"),
+        return models.Project.findByPk(projectID)
+          .then(function (project) {
+            if (project.id === projectID) {
+              return true;
+            }
+            return Promise.reject("指定したプロジェクトデータが見つかりません");
+          })
+          .catch((error) => {
+            throw new Error(error);
+          });
+      })
+      .withMessage("指定したプロジェクトデータが見つかりません｡"),
   ],
   function (req, res, next) {
     // URLパラメータの取得
