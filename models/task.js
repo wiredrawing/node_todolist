@@ -53,6 +53,14 @@ module.exports = (sequelize, DataTypes) => {
       return moment(this.updatedAt).format("Y年M月D日 H時m分s秒");
     }
 
+    formattedStartTime() {
+      console.log("=============>", moment(this.start_time).format("Y年M月D日"));
+      return moment(this.start_time).format("Y年M月D日");
+    }
+
+    formattedEndTime() {
+      return moment(this.end_time).format("Y年M月D日");
+    }
   };
   task.init({
     task_name: DataTypes.STRING,
@@ -78,6 +86,12 @@ module.exports = (sequelize, DataTypes) => {
       // underscored: true,
     },
     deleted_at: {
+      type: DataTypes.DATE,
+    },
+    start_time: {
+      type: DataTypes.DATE,
+    },
+    end_time: {
       type: DataTypes.DATE,
     }
   }, {

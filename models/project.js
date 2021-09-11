@@ -37,6 +37,13 @@ module.exports = (sequelize, DataTypes) => {
       return moment(this.updatedAt).format("Y年M月D日 H時m分s秒");
     }
 
+    formattedStartTime() {
+      return moment(this.start_time).format("Y年M月D日 H時m分s秒");
+    }
+
+    formattedEndTime() {
+      return moment(this.end_time).format("Y年M月D日 H時m分s秒");
+    }
   };
   Project.init({
     project_name: DataTypes.STRING,

@@ -36,13 +36,13 @@
                 <input type="text" class="form-control" name="task_name" value="<%- old("task_name", task.task_name) %>">
               </p>
 
-              <% if (sessionErrors.task_name) { %>
               <!-- エラーメッセージ -->
+              <% if (errors("task_name").length > 0) { %>
               <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- sessionErrors.task_name %></p>
+                <p class="alert alert-danger "><%= errors("task_name") %></p>
               </div>
-              <!-- エラーメッセージ -->
               <% } %>
+              <!-- エラーメッセージ -->
             </div>
 
             <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
@@ -54,6 +54,15 @@
                   <% }) %>
                 </select>
               </p>
+
+              <!-- エラーメッセージ -->
+              <% if (errors("user_id").length > 0) { %>
+              <div class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%= errors("user_id") %></p>
+              </div>
+              <% } %>
+              <!-- エラーメッセージ -->
+
             </div>
 
             <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
@@ -67,13 +76,15 @@
                   <% }) %>
                 </select>
               </p>
-              <% if (sessionErrors.status) {%>
+
               <!-- エラーメッセージ -->
+              <% if (errors("status").length > 0) { %>
               <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- sessionErrors.status %></p>
+                <p class="alert alert-danger "><%= errors("status") %></p>
               </div>
-              <!-- エラーメッセージ -->
               <% } %>
+              <!-- エラーメッセージ -->
+
             </div>
           </div>
 
@@ -90,13 +101,13 @@
                 </select>
               </p>
 
-              <% if (sessionErrors.project_id) { %>
               <!-- エラーメッセージ -->
+              <% if (errors("project_id").length > 0) { %>
               <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- sessionErrors.project_id %></p>
+                <p class="alert alert-danger "><%= errors("project_id") %></p>
               </div>
-              <!-- エラーメッセージ -->
               <% } %>
+              <!-- エラーメッセージ -->
 
             </div>
 
@@ -111,13 +122,13 @@
                 </select>
               </p>
 
-              <% if(sessionErrors.priority) { %>
               <!-- エラーメッセージ -->
+              <% if (errors("priority").length > 0) { %>
               <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- sessionErrors.priority %></p>
+                <p class="alert alert-danger "><%= errors("priority") %></p>
               </div>
-              <!-- エラーメッセージ -->
               <% } %>
+              <!-- エラーメッセージ -->
 
             </div>
           </div>
@@ -136,13 +147,13 @@
                 </select>
               </p>
 
-              <% if (sessionErrors.is_displayed) { %>
               <!-- エラーメッセージ -->
+              <% if (errors("is_displayed").length > 0) { %>
               <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- sessionErrors.is_displayed %></p>
+                <p class="alert alert-danger "><%= errors("is_displayed") %></p>
               </div>
-              <!-- エラーメッセージ -->
               <% } %>
+              <!-- エラーメッセージ -->
 
             </div>
           </div>
@@ -161,13 +172,13 @@
                   rows="10"><%- old("task_description", task.task_description) %></textarea>
               </p>
 
-              <% if (sessionErrors.task_description) { %>
               <!-- エラーメッセージ -->
+              <% if (errors("task_description").length > 0) { %>
               <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- sessionErrors.task_description %></p>
+                <p class="alert alert-danger "><%= errors("task_description") %></p>
               </div>
-              <!-- エラーメッセージ -->
               <% } %>
+              <!-- エラーメッセージ -->
             </div>
           </div>
 

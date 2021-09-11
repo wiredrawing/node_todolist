@@ -39,14 +39,14 @@ applicationConfig.priorityStatusList.forEach((data, index) => {
   }
   priorityStatusNameList[data.id] = data.value;
 });
-console.log("priorityStatusNameList => ", priorityStatusNameList);
-console.log("priorityStatusList => ", priorityStatusList);
+// console.log("priorityStatusNameList => ", priorityStatusNameList);
+// console.log("priorityStatusList => ", priorityStatusList);
 
 let displayStatusList = [];
 applicationConfig.displayStatusList.forEach((status, index) => {
   displayStatusList.push(status.id);
 });
-console.log("displayStatusList => ", displayStatusList);
+// console.log("displayStatusList => ", displayStatusList);
 
 /**
  * 登録中のタスク一覧を表示させる
@@ -81,10 +81,10 @@ router.get("/", (req, res, next) => {
       order: [["id", "desc"]],
     })
     .then((response) => {
-      console.log("response => ", response);
+      // console.log("response => ", response);
       // ビューを表示
       response.forEach((data, index) => {
-        console.log(data.Project);
+        // console.log(data.Project);
       });
       return res.render("./todo/index", {
         tasks: response,
@@ -115,7 +115,7 @@ router.get(
           return Promise.reject(new Error("指定したプロジェクトを取得できませんでした"));
         })
         .catch((error) => {
-          console.log("error ==> ", error);
+          // console.log("error ==> ", error);
           return Promise.reject(new Error(error));
         });
     }),
@@ -133,14 +133,14 @@ router.get(
       errors.errors.forEach((error, index) => {
         sessionErrors[error.param] = error.msg;
       });
-      console.log("errors.errors ===> ", errors);
+      // console.log("errors.errors ===> ", errors);
       req.session.sessionErrors = sessionErrors;
       return res.redirect("back");
     }
 
     if (req.session.sessionErrors) {
       sessionErrors = req.session.sessionErrors;
-      console.log(sessionErrors);
+      // console.log(sessionErrors);
       req.session.sessionErrors = null;
     }
     // タスク一覧を取得するプロミス
@@ -178,14 +178,14 @@ router.get(
   }
 );
 
-router.post("/create", validationRules["create.task"], (req, res, next) => {
+router.post("/create", validationRules["task.create"], (req, res, next) => {
     // バリデーションチェック
     if (req.executeValidationCheck(req) !== true) {
       return res.redirect("back");
     }
 
     let codeNumber = makeCodeNumber(12);
-    console.log("taskCode ======> ", codeNumber);
+    // console.log("taskCode ======> ", codeNumber);
     let task = models.task;
     // モデルを使ってtasksテーブルにタスクレコードを挿入する
 
@@ -193,7 +193,7 @@ router.post("/create", validationRules["create.task"], (req, res, next) => {
     let postData = req.body;
 
     return models.sequelize.transaction().then((tx) => {
-      console.log("tx ===> ", tx);
+      // console.log("tx ===> ", tx);
       return task
         .create(
           {
@@ -205,6 +205,8 @@ router.post("/create", validationRules["create.task"], (req, res, next) => {
             priority: postData.priority,
             is_displayed: applicationConfig.binaryType.on,
             code_number: codeNumber,
+            start_time: postData.start_time,
+            end_time: postData.end_time,
           },
           {
             transaction: tx,
@@ -212,7 +214,7 @@ router.post("/create", validationRules["create.task"], (req, res, next) => {
         )
         .then((task) => {
           // タスクの登録が完了したあと､画像とタスクを紐付ける
-          console.log("task new record => ", task);
+          // console.log("task new record => ", task);
           let imageIDList = req.body.image_id;
           let imagePromiseList = [];
           imageIDList.forEach((imageID, index) => {
@@ -229,19 +231,19 @@ router.post("/create", validationRules["create.task"], (req, res, next) => {
           });
 
           return Promise.all(imagePromiseList).then((promiseList) => {
-            console.log("PromiseList => ", promiseList);
+            // console.log("PromiseList => ", promiseList);
             // トランザクションコミットを実行
             let promiseTransaction = tx.commit();
-            console.log("tx.commit() => ", promiseTransaction);
+            // console.log("tx.commit() => ", promiseTransaction);
             return promiseTransaction.then((transaction) => {
-              console.log("transaction ====> ", transaction);
+              // console.log("transaction ====> ", transaction);
               // レコードの新規追加が完了した場合は､リファラーでリダイレクト
               return res.redirect("back");
             });
           });
         })
         .catch((error) => {
-          console.log("tx.rollback() => ", tx.rollback());
+          // console.log("tx.rollback() => ", tx.rollback());
           return next(new Error(error));
         });
     });
@@ -253,6 +255,7 @@ router.post("/create", validationRules["create.task"], (req, res, next) => {
 // 当該のタスクに対してのコメントフォームを表示
 // --------------------------------------------------------
 router.get("/detail/:task_id", (req, res, next) => {
+  console.log("ログイン中ユーザー => ", req.session.user);
   let sessionErrors = {};
   if (req.session.sessionErrors) {
     sessionErrors = req.session.sessionErrors;
@@ -320,7 +323,7 @@ router.get("/detail/:task_id", (req, res, next) => {
       });
     })
     .catch((error) => {
-      // console.log(error);
+      // // console.log(error);
       return next(new Error(error));
     });
 });
@@ -335,18 +338,18 @@ router.post(
     check("image_id", "添付ファイルが不正です")
       .isArray()
       .custom((value, obj) => {
-        console.log("value ==> ", value);
+        // console.log("value ==> ", value);
         return models.Image.findAll({
           where: {
             id: value,
           },
         })
           .then((images) => {
-            console.log("images.length ==> ", images.length);
-            console.log("images ==> ", images);
+            // console.log("images.length ==> ", images.length);
+            // console.log("images ==> ", images);
           })
           .catch((error) => {
-            console.log(error);
+            // console.log(error);
           });
       }),
   ],
@@ -354,7 +357,7 @@ router.post(
     const errors = validationResult(req);
 
     if (errors.isEmpty() !== true) {
-      console.log("validation errors => ", errors);
+      // console.log("validation errors => ", errors);
       return res.redirect("back");
     }
 
@@ -374,7 +377,7 @@ router.post(
             let commentID = taskComment.id;
             let createCommentImages = [];
             // postデータに画像IDが含まれているかどうか
-            console.log("req.body.image_id ======>", req.body.image_id);
+            // console.log("req.body.image_id ======>", req.body.image_id);
             req.body.image_id.forEach((image_id) => {
               if (image_id.length > 0) {
                 createCommentImages.push({
@@ -389,9 +392,9 @@ router.post(
                 transaction: transaction,
               })
                 .then((images) => {
-                  console.log("images ===> ", images);
+                  // console.log("images ===> ", images);
                   let result = transaction.commit();
-                  console.log("result ====> ", result);
+                  // console.log("result ====> ", result);
                   return res.redirect("back");
                 })
                 .catch((error) => {
@@ -399,7 +402,7 @@ router.post(
                 });
             }
             let result = transaction.commit();
-            console.log("result ====> ", result);
+            // console.log("result ====> ", result);
             // 画像がpostされなかった場合即リダイレクト
             return res.redirect("back");
           })
@@ -409,7 +412,7 @@ router.post(
           });
       })
       .catch((error) => {
-        console.log(error);
+        // console.log(error);
         return next(new Error(error));
       });
   }
@@ -461,7 +464,7 @@ router.get("/edit/:task_id", (req, res, next) => {
       });
     })
     .catch((error) => {
-      // console.log(error);
+      // // console.log(error);
       return next(new Error(error));
     });
 });
@@ -469,64 +472,29 @@ router.get("/edit/:task_id", (req, res, next) => {
 /**
  * 既存のタスク情報を更新する
  */
-router.post(
-  "/edit/:taskID",
-  [
-    // バリデーションチェック
-    check("task_name").isLength({ min: 1, max: 256 }).withMessage("タスク名を正しく入力して下さい｡"),
-    check("task_description", "1文字以上2000文字以内で入力して下さい｡").isLength({ min: 1, max: 2048 }),
-    check("user_id")
-      .custom((value, { req }) => {
-        return models.user
-          .findByPk(value)
-          .then((user) => {
-            return true;
-          })
-          .catch((error) => {
-            throw new Error(error);
-          });
-      })
-      .isNumeric()
-      .withMessage("Error1")
-      .isIn(userIDList)
-      .withMessage("Error2"),
-    check("project_id", "正しいプロジェクトIDを選択して下さい")
-      .isNumeric()
-      .custom((value, { req }) => {
-        return models.Project.findAll({
-          where: {
-            id: value,
-          },
-        })
-          .then((project) => {
-            console.log("validation in project => ", project);
-          })
-          .catch((error) => {
-            throw new Error(error);
-          });
-      }),
-    check("status").isNumeric().isIn(taskStatusList).withMessage("タスクステータスは有効な値を設定して下さい｡"),
-    check("priority").isNumeric().isIn(priorityStatusList).withMessage("優先度は正しい値で設定して下さい"),
-    check("is_displayed", "正しい表示状態を選択して下さい").isIn(displayStatusList),
-  ],
-  (req, res, next) => {
+router.post("/edit/:taskID", validationRules["task.update"], (req, res, next) => {
     const errors = validationResult(req);
 
-    // バリデーションチェック
-    if (errors.isEmpty() !== true) {
-      // console.log(errors.errors);
-      let sessionErrors = {};
-      // エラー内容をキーをカラムにして保存
-      errors.errors.forEach((error, index) => {
-        sessionErrors[error.param] = error.msg;
-      });
-      req.session.sessionErrors = sessionErrors;
-      console.log(sessionErrors);
-      return res.redirect(301, "/todo/edit/" + req.params.taskID);
-      // return (next(new Error(errors.errors)));
+    console.log(errors.errors);
+    if (req.executeValidationCheck(req) !== true) {
+      return res.redirect("back");
     }
-    let postData = req.body;
 
+    // // バリデーションチェック
+    // if (errors.isEmpty() !== true) {
+    //   // // console.log(errors.errors);
+    //   let sessionErrors = {};
+    //   // エラー内容をキーをカラムにして保存
+    //   errors.errors.forEach((error, index) => {
+    //     sessionErrors[error.param] = error.msg;
+    //   });
+    //   req.session.sessionErrors = sessionErrors;
+    //   // console.log(sessionErrors);
+    //   return res.redirect(301, "/todo/edit/" + req.params.taskID);
+    //   // return (next(new Error(errors.errors)));
+    // }
+
+    let postData = req.body;
     // 指定したtaskレコードをアップデートする
     return models.task
       .findByPk(req.params.taskID)
@@ -546,16 +514,16 @@ router.post(
             return result;
           })
           .catch((error) => {
-            // console.log(error);
+            // // console.log(error);
             return next(new Error(error));
           });
       })
       .then((result) => {
-        console.log("result => ", result);
+        // console.log("result => ", result);
         res.redirect(301, "/todo/edit/" + req.params.taskID);
       })
       .catch((error) => {
-        // console.log(error);
+        // // console.log(error);
         return next(new Error(error));
       });
   }
@@ -577,7 +545,7 @@ router.post(
           return Promise.reject(new Error("指定したタスク情報が見つかりませんでした｡"));
         })
         .catch((error) => {
-          console.log("error => ", error);
+          // console.log("error => ", error);
           return Promise.reject(new Error(error));
         });
     }),
@@ -616,7 +584,7 @@ router.post(
         )
           .then((star) => {
             // 新規作成レコード
-            console.log("created star object => ", star);
+            // console.log("created star object => ", star);
             // スターテーブルの更新完了後tasksレコードも更新させる
             return models.task
               .findByPk(postData.task_id)
@@ -631,7 +599,7 @@ router.post(
                     }
                   )
                   .then((task) => {
-                    console.log("task ==> ", task);
+                    // console.log("task ==> ", task);
                     // 更新成功の場合
                     transaction.commit();
                     // req.__.e.emit('get_star', postData.task_id);
@@ -640,7 +608,7 @@ router.post(
                   });
               })
               .catch((error) => {
-                console.log("error => ", error);
+                // console.log("error => ", error);
                 return Promise.reject(new Error(error));
               });
           })
@@ -665,7 +633,7 @@ router.post(
       .custom((value, obj) => {
         // 指定したtask_idが有効かを検証
         return models.task.findByPk(parseInt(value)).then((task) => {
-          console.log("task ===> ", task);
+          // console.log("task ===> ", task);
           if (task.id !== value) {
             throw new Error("指定したタスク情報が見つかりません");
           }
@@ -674,7 +642,7 @@ router.post(
       }),
   ],
   (req, res, next) => {
-    console.log(req.body);
+    // console.log(req.body);
     const errors = validationResult(req);
     if (errors.isEmpty() !== true) {
       let sessionErrors = {};
@@ -689,21 +657,21 @@ router.post(
     return models.task
       .findByPk(req.body.task_id)
       .then(function (task) {
-        console.log("task ===> ", task);
+        // console.log("task ===> ", task);
         return task
           .destroy()
           .then((task) => {
             // 削除成功時
-            console.log("task ===> ", task);
+            // console.log("task ===> ", task);
             return res.redirect("back");
           })
           .catch((error) => {
-            console.log("error ===> ", error);
+            // console.log("error ===> ", error);
             return Promise.reject(new Error(error));
           });
       })
       .catch(function (error) {
-        console.log("error ===> ", error);
+        // console.log("error ===> ", error);
         return next(new Error(error));
       });
   }

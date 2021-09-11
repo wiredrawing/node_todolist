@@ -5,9 +5,7 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 let bodyParser = require("body-parser");
 let parseUrl = require("parseUrl");
-const { check, validationResult } = require("express-validator");
-const validationRules = require("./config/validationRules.js");
-const validationMiddleware = require("./config/validationMiddleware.js");
+const { validationResult } = require("express-validator");
 // テンプレート用ルーティング
 var indexRouter = require("./routes/index");
 var userRouter = require("./routes/user");
@@ -186,30 +184,30 @@ app.use((req, res, next) => {
     }
   };
   res.locals.errors = checkValidationErrors(req);
-  // // 未ログインの場合のみアクセスできるURL
-  // console.log(1);
-  // let notRequiredList = ["/login/", "/register/create/"];
-  // let pathname = parseUrl(req).pathname;
-  // if (pathname.substr(-1) !== "/") {
-  //   pathname += "/";
-  // }
-  // console.log(2);
-  // console.log("req.session.user ===> ", req.session.user);
-  // console.log(pathname);
-  // if (notRequiredList.includes(pathname)) {
-  //   console.log(3);
-  //   if (req.session.user) {
-  //     console.log(4);
-  //     return res.redirect("/project");
-  //   }
-  // } else {
-  //   console.log(5);
-  //   if (req.session.user === null || req.session.user === undefined) {
-  //     console.log(6);
-  //     return res.redirect("/login");
-  //   }
-  // }
-  // console.log(7);
+
+  // -------------------------------------------
+  // 未ログインの場合のみアクセスできるURL
+  // -------------------------------------------
+  let notRequiredList = [
+    "/login/",
+    "/login/authenticate/",
+    "/register/create/"
+  ];
+  let pathname = parseUrl(req).pathname;
+  if (pathname.substr(-1) !== "/") {
+    pathname += "/";
+  }
+  if (notRequiredList.includes(pathname)) {
+    if (req.session.user) {
+      return res.redirect("/project");
+    }
+  } else {
+    if (req.session.user === null || req.session.user === undefined) {
+
+      return res.redirect("/login");
+    }
+  }
+
   res.locals.req = req;
   return next();
 });

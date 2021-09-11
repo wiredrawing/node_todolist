@@ -3,7 +3,7 @@ const { check, validationResult } = require("express-validator");
 const { Op } = require("sequelize");
 const bcrypt = require("bcrypt");
 const applicationConfig = require("../config/application-config.js");
-
+const moment = require("moment");
 
 let taskStatusList = [];
 let taskStatusNameList = [];
@@ -184,11 +184,35 @@ let validationRules = {
           });
       }),
     check("is_displayed").isIn(displayStatusList).withMessage("規定の選択肢から設定して下さい"),
+    check("start_time").not().isEmpty().withMessage("開始時間は必須項目です").custom(function (value ,obj) {
+      if (value === null || value === undefined) {
+        throw new Error("開始時間は正しく入力して下さい");
+      }
+      let date = moment(value).format("YYYY-MM-DD");
+      if (date === value) {
+        return true;
+      }
+      throw new Error("不正な開始時間です");
+    }),
+    check("end_time").not().isEmpty().withMessage("終了時間は必須項目です").custom(function (value ,obj) {
+      if (value === null || value === undefined) {
+        throw new Error("終了時間は正しく入力して下さい");
+      }
+      let startTime = moment(obj.req.body.start_time);
+      let endTime = moment(value);
+      let endTimeFormat = endTime.format("YYYY-MM-DD");
+      if (endTimeFormat === value) {
+        if (startTime < endTime) {
+          return true;
+        }
+      }
+      throw new Error("不正な終了時間です");
+    }),
   ],
   // --------------------------------------------------
   // 新規タスクの作成ルール
   // --------------------------------------------------//
-  "create.task": [
+  "task.create": [
     // postデータのバリデーションチェック
     check("task_name", "タスク名は必須項目です").not().isEmpty().isLength({ min: 1, max: 256 }),
     check("task_description", "1文字以上2000文字以内で入力して下さい").not().isEmpty().isLength({ min: 1, max: 2048 }),
@@ -229,6 +253,65 @@ let validationRules = {
           });
       })
       .withMessage("指定した画像がアップロードされていません｡"),
+    check("start_time").not().isEmpty().withMessage("開始日時は必須項目です").custom(function (value, obj) {
+      if (value === null || value === undefined) {
+        throw new Error("開始時間は正しく入力して下さい");
+      }
+      let date = moment(value).format("YYYY-MM-DD");
+      if (date === value) {
+        return true;
+      }
+      throw new Error("不正な開始時間です");
+    }),
+    check("end_time").not().isEmpty().withMessage("開始日時は必須項目です").custom(function (value, obj) {
+      if (value === null || value === undefined) {
+        throw new Error("終了時間は正しく入力して下さい");
+      }
+      let startTime = moment(obj.req.body.start_time);
+      let endTime = moment(value);
+      let endTimeFormat = endTime.format("YYYY-MM-DD");
+      if (endTimeFormat === value) {
+        if (startTime < endTime) {
+          return true;
+        }
+      }
+      throw new Error("不正な終了時間です");
+    }),
+  ],
+  "task.update": [
+    // バリデーションチェック
+    check("task_name").isLength({ min: 1, max: 256 }).withMessage("タスク名を正しく入力して下さい｡"),
+    check("task_description").isLength({ min: 1, max: 2048 }).withMessage("1文字以上2000文字以内で入力して下さい｡"),
+    check("user_id").custom((value, { req }) => {
+      return models.user.findByPk(value).then((user) => {
+        if (user !== null) {
+          if (parseInt(user.id) === parseInt(value)) {
+            return true;
+          }
+        }
+        return Promise.reject("ユーザー情報が不正です");
+      }).catch((error) => {
+        throw new Error(error);
+      });
+    }),
+    check("project_id", "正しいプロジェクトIDを選択して下さい")
+      .isNumeric()
+      .custom((value, { req }) => {
+        return models.Project.findAll({
+          where: {
+            id: value,
+          },
+        })
+          .then((project) => {
+            // console.log("validation in project => ", project);
+          })
+          .catch((error) => {
+            throw new Error(error);
+          });
+      }),
+    check("status").isNumeric().isIn(taskStatusList).withMessage("タスクステータスは有効な値を設定して下さい｡"),
+    check("priority").isNumeric().isIn(priorityStatusList).withMessage("優先度は正しい値で設定して下さい"),
+    check("is_displayed", "正しい表示状態を選択して下さい").isIn(displayStatusList),
   ],
 };
 

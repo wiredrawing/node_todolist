@@ -17,6 +17,14 @@ let applicationConfig = {
     },
   ],
 
+  status: {
+    uncheck: 1,
+    checked: 2,
+    working: 3,
+    checkBack: 4,
+    completed: 5,
+    finish: 6,
+  },
   statusList: [
     {id: 0, value: "※設定して下さい"},
     {id: 1, value: "未確認"},
@@ -37,6 +45,12 @@ let applicationConfig = {
     {id: 0, value: "非表示にする"},
   ],
 
+  priority: {
+    low: 1,
+    middle: 2,
+    high: 3,
+    emergency: 4,
+  },
   // 作業優先度設定
   priorityStatusList: [
     {id: 0, value: "未設定"},

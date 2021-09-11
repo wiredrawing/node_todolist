@@ -1,7 +1,84 @@
 <%- include("../common/header") %>
 
-
-<p>メインコンテンツ</p>
-
+<div class="col-md-10" id="app">
+  <div class="content-box-large">
+    <div class="panel-heading">
+      <div class="row mb-5">
+        <div class="panel-title">担当タスク一覧</div>
+      </div>
+    </div>
+    <div class="panel-heading">
+      <form action="" method="GET">
+        <div class="row">
+          <div class="col-6 mb-5">
+            <p>検索キーワード</p>
+            <input type="text" class="form-control" name="keyword">
+          </div>
+          <div class="col-6 mb-5">
+            <p>検索キーワード</p>
+            <input class="btn btn-primary" type="submit" value="プロジェクトの検索">
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="panel-body">
+      <table cellpadding="0" cellspacing="0" class="table table-bordered" id="example">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>タスク名</th>
+            <th>プロジェクト名</th>
+            <th>開始日<br>終了日</th>
+            <th>
+              <small>ステータス</small><br>
+              <small>優先度</small>
+            </th>
+            <th>スター数</th>
+            <th>編集</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% tasks.forEach((data, index) =>  { %>
+          <tr>
+            <td><%- data.id %></td>
+            <td>
+              <a href="/todo/detail/<%- data.id %>">
+                <%- data.task_name %>
+              </a>
+            </td>
+            <td>
+              <% if (data.Project) { %>
+              <a href="/project/detail/<%- data.Project.id %>">
+                (<%- data.project_id %>)<%- data.Project.project_name %>
+              </a>
+              <% } %>
+            </td>
+            <td>
+              <%= data.formattedStartTime() %><br>
+              <%= data.formattedEndTime() %>
+            </td>
+            <td>
+              <%- taskStatusNameList[data.status] %><br>
+              <%- priorityStatusNameList[data.priority] %><br>
+            </td>
+            <td>
+              <%- data.Stars.length %>個
+            </td>
+            <td>
+              <a class="btn btn-outline-info" href="/todo/edit/<%- data.id %>">
+                編集
+              </a>
+            </td>
+            <td>
+              <small><%- data.formatted_created_at() %></small><br>
+              <small><%- data.formatted_updated_at() %></small>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
 <%- include("../common/footer") %>

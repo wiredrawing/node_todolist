@@ -24,6 +24,38 @@
             </div>
           </div>
 
+          <div class="row">
+            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
+              <p>開始日時</p>
+              <p>
+                <input value="<%= old("start_time") %>" type="text" id="start_time" name="start_time" class="flat-picker form-control">
+              </p>
+
+              <% if (errors("start_time").length > 0) {%>
+              <!-- エラーメッセージ -->
+              <div v-for="data in errors.delivery " class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%- errors("start_time") %></p>
+              </div>
+              <!-- エラーメッセージ -->
+              <% } %>
+            </div>
+
+            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
+              <p>終了日時</p>
+              <p>
+                <input value="<%= old("end_time") %>" type="text" id="end_time" name="end_time" class="flat-picker form-control">
+              </p>
+
+              <% if (errors("end_time").length > 0) {%>
+              <!-- エラーメッセージ -->
+              <div v-for="data in errors.is_displayed " class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%- errors("end_time") %></p>
+              </div>
+              <!-- エラーメッセージ -->
+              <% } %>
+            </div>
+          </div>
+
           <!-- 画像ファイルのアップロード -->
           <div class="row ">
             <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
@@ -113,6 +145,13 @@
               <!-- エラーメッセージ -->
               <% } %>
             </div>
+
+            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6 ">
+              <p>プロジェクト詳細</p>
+              <p>
+                <textarea class=" form-control" placeholder="注意事項がある場合は入力のこと" name="project_description" cols="50 " rows="10 "></textarea>
+              </p>
+            </div>
           </div>
 
           <div class="row ">
@@ -131,10 +170,34 @@
 <script>
   $(function(e) {
 
-    // simpleMED
-    let simplemde = new SimpleMDE({
-      element: document.getElementById("project_description"),
-    });
+
+//     // EasyMDE
+//     let easyMDE = new EasyMDE({
+//       element: document.getElementById("project_description"),
+//       previewImagesInEditor: true,
+//       forceSync: true,
+//       preveiwClass: "previewClass",
+//       previewRender: function (plain, preview) {
+//         console.log(plain);
+//         console.log(preview);
+//         console.log(this === easyMDE);
+//       }
+//     });
+// easyMDE.value('New input for **EasyMDE**');
+// alert(easyMDE.value());
+//     alert(easyMDE.previewRender("## ああああ"));
+//     // let preview = new EasyMDE({
+//     //   element: document.getElementById("project_description"),
+//     //   previewImagesInEditor: true,
+//     // });
+//     document.getElementById("project_description").addEventListener("change", function (e) {
+//       alert("--");
+//     });
+
+//     // easyMDE.codemirror.on("change", function() {
+//     //   alert("-");
+//     //   $(".editor-preview").eq(0).html(preview.togglePreview(easyMDE.value()));
+//     // });
 
 
     let uploadInput = $("input[name='upload_file']");
@@ -144,7 +207,7 @@
     // 画像選択時のイベントを付与
     console.log(uploadInput);
     console.log(uploadInput[0]);
-    uploadInput[0].addEventListener("change", function (e) {
+    uploadInput[0].addEventListener("change", function(e) {
       console.log("raw e===>", e);
       console.log("raw this ====> ", $(this));
       console.log(e.target === this);

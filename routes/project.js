@@ -125,6 +125,8 @@ router.post("/create", validationRules["project.create"], (req, res, next) => {
         user_id: postData.user_id,
         is_displayed: postData.is_displayed,
         code_number: codeNumber,
+        start_time: postData.start_time,
+        end_time: postData.end_time,
       },
       {
         transaction: transaction,
