@@ -7,24 +7,19 @@ const { check, validationResult } = require("express-validator");
 // 画像一覧を取得
 router.get('/list', function (req, res, next) {
 
-  // console.log("next => ", next);
   return models.Image.findAll().then((images) => {
 
-    // console.log(images);
     req.images = images;
     return next();
     return res.render("image/index", {
       images: req.images,
     });
   }).catch((error) => {
-    console.log("===>", error);
     return next(new Error(error));
   });
 });
 
 router.get('/list', function (req, res, next) {
-  console.log("中継完了");
-  console.log("req.images => ", req.images);
   return res.render("image/index", {
     images: req.images,
   });
@@ -39,10 +34,6 @@ router.post("/delete/:image_id", [
     // value uuid型
     let imageID = value;
     return models.Image.findByPk(imageID).then((image) => {
-      console.log("imageID ===> ", imageID);
-      console.log("image.id ===> ", image.id);
-      console.log(typeof(imageID));
-      console.log(typeof(image.id));
       if (image.id !== imageID) {
         return Promise.reject("削除対象の画像が見つかりません");
       }
@@ -53,13 +44,11 @@ router.post("/delete/:image_id", [
   }),
 ],
 (req, res, next) => {
-  console.log(req.body);
   // postデータを変数化
   const postData = req.body;
 
   const errors = validationResult(req);
   if (errors.isEmpty() !== true) {
-    console.log(errors.errors);
     req.session.sessionErrors = errors.errors;
     return res.redirect("back");
   }
@@ -69,12 +58,10 @@ router.post("/delete/:image_id", [
 
     // selectした画像レコードを削除
     return image.destroy().then((del) => {
-      console.log("del ===> ", del);
       return res.redirect("back");
     });
 
   }).catch((error) => {
-    console.log("error ===> ", error);
     return next(new Error(error));
   });
 });

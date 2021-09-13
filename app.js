@@ -29,6 +29,7 @@ const session = require("express-session");
 const fileUpload = require("express-fileupload");
 // session用のpostgresql storeの実行用
 const { Pool } = require("pg");
+const { ValidationHalt } = require("express-validator/src/base");
 let pgSession = require("connect-pg-simple")(session);
 
 var app = express();

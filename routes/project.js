@@ -10,16 +10,15 @@ const validationRules = require("../config/validationRules.js");
 const { Op } = require("sequelize");
 // 識別使用コード生成関数
 const makeCodeNumber = require("../config/makeCodeNumber.js");
+const projectimage = require("../models/projectimage.js");
 // 表示フラグのバリデーション用
 let displayStatusList = [];
 applicationConfig.displayStatusList.forEach((status, index) => {
   displayStatusList.push(status.id);
 });
-console.log("displayStatusList => ", displayStatusList);
 
 // プロジェクト一覧ページ
 router.get("/", function (req, res, next) {
-  // console.log(req.cookies);
   let keyword = "";
   if (req.query.keyword) {
     keyword = req.query.keyword;
@@ -44,31 +43,20 @@ router.get("/", function (req, res, next) {
     order: [["id", "desc"]],
   })
     .then((projects) => {
-      // console.log(projects);
       return res.render("project/index", {
         projects: projects,
       });
     })
     .catch((error) => {
-      console.log(error);
       return next(new Error(error));
     });
 });
 
 // プロジェクトの新規作成
 router.get("/create", (req, res, next) => {
-  console.log("==============>", res.locals);
   // バリデーションエラーを取得
   let sessionErrors = {};
-  // if (req.session.sessionErrors) {
-  //   // バリデーションエラーのヘルパー関数を登録
-  //   console.log(req.session.sessionErrors);
-  //   req.setValidationErrors(req.session.errors);
-  //   sessionErrors = req.session.sessionErrors;
-  //   // セッション内エラーを削除
-  //   req.session.sessionErrors = null;
-  // }
-  console.log("==============>", res.locals);
+
   // 現在のリクエストURLを変数に保持
   let actionUrl = req.originalUrl;
 
@@ -86,7 +74,6 @@ router.get("/create", (req, res, next) => {
   // Promiseの解決
   Promise.all([users, projects])
     .then(function (response) {
-      console.log(req.old);
       let users = response[0];
       let projects = response[1];
       return res.render("project/create", {
@@ -99,7 +86,6 @@ router.get("/create", (req, res, next) => {
       });
     })
     .catch((error) => {
-      console.log(error);
       return next(new Error(error));
     });
 });
@@ -134,12 +120,12 @@ router.post("/create", validationRules["project.create"], (req, res, next) => {
     )
       .then((data) => {
         // lastInsertIDを取得
-        let projectID = data.id;
+        let projectId = data.id;
         let projectImagesForBulk = [];
         req.body.image_id.forEach((id, index) => {
           projectImagesForBulk.push({
             image_id: id,
-            project_id: projectID,
+            project_id: projectId,
           });
         });
 
@@ -147,7 +133,6 @@ router.post("/create", validationRules["project.create"], (req, res, next) => {
           transaction: transaction,
         })
           .then((projectImages) => {
-            console.log("projectImages ===> ", projectImages);
             return res.redirect("back");
           })
           .catch((error) => {
@@ -166,29 +151,25 @@ router.post("/create", validationRules["project.create"], (req, res, next) => {
  *
  */
 router.get(
-  "/detail/:projectID",
+  "/detail/:projectId",
   [
-    check("projectID")
-      .isNumeric()
-      .custom((value, { req }) => {
-        let projectID = parseInt(value);
+    check("projectId").isNumeric().custom((value, { req }) => {
+        let projectId = parseInt(value);
 
-        return models.Project.findByPk(projectID)
-          .then(function (project) {
-            if (project.id === projectID) {
-              return true;
-            }
-            return Promise.reject("指定したプロジェクトデータが見つかりません");
-          })
-          .catch((error) => {
-            throw new Error(error);
-          });
+        return models.Project.findByPk(projectId).then(function (project) {
+          if (parseInt(project.id) === projectId) {
+            return true;
+          }
+          return Promise.reject("指定したプロジェクトデータが見つかりません");
+        }).catch((error) => {
+          throw new Error(error);
+        });
       })
       .withMessage("指定したプロジェクトデータが見つかりません｡"),
   ],
   function (req, res, next) {
     // URLパラメータの取得
-    let projectID = req.params.projectID;
+    let projectId = req.params.projectId;
     const errors = validationResult(req);
     if (errors.isEmpty() !== true) {
       return next(new Error(errors.errors));
@@ -202,7 +183,7 @@ router.get(
 
     let users = models.user.findAll();
 
-    let project = models.Project.findByPk(projectID, {
+    let project = models.Project.findByPk(projectId, {
       include: [
         {
           model: models.task,
@@ -220,8 +201,6 @@ router.get(
       .then((data) => {
         let users = data[0];
         let project = data[1];
-        console.log("===> project => ", project);
-        console.log("===> project.is_displayed => ", project.is_displayed);
         return res.render("project/detail", {
           users: users,
           project: project,
@@ -237,7 +216,7 @@ router.get(
 );
 
 router.post(
-  "/detail/:projectID",
+  "/detail/:projectId",
   [
     // カスタムバリデーター
     check("user_id")
@@ -278,46 +257,82 @@ router.post(
     check("is_displayed", "表示状態を正しく選択して下さい").isIn(displayStatusList),
   ],
   (req, res, next) => {
-    console.log("req.body => ", req.body);
-    const errors = validationResult(req);
-    if (errors.isEmpty() !== true) {
-      let sessionErrors = {};
-      errors.errors.forEach((error, index) => {
-        sessionErrors[error.param] = error.msg;
-      });
-      console.log("errors.errors => ", errors.errors);
-      req.session.sessionErrors = sessionErrors;
+
+    // バリデーションチェック開始
+    if (req.executeValidationCheck(req) !== true) {
       return res.redirect("back");
     }
 
     let postData = req.body;
-    let projectID = parseInt(req.params.projectID);
-    return models.Project.findByPk(projectID)
-      .then((project) => {
-        // promiseオブジェクトを必ず return する
-        return project
-          .update({
-            project_name: postData.project_name,
-            project_description: postData.project_description,
-            user_id: postData.user_id,
-            is_displayed: postData.is_displayed,
-          })
-          .then((project) => {
-            console.log("project => ", project);
-            if (project.id === projectID) {
-              // 詳細画面に戻る
-              return res.redirect("back");
-            }
+    let projectId = parseInt(req.params.projectId);
 
-            return Promise.reject(new Error("原因不明のエラーです｡"));
+    // トランザクション開始
+    return models.sequelize.transaction().then(function (tx) {
+      let transaction = tx;
+      // -------------------------------------------
+      // projectsテーブルのアップデート
+      // -------------------------------------------
+      return models.Project.findByPk(projectId).then((project) => {
+
+        if (parseInt(project.id) !== projectId) {
+          return next(new Error("プロジェクトIDがマッチしませんでした"));
+        }
+
+        return project.update({
+          project_name: postData.project_name,
+          project_description: postData.project_description,
+          user_id: postData.user_id,
+          is_displayed: postData.is_displayed,
+          start_time: postData.start_time,
+          end_time: postData.end_time,
+        },{
+          transaction: transaction,
+        }).then((project) => {
+          if (parseInt(project.id) !== projectId) {
+            // 詳細画面に戻る
+            return res.redirect("back");
+          }
+          // -------------------------------------------
+          // 既存登録済み画像を削除した後再度アップデートさせる
+          // -------------------------------------------
+          return models.ProjectImage.destroy({
+            where: {
+              project_id: project.id,
+            }
+          }, {
+            transaction: transaction,
+          }).then(projectImages => {
+            let updateImageList = [];
+            postData.image_id.forEach(function (image, index) {
+              updateImageList.push({
+                image_id: image,
+                project_id: project.id,
+              });
+            });
+
+            return models.ProjectImage.bulkCreate(updateImageList,
+            {
+              transaction: transaction
+            }).then(projectImages => {
+              // 新規で更新したproject_imagesレコード
+              // 明示的なトランザクション
+              transaction.commit();
+              return res.redirect("back");
+            });
           })
-          .catch((error) => {
-            return Promise.reject(error);
-          });
-      })
-      .catch((error) => {
+
+        })
+        .catch((error) => {
+          return Promise.reject(error);
+        });
+      }).catch((error) => {
+        // transaction rollback
+        transaction.rollback();
         return next(new Error(error));
       });
+    }).catch (function(error) {
+      return next(new Error("トランザクションが開始できませんでした"));
+    });
   }
 );
 
@@ -325,9 +340,9 @@ router.post(
 // 指定したプロジェクトに紐づくタスク一覧を取得する
 // --------------------------------------------------
 router.get(
-  "/task/:projectID",
+  "/task/:projectId",
   [
-    check("projectID")
+    check("projectId")
       .custom((value, { req }) => {
         value = parseInt(value);
         return models.Project.findByPk(value)
@@ -339,9 +354,9 @@ router.get(
       .withMessage("指定したプロジェクトが見つかりません｡"),
   ],
   function (req, res, next) {
-    let projectID = req.params.projectID;
+    let projectId = req.params.projectId;
 
-    return models.Project.findByPk(projectID, {
+    return models.Project.findByPk(projectId, {
       include: [
         {
           model: models.task,
@@ -351,14 +366,12 @@ router.get(
       order: [[models.task, "id", "desc"]],
     })
       .then((project) => {
-        console.log("task/:projectID project => ", project);
         // ビューを返却
         return res.render("project/task", {
           project: project,
         });
       })
       .catch((error) => {
-        console.log(error);
         return next(new Error(error));
       });
   }
@@ -370,28 +383,22 @@ router.post(
     check("project_id")
       .isNumeric()
       .custom(function (value, obj) {
-        let projectID = parseInt(value);
-        return models.Project.findByPk(projectID).then(function (project) {
-          console.log("project ===> ", project);
+        let projectId = parseInt(value);
+        return models.Project.findByPk(projectId).then(function (project) {
         });
       }),
   ],
   function (req, res, next) {
-    console.log("req.res === res ===> ", req.res === res);
     const errors = validationResult(req);
     if (errors.isEmpty() !== true) {
       return req.res.redirect("back");
     }
     let body = req.body;
-    console.log(body.project_id);
-    console.log("req.body ==> ", req.body);
     return models.Project.findByPk(parseInt(body.project_id))
       .then((project) => {
-        console.log("project ==> ", project);
         return project
           .destroy()
           .then((project) => {
-            console.log("project ==> ", project);
             return res.redirect("back");
           })
           .catch((error) => {

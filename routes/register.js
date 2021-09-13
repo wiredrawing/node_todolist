@@ -32,12 +32,6 @@ router.post("/create", validationRules["register.create"], function (req, res, n
   // バリデーションチェック
   // -----------------------------------
   req.executeValidationCheck(req, res);
-  // const errors = validationResult(req);
-  // if (errors.isEmpty() !== true) {
-  //   req.session.validationErrors = errors.errors;
-  //   console.log(errors);
-  //   return res.redirect("back");
-  // }
 
   return next();
 });
@@ -48,7 +42,6 @@ router.post("/create", validationRules["register.create"], function (req, res, n
 router.post("/create", function (req, res, next) {
 
   if (req.session.validationErrors !== null) {
-    console.log(req.session.validationErrors);
     return res.redirect("back");
   }
 
@@ -73,7 +66,6 @@ router.post("/create", function (req, res, next) {
         description: req.body.description,
         password: hash,
       }).then(function (user) {
-        console.log(user);
         return res.redirect("/login");
       }).catch(function (error) {
         return next(new Error(error));

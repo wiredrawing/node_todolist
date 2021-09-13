@@ -11,7 +11,6 @@ router.get(
     check("projectID")
       .isNumeric()
       .custom(function (value, obj) {
-        console.log(value);
         // projectIDのバリデーションチェック
         return models.Project.findByPk(value).then(function (project) {
           if (project !== null) {
@@ -24,7 +23,6 @@ router.get(
   function (req, res, next) {
     const errors = validationResult(req);
     if (errors.isEmpty() !== true) {
-      console.log(errors.errors);
       return res.redirect("back");
     }
     let projectID = parseInt(req.params.projectID);
@@ -38,8 +36,6 @@ router.get(
         { model: models.task },
       ],
     }).then(function(project) {
-      console.log("project ===> ", project);
-      console.log(project);
       let result = {
         status: true,
         code: 200,

@@ -51,6 +51,12 @@ module.exports = (sequelize, DataTypes) => {
     user_id: DataTypes.BIGINT,
     code_number: DataTypes.STRING,
     is_displayed: DataTypes.INTEGER,
+    start_time: {
+      type: DataTypes.DATE,
+    },
+    end_time: {
+      type: DataTypes.DATE,
+    }
   }, {
     sequelize,
     modelName: 'Project',
