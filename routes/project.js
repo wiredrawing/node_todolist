@@ -219,22 +219,23 @@ router.post(
   "/detail/:projectId",
   [
     // カスタムバリデーター
-    check("user_id")
-      .isNumeric()
-      .custom(function (value, request) {
-        // user_idがDBレコードに存在するかバリデーションする
-        return models.user
-          .findByPk(value)
-          .then((data) => {
-            if (data.id == value) {
-              return true;
-            }
-            return Promise.reject("DBレコードに一致しません｡");
-          })
-          .catch((error) => {
-            throw new Error(error);
-          });
-      }),
+    check("user_id").isNumeric().withMessage("正しいフォーマットで指定して下さい").custom(function (value, request) {
+      if (isNaN(value) === true) {
+        throw new Error("正しいフォーマットで指定して下さい");
+      }
+      // user_idがDBレコードに存在するかバリデーションする
+      return models.user
+        .findByPk(value)
+        .then((data) => {
+          if (data.id == value) {
+            return true;
+          }
+          return Promise.reject("DBレコードに一致しません｡");
+        })
+        .catch((error) => {
+          throw new Error(error);
+        });
+    }),
     check("project_name").isLength({ min: 1, max: 256 }).withMessage("プロジェクト名を入力して下さい"),
     check("project_description").isLength({ min: 1, max: 4096 }).withMessage("プロジェクトの概要を4000文字以内で入力して下さい｡"),
     check("project_id")
@@ -258,10 +259,15 @@ router.post(
   ],
   (req, res, next) => {
 
+
     // バリデーションチェック開始
     if (req.executeValidationCheck(req) !== true) {
+      console.log("バリデーションチェックに引っかかっています");
+
       return res.redirect("back");
     }
+
+    console.log("req.body ====> ", req.body);
 
     let postData = req.body;
     let projectId = parseInt(req.params.projectId);
@@ -274,6 +280,7 @@ router.post(
       // -------------------------------------------
       return models.Project.findByPk(projectId).then((project) => {
 
+        console.log("project ===> ", project);
         if (parseInt(project.id) !== projectId) {
           return next(new Error("プロジェクトIDがマッチしませんでした"));
         }

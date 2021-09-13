@@ -45,11 +45,11 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
 
-    formatted_created_at() {
+    formattedCreatedAt() {
       return moment(this.createdAt).format("Y年M月D日 H時m分s秒");
     }
 
-    formatted_updated_at() {
+    formattedUpdatedAt() {
       return moment(this.updatedAt).format("Y年M月D日 H時m分s秒");
     }
 

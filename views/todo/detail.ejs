@@ -15,11 +15,11 @@
       <!-- 作成日時及び更新日時-->
       <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
         <p>作成日時</p>
-        <p><input type="text" disabled="disabled" class="form-control" value="<%= task.formatted_created_at() %>"></p>
+        <p><input type="text" disabled="disabled" class="form-control" value="<%= task.formattedCreatedAt() %>"></p>
       </div>
       <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
         <p>更新日時</p>
-        <p><input type="text" disabled="disabled" class="form-control" value="<%= task.formatted_updated_at() %>"></p>
+        <p><input type="text" disabled="disabled" class="form-control" value="<%= task.formattedUpdatedAt() %>"></p>
       </div>
     </div>
 
@@ -114,8 +114,8 @@
         <p>コメントID:<%= taskComment.id %></p>
         <p><%= taskComment.user.user_name %></p>
         <p>
-          <%= taskComment.formatted_created_at() %><br>
-          <%= taskComment.formatted_updated_at() %>
+          <%= taskComment.formattedCreatedAt() %><br>
+          <%= taskComment.formattedUpdatedAt() %>
         </p>
       </div>
       <div class="col-md-9 col-lg-9 col-xl-9">

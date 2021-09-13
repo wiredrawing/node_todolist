@@ -176,6 +176,7 @@ app.use((req, res, next) => {
         validationErrors[error.param] = error.msg;
       });
     }
+    console.log("validationErrors => ", validationErrors);
     request.session.validationErrors = null;
     return function (param) {
       if (validationErrors[param]) {

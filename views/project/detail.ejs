@@ -59,6 +59,37 @@
             </div>
           </div>
 
+          <div class="row">
+            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
+              <p>開始日時</p>
+              <p>
+                <input value="<%= old("start_time", project.start_time) %>" type="text" id="start_time" name="start_time" class="flat-picker form-control">
+              </p>
+
+              <% if (errors("start_time").length > 0) {%>
+              <!-- エラーメッセージ -->
+              <div v-for="data in errors.delivery " class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%- errors("start_time") %></p>
+              </div>
+              <!-- エラーメッセージ -->
+              <% } %>
+            </div>
+
+            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
+              <p>終了日時</p>
+              <p>
+                <input value="<%= old("end_time", project.end_time) %>" type="text" id="end_time" name="end_time" class="flat-picker form-control">
+              </p>
+
+              <% if (errors("end_time").length > 0) {%>
+              <!-- エラーメッセージ -->
+              <div v-for="data in errors.is_displayed " class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%- errors("end_time") %></p>
+              </div>
+              <!-- エラーメッセージ -->
+              <% } %>
+            </div>
+          </div>
 
           <!-- 画像ファイルのアップロード -->
           <div class="row ">
@@ -105,10 +136,10 @@
                 </select>
               </p>
 
-              <% if (sessionErrors.user_id) { %>
+              <% if (errors("user_id").length > 0) { %>
               <!-- エラーメッセージ -->
-              <div v-for="data in errors.delivery " class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- sessionErrors.user_id %></p>
+              <div class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%= errors("user_id") %></p>
               </div>
               <!-- エラーメッセージ -->
               <% } %>
@@ -146,10 +177,10 @@
                 </select>
               </p>
 
-              <% if (sessionErrors.is_displayed) { %>
+              <% if (errors("is_displayed").length > 0) { %>
               <!-- エラーメッセージ -->
-              <div v-for="data in errors.delivery " class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- sessionErrors.is_displayed %></p>
+              <div class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%= errors("is_displayed") %></p>
               </div>
               <!-- エラーメッセージ -->
               <% } %>
@@ -164,10 +195,10 @@
                 <textarea class="form-control" id="project_description" placeholder="注意事項がある場合は入力のこと" name="project_description" cols="50" rows="10 "><%- old("project_description", project.project_description) %></textarea>
               </p>
 
-              <% if (sessionErrors.project_description) { %>
+              <% if (errors("project_description").length > 0) { %>
               <!-- エラーメッセージ -->
               <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- sessionErrors.project_description %></p>
+                <p class="alert alert-danger "><%= errors("project_description") %></p>
               </div>
               <!-- エラーメッセージ -->
               <% } %>

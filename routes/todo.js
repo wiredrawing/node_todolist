@@ -102,9 +102,8 @@ router.get(
     // URLパラメータproject_idのバリデーション
     check("project_id", "指定したプロジェクトが見つかりません｡").custom((value, obj) => {
       let projectID = parseInt(value);
-      return models.Project.findByPk(projectID)
-        .then((project) => {
-          if (project.id === projectID) {
+      return models.Project.findByPk(projectID).then((project) => {
+          if (parseInt(project.id) === projectID) {
             return true;
           }
           return Promise.reject(new Error("指定したプロジェクトを取得できませんでした"));
@@ -123,6 +122,7 @@ router.get(
 
     // バリデーションエラーチェック
     const errors = validationResult(req);
+    console.log("errors.errors ===> ", errors.errors);
     if (errors.isEmpty() !== true) {
       errors.errors.forEach((error, index) => {
         sessionErrors[error.param] = error.msg;

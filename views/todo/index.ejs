@@ -33,6 +33,7 @@
               <small>ステータス</small><br>
               <small>優先度</small>
             </th>
+            <th>開始日時<br>終了予定</th>
             <th>スター数</th>
             <th>編集</th>
             <th>削除</th>
@@ -56,9 +57,8 @@
               <% } %>
             </td>
             <td>
-              <%- data.user_id %>
               <% if (data.user) { %>
-              <%- data.user.user_name %>/(<%- data.user.id %>)
+              <%- data.user.user_name %>
               <% } else { %>
               ー
               <% } %>
@@ -66,6 +66,10 @@
             <td>
               <%- taskStatusNameList[data.status] %><br>
               <%- priorityStatusNameList[data.priority] %><br>
+            </td>
+            <td>
+              <%= data.formattedStartTime() %><br>
+              <%= data.formattedEndTime() %>
             </td>
             <td>
               <%- data.Stars.length %>個
@@ -86,8 +90,8 @@
               </form>
             </td>
             <td>
-              <small><%- data.formatted_created_at() %></small><br>
-              <small><%- data.formatted_updated_at() %></small>
+              <small><%- data.formattedCreatedAt() %></small><br>
+              <small><%- data.formattedUpdatedAt() %></small>
             </td>
           </tr>
           <% }) %>
