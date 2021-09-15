@@ -12,7 +12,17 @@
               <p>
                 <input class="form-control" type="text" disabled="disabled" value="<%- task.id %>">
                 <input type="hidden" name="task_id" value="<%- task.id %>">
+                <input type="hidden" name="by_user_id" value="<%= task.by_user_id %>">
               </p>
+
+              <!-- エラーメッセージ -->
+              <% if (errors("by_user_id").length > 0) { %>
+              <div class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%= errors("by_user_id") %></p>
+              </div>
+              <% } %>
+              <!-- エラーメッセージ -->
+
             </div>
           </div>
 

@@ -1,318 +1,362 @@
-const models = require("../models/index.js");
-const { check, validationResult } = require("express-validator");
-const { Op } = require("sequelize");
-const bcrypt = require("bcrypt");
-const applicationConfig = require("../config/application-config.js");
-const moment = require("moment");
+const models = require('../models/index.js')
+const { check } = require('express-validator')
+const { Op } = require('sequelize')
+const bcrypt = require('bcrypt')
+const applicationConfig = require('../config/application-config.js')
+const moment = require('moment')
 
-let taskStatusList = [];
-let taskStatusNameList = [];
+const taskStatusList = []
+const taskStatusNameList = []
 applicationConfig.statusList.forEach((status, index) => {
   if (status.id > 0) {
     // バリデーション用に1以上を保持
-    taskStatusList.push(status.id);
+    taskStatusList.push(status.id)
   }
-  taskStatusNameList[status.id] = status.value;
-});
+  taskStatusNameList[status.id] = status.value
+})
 
-let priorityStatusList = [];
-let priorityStatusNameList = [];
+const priorityStatusList = []
+const priorityStatusNameList = []
 applicationConfig.priorityStatusList.forEach((data, index) => {
   if (data.id > 0) {
     // バリデーション用に1以上を保持
-    priorityStatusList.push(data.id);
+    priorityStatusList.push(data.id)
   }
-  priorityStatusNameList[data.id] = data.value;
-});
+  priorityStatusNameList[data.id] = data.value
+})
 
-let displayStatusList = [];
+const displayStatusList = []
 applicationConfig.displayStatusList.forEach((status, index) => {
-  displayStatusList.push(status.id);
-});
+  displayStatusList.push(status.id)
+})
 
 // すべてのバリデーションルールを設置
-let validationRules = {
+const validationRules = {
   // --------------------------------------------------
   // ログイン認証用ルール
   // --------------------------------------------------
-  "login.index": [
-    check("email")
+  'login.index': [
+    check('email')
       .isEmail()
-      .withMessage("正しいメールアドレスを入力して下さい")
+      .withMessage('正しいメールアドレスを入力して下さい')
       .custom(function (value, obj) {
         return models.user
           .findAll({
             where: {
-              email: value,
-            },
+              email: value
+            }
           })
           .then(function (user) {
             if (user.length === 1) {
-              return true;
+              return true
             }
-            return Promise.reject("メールアドレスが不正です");
+            throw new Error('メールアドレスが不正です')
           })
           .catch(function (error) {
-            throw new Error(error);
-          });
+            throw new Error(error)
+          })
       }),
-    check("password")
+    check('password')
       .isLength({ min: 10, max: 64 })
-      .withMessage("10文字以上64文字以内で入力して下さい")
+      .withMessage('10文字以上64文字以内で入力して下さい')
       .custom(function (value, obj) {
         return models.user
           .findOne({
             where: {
-              email: obj.req.body.email,
-            },
+              email: obj.req.body.email
+            }
           })
           .then(function (user) {
             if (user === null) {
-              return Promise.reject(new Error("パスワードが不正です"));
+              return Promise.reject(new Error('パスワードが不正です'))
             }
             // メールアドレスの存在チェックOK後
-            let hashPassword = user.password;
+            const hashPassword = user.password
 
             return new Promise(function (resolve, reject) {
               bcrypt.compare(value, hashPassword, function (err, result) {
                 if (err !== null) {
-                  console.log("error ----> ", err);
-                  reject(new Error(err));
+                  console.log('error ----> ', err)
+                  reject(new Error(err))
                 }
                 if (result === true) {
-                  resolve(true);
+                  resolve(true)
                 }
-              });
+              })
             })
               .then(function (result) {
-                return true;
+                return true
               })
               .catch(function (error) {
-                throw new Error(error);
-              });
+                throw new Error(error)
+              })
           })
           .catch(function (error) {
-            console.log("55行明のerror ==>", error);
-            throw new Error("パスワードが不正です");
-            throw new Error(error);
-          });
-      }),
+            console.log('55行明のerror ==>', error)
+            throw new Error('パスワードが不正です')
+          })
+      })
   ],
   // --------------------------------------------------
   // 新規ユーザー用ルール
   // --------------------------------------------------
-  "register.create": [
+  'register.create': [
     // ユーザー名
-    check("user_name").isLength({ min: 1, max: 64 }).withMessage("1文字以上64文字以内で入力して下さい."),
+    check('user_name').isLength({ min: 1, max: 64 }).withMessage('1文字以上64文字以内で入力して下さい.'),
     // ログインID
-    check("email")
+    check('email')
       .isLength({ min: 1, max: 64 })
       .isEmail()
-      .withMessage("正しいメールアドレスを入力して下さい｡")
+      .withMessage('正しいメールアドレスを入力して下さい｡')
       .custom(function (value, obj) {
         return models.user
           .findAll({
             where: {
-              email: value,
-            },
+              email: value
+            }
           })
           .then(function (users) {
             if (users.length !== 0) {
-              return Promise.reject("そのメールアドレスは既に使われています｡");
+              throw new Error('そのメールアドレスは既に使われています｡')
             }
-          });
+          })
       }),
     // 一言
-    check("description").isLength({ min: 1, max: 512 }).withMessage("何か一言お願いします｡"),
+    check('description').isLength({ min: 1, max: 512 }).withMessage('何か一言お願いします｡'),
     // パスワード
-    check("password").isLength({ min: 10, max: 64 }).withMessage("10文字以上64文字以内で入力して下さい"),
+    check('password').isLength({ min: 10, max: 64 }).withMessage('10文字以上64文字以内で入力して下さい'),
     // 確認用パスワード
-    check("password_confirmation")
+    check('password_confirmation')
       .isLength({ min: 10, max: 64 })
-      .withMessage("10文字以上64文字以内で入力して下さい")
+      .withMessage('10文字以上64文字以内で入力して下さい')
       .custom(function (value, obj) {
         if (obj.req.body.password) {
           if (obj.req.body.password === value) {
-            return true;
+            return true
           }
         }
-        return Promise.reject(new Error("パスワードが一致しません｡"));
-      }),
+        return Promise.reject(new Error('パスワードが一致しません｡'))
+      })
   ],
   // --------------------------------------------------
   // 新規プロジェクト作成ルール
   // --------------------------------------------------
-  "project.create": [
+  'project.create': [
     // カスタムバリデーター
-    check("user_id")
+    check('user_id')
       .isNumeric()
       .custom(function (value, request) {
         // user_idがDBレコードに存在するかバリデーションする
         return models.user
           .findByPk(value)
           .then((data) => {
-            if (data.id == value) {
-              return true;
+            if (data.id === value) {
+              return true
             }
-            return Promise.reject("DBレコードに一致しません｡");
+            throw new Error('DBレコードに一致しません｡')
           })
           .catch((error) => {
-            throw new Error(error);
-          });
+            throw new Error(error)
+          })
       }),
-    check("project_name").isLength({ min: 1, max: 256 }).withMessage("プロジェクト名を入力して下さい"),
-    check("project_description").isLength({ min: 1, max: 4096 }).withMessage("プロジェクトの概要を4000文字以内で入力して下さい｡"),
-    check("image_id", "指定した画像がアップロードされていません｡")
+    check('project_name').isLength({ min: 1, max: 256 }).withMessage('プロジェクト名を入力して下さい'),
+    check('project_description').isLength({ min: 1, max: 4096 }).withMessage('プロジェクトの概要を4000文字以内で入力して下さい｡'),
+    check('image_id', '指定した画像がアップロードされていません｡')
       .isArray()
       .custom(function (value) {
         return models.Image.findAll({
           where: {
             id: {
-              [Op.in]: value,
-            },
-          },
+              [Op.in]: value
+            }
+          }
         })
           .then((images) => {
             // console.log("images => ", images);
             if (images.length !== value.length) {
-              return Promise.reject(new Error("指定した画像がアップロードされていません｡"));
+              return Promise.reject(new Error('指定した画像がアップロードされていません｡'))
             }
-            return true;
+            return true
           })
           .catch((error) => {
-            throw new Error(error);
-          });
+            throw new Error(error)
+          })
       }),
-    check("is_displayed").isIn(displayStatusList).withMessage("規定の選択肢から設定して下さい"),
-    check("start_time").not().isEmpty().withMessage("開始時間は必須項目です").custom(function (value ,obj) {
-      if (value === null || value === undefined) {
-        throw new Error("開始時間は正しく入力して下さい");
-      }
-      let date = moment(value).format("YYYY-MM-DD");
-      if (date === value) {
-        return true;
-      }
-      throw new Error("不正な開始時間です");
-    }),
-    check("end_time").not().isEmpty().withMessage("終了時間は必須項目です").custom(function (value ,obj) {
-      if (value === null || value === undefined) {
-        throw new Error("終了時間は正しく入力して下さい");
-      }
-      let startTime = moment(obj.req.body.start_time);
-      let endTime = moment(value);
-      let endTimeFormat = endTime.format("YYYY-MM-DD");
-      if (endTimeFormat === value) {
-        if (startTime < endTime) {
-          return true;
+    check('is_displayed').isIn(displayStatusList).withMessage('規定の選択肢から設定して下さい'),
+    check('start_time')
+      .not()
+      .isEmpty()
+      .withMessage('開始時間は必須項目です')
+      .custom(function (value, obj) {
+        if (value === null || value === undefined) {
+          throw new Error('開始時間は正しく入力して下さい')
         }
-      }
-      throw new Error("不正な終了時間です");
-    }),
+        const date = moment(value).format('YYYY-MM-DD')
+        if (date === value) {
+          return true
+        }
+        throw new Error('不正な開始時間です')
+      }),
+    check('end_time')
+      .not()
+      .isEmpty()
+      .withMessage('終了時間は必須項目です')
+      .custom(function (value, obj) {
+        if (value === null || value === undefined) {
+          throw new Error('終了時間は正しく入力して下さい')
+        }
+        const startTime = moment(obj.req.body.start_time)
+        const endTime = moment(value)
+        const endTimeFormat = endTime.format('YYYY-MM-DD')
+        if (endTimeFormat === value) {
+          if (startTime < endTime) {
+            return true
+          }
+        }
+        throw new Error('不正な終了時間です')
+      })
   ],
   // --------------------------------------------------
   // 新規タスクの作成ルール
   // --------------------------------------------------//
-  "task.create": [
+  'task.create': [
     // postデータのバリデーションチェック
-    check("task_name", "タスク名は必須項目です").not().isEmpty().isLength({ min: 1, max: 256 }),
-    check("task_description", "1文字以上2000文字以内で入力して下さい").not().isEmpty().isLength({ min: 1, max: 2048 }),
-    check("user_id", "作業者を設定して下さい").isNumeric().withMessage("ユーザーIDは数値で入力して下さい").custom(function (value, obj) {
-      let userId = parseInt(value);
-      return models.user.findByPk(userId).then(function (user) {
-        if (user !== null && parseInt(user.id) === userId) {
-          return true;
-        }
-        console.log(user);
-        return Promise.reject("正しい作業者を設定して下さい");
-      }).catch(function (error) {
-        throw new Error(error);
-      });
-    }),
-    check("project_id", "対応するプロジェクトを選択して下さい").not().isEmpty().isNumeric().withMessage("プロジェクトIDは数字で指定して下さい"),
-    check("status").isIn(taskStatusList).withMessage("タスクステータスは有効な値を設定して下さい｡"),
-    check("priority").isNumeric().withMessage("優先度は正しい値で設定して下さい").isIn(priorityStatusList).withMessage("優先度は正しい値で設定して下さい"),
-    check("image_id")
+    check('task_name', 'タスク名は必須項目です').not().isEmpty().isLength({ min: 1, max: 256 }),
+    check('task_description', '1文字以上2000文字以内で入力して下さい').not().isEmpty().isLength({ min: 1, max: 2048 }),
+    check('user_id', '作業者を設定して下さい')
+      .isNumeric()
+      .withMessage('ユーザーIDは数値で入力して下さい')
+      .custom(function (value, obj) {
+        const userId = parseInt(value)
+        return models.user
+          .findByPk(userId)
+          .then(function (user) {
+            if (user !== null && parseInt(user.id) === userId) {
+              return true
+            }
+            console.log(user)
+            throw new Error('正しい作業者を設定して下さい')
+            // return Promise.reject()
+          })
+          .catch(function (error) {
+            throw new Error(error)
+          })
+      }),
+    check('project_id', '対応するプロジェクトを選択して下さい').not().isEmpty().isNumeric().withMessage('プロジェクトIDは数字で指定して下さい'),
+    check('status').isIn(taskStatusList).withMessage('タスクステータスは有効な値を設定して下さい｡'),
+    check('priority').isNumeric().withMessage('優先度は正しい値で設定して下さい').isIn(priorityStatusList).withMessage('優先度は正しい値で設定して下さい'),
+    check('image_id')
       .isArray()
       .custom(function (value) {
         return models.Image.findAll({
           where: {
             id: {
-              [Op.in]: value,
-            },
-          },
+              [Op.in]: value
+            }
+          }
         })
           .then((images) => {
-            console.log("images => ", images);
+            console.log('images => ', images)
             if (images.length !== value.length) {
-              return Promise.reject(new Error("指定した画像がアップロードされていません｡"));
+              return Promise.reject(new Error('指定した画像がアップロードされていません｡'))
             }
-            return true;
+            return true
           })
           .catch((error) => {
-            throw new Error(error);
-          });
+            throw new Error(error)
+          })
       })
-      .withMessage("指定した画像がアップロードされていません｡"),
-    check("start_time").not().isEmpty().withMessage("開始日時は必須項目です").custom(function (value, obj) {
-      if (value === null || value === undefined) {
-        throw new Error("開始時間は正しく入力して下さい");
-      }
-      let date = moment(value).format("YYYY-MM-DD");
-      if (date === value) {
-        return true;
-      }
-      throw new Error("不正な開始時間です");
-    }),
-    check("end_time").not().isEmpty().withMessage("開始日時は必須項目です").custom(function (value, obj) {
-      if (value === null || value === undefined) {
-        throw new Error("終了時間は正しく入力して下さい");
-      }
-      let startTime = moment(obj.req.body.start_time);
-      let endTime = moment(value);
-      let endTimeFormat = endTime.format("YYYY-MM-DD");
-      if (endTimeFormat === value) {
-        if (startTime < endTime) {
-          return true;
+      .withMessage('指定した画像がアップロードされていません｡'),
+    check('start_time')
+      .not()
+      .isEmpty()
+      .withMessage('開始日時は必須項目です')
+      .custom(function (value, obj) {
+        if (value === null || value === undefined) {
+          throw new Error('開始時間は正しく入力して下さい')
         }
-      }
-      throw new Error("不正な終了時間です");
-    }),
-  ],
-  "task.update": [
-    // バリデーションチェック
-    check("task_name").isLength({ min: 1, max: 256 }).withMessage("タスク名を正しく入力して下さい｡"),
-    check("task_description").isLength({ min: 1, max: 2048 }).withMessage("1文字以上2000文字以内で入力して下さい｡"),
-    check("user_id").custom((value, { req }) => {
-      return models.user.findByPk(value).then((user) => {
-        if (user !== null) {
-          if (parseInt(user.id) === parseInt(value)) {
-            return true;
+        const date = moment(value).format('YYYY-MM-DD')
+        if (date === value) {
+          return true
+        }
+        throw new Error('不正な開始時間です')
+      }),
+    check('end_time')
+      .not()
+      .isEmpty()
+      .withMessage('開始日時は必須項目です')
+      .custom(function (value, obj) {
+        if (value === null || value === undefined) {
+          throw new Error('終了時間は正しく入力して下さい')
+        }
+        const startTime = moment(obj.req.body.start_time)
+        const endTime = moment(value)
+        const endTimeFormat = endTime.format('YYYY-MM-DD')
+        if (endTimeFormat === value) {
+          if (startTime < endTime) {
+            return true
           }
         }
-        return Promise.reject("ユーザー情報が不正です");
-      }).catch((error) => {
-        throw new Error(error);
-      });
+        throw new Error('不正な終了時間です')
+      })
+  ],
+  'task.update': [
+    // バリデーションチェック
+    check('task_name').isLength({ min: 1, max: 256 }).withMessage('タスク名を正しく入力して下さい｡'),
+    check('task_description').isLength({ min: 1, max: 2048 }).withMessage('1文字以上2000文字以内で入力して下さい｡'),
+    check('user_id').custom((value, { req }) => {
+      return models.user
+        .findByPk(value)
+        .then((user) => {
+          if (user !== null) {
+            if (parseInt(user.id) === parseInt(value)) {
+              return true
+            }
+          }
+          throw new Error('ユーザー情報が不正です')
+        })
+        .catch((error) => {
+          throw new Error(error)
+        })
     }),
-    check("project_id", "正しいプロジェクトIDを選択して下さい")
+    check('project_id', '正しいプロジェクトIDを選択して下さい')
       .isNumeric()
       .custom((value, { req }) => {
         return models.Project.findAll({
           where: {
-            id: value,
-          },
+            id: value
+          }
         })
           .then((project) => {
             // console.log("validation in project => ", project);
           })
           .catch((error) => {
-            throw new Error(error);
-          });
+            throw new Error(error)
+          })
       }),
-    check("status").isNumeric().isIn(taskStatusList).withMessage("タスクステータスは有効な値を設定して下さい｡"),
-    check("priority").isNumeric().isIn(priorityStatusList).withMessage("優先度は正しい値で設定して下さい"),
-    check("is_displayed", "正しい表示状態を選択して下さい").isIn(displayStatusList),
-  ],
-};
+    check('status').isNumeric().isIn(taskStatusList).withMessage('タスクステータスは有効な値を設定して下さい｡'),
+    check('priority').isNumeric().isIn(priorityStatusList).withMessage('優先度は正しい値で設定して下さい'),
+    check('is_displayed', '正しい表示状態を選択して下さい').isIn(displayStatusList),
+    check('by_user_id').custom(function (value, obj) {
+      const user = obj.req.session.user
+      const taskId = obj.req.body.task_id
+      return models.task
+        .findByPk(taskId)
+        .then(function (task) {
+          if (task === null) {
+            throw new Error('タスク情報がみつかりません')
+          }
+          // タスク作成者とタスク編集者が同一ユーザーの場合のみ編集可能
+          if (parseInt(task.by_user_id) === parseInt(user.id)) {
+            return true
+          }
+          throw new Error('タスク作成者のみ編集可能です')
+        })
+        .catch(function (error) {
+          return Promise.reject(new Error(error))
+        })
+    })
+  ]
+}
 
-module.exports = validationRules;
+module.exports = validationRules

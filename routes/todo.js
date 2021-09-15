@@ -1,61 +1,61 @@
-let express = require("express");
-let router = express.Router();
-let models = require("../models/index.js");
-const { check, validationResult } = require("express-validator");
-const applicationConfig = require("../config/application-config.js");
-const { Op } = require("sequelize");
-const makeCodeNumber = require("../config/makeCodeNumber.js");
-const validationRules = require("../config/validationRules.js");
+const express = require('express')
+const router = express.Router()
+const models = require('../models/index.js')
+const { check, validationResult } = require('express-validator')
+const applicationConfig = require('../config/application-config.js')
+const { Op } = require('sequelize')
+const makeCodeNumber = require('../config/makeCodeNumber.js')
+const validationRules = require('../config/validationRules.js')
 
-let userIDList = [];
+const userIDList = []
 models.user
   .findAll()
   .then((users) => {
-    return users;
+    return users
   })
   .then((users) => {
     users.forEach((user, index) => {
-      userIDList.push(user.id);
-    });
-    return userIDList;
-  });
+      userIDList.push(user.id)
+    })
+    return userIDList
+  })
 
-let taskStatusList = [];
-let taskStatusNameList = [];
+const taskStatusList = []
+const taskStatusNameList = []
 applicationConfig.statusList.forEach((status, index) => {
   if (status.id > 0) {
     // バリデーション用に1以上を保持
-    taskStatusList.push(status.id);
+    taskStatusList.push(status.id)
   }
-  taskStatusNameList[status.id] = status.value;
-});
+  taskStatusNameList[status.id] = status.value
+})
 
-let priorityStatusList = [];
-let priorityStatusNameList = [];
+const priorityStatusList = []
+const priorityStatusNameList = []
 applicationConfig.priorityStatusList.forEach((data, index) => {
   if (data.id > 0) {
     // バリデーション用に1以上を保持
-    priorityStatusList.push(data.id);
+    priorityStatusList.push(data.id)
   }
-  priorityStatusNameList[data.id] = data.value;
-});
+  priorityStatusNameList[data.id] = data.value
+})
 
-let displayStatusList = [];
+const displayStatusList = []
 applicationConfig.displayStatusList.forEach((status, index) => {
-  displayStatusList.push(status.id);
-});
+  displayStatusList.push(status.id)
+})
 
 /**
  * 登録中のタスク一覧を表示させる
  */
-router.get("/", (req, res, next) => {
+router.get('/', (req, res, next) => {
   // 検索用キーワード
-  let keyword = "";
+  let keyword = ''
   if (req.query.keyword) {
-    keyword = req.query.keyword;
+    keyword = req.query.keyword
   }
 
-  let actionUrlToStar = "/todo/star";
+  const actionUrlToStar = '/todo/star'
 
   // タスク一覧を取得するプロミス
   return models.task
@@ -64,195 +64,193 @@ router.get("/", (req, res, next) => {
         [Op.or]: [
           {
             task_name: {
-              [Op.like]: "%" + keyword + "%",
-            },
+              [Op.like]: '%' + keyword + '%'
+            }
           },
           {
             task_description: {
-              [Op.like]: "%" + keyword + "%",
-            },
-          },
-        ],
+              [Op.like]: '%' + keyword + '%'
+            }
+          }
+        ]
       },
-      include: [{ model: models.Star }, { model: models.Project }, { model: models.user }, { model: models.user, as: "belongsToUser" }, { model: models.TaskImage }],
-      order: [["id", "desc"]],
+      include: [{ model: models.Star }, { model: models.Project }, { model: models.user }, { model: models.user, as: 'belongsToUser' }, { model: models.TaskImage }],
+      order: [['id', 'desc']]
     })
     .then((response) => {
       // ビューを表示
-      response.forEach((data, index) => {
-      });
-      return res.render("./todo/index", {
+      response.forEach((data, index) => {})
+      return res.render('./todo/index', {
         tasks: response,
         actionUrlToStar: actionUrlToStar,
         taskStatusNameList: taskStatusNameList,
-        priorityStatusNameList: priorityStatusNameList,
-      });
+        priorityStatusNameList: priorityStatusNameList
+      })
     })
     .catch((error) => {
-      return next(new Error(error));
-    });
-});
+      return next(new Error(error))
+    })
+})
 
 /**
  * 新規Todoリストの作成
  */
 router.get(
-  "/create/:project_id",
+  '/create/:project_id',
   [
     // URLパラメータproject_idのバリデーション
-    check("project_id", "指定したプロジェクトが見つかりません｡").custom((value, obj) => {
-      let projectID = parseInt(value);
-      return models.Project.findByPk(projectID).then((project) => {
+    check('project_id', '指定したプロジェクトが見つかりません｡').custom((value, obj) => {
+      const projectID = parseInt(value)
+      return models.Project.findByPk(projectID)
+        .then((project) => {
           if (parseInt(project.id) === projectID) {
-            return true;
+            return true
           }
-          return Promise.reject(new Error("指定したプロジェクトを取得できませんでした"));
+          return Promise.reject(new Error('指定したプロジェクトを取得できませんでした'))
         })
         .catch((error) => {
-          return Promise.reject(new Error(error));
-        });
-    }),
+          return Promise.reject(new Error(error))
+        })
+    })
   ],
   (req, res, next) => {
     // タスク登録時の親テーブルのID
-    let projectID = req.params.project_id;
+    const projectID = req.params.project_id
 
     // セッションにエラーを持っている場合
-    let sessionErrors = {};
+    let sessionErrors = {}
 
     // バリデーションエラーチェック
-    const errors = validationResult(req);
-    console.log("errors.errors ===> ", errors.errors);
+    const errors = validationResult(req)
+    console.log('errors.errors ===> ', errors.errors)
     if (errors.isEmpty() !== true) {
       errors.errors.forEach((error, index) => {
-        sessionErrors[error.param] = error.msg;
-      });
-      req.session.sessionErrors = sessionErrors;
-      return res.redirect("back");
+        sessionErrors[error.param] = error.msg
+      })
+      req.session.sessionErrors = sessionErrors
+      return res.redirect('back')
     }
 
     if (req.session.sessionErrors) {
-      sessionErrors = req.session.sessionErrors;
-      req.session.sessionErrors = null;
+      sessionErrors = req.session.sessionErrors
+      req.session.sessionErrors = null
     }
     // タスク一覧を取得するプロミス
-    let taskPromise = models.task.findAll({
+    const taskPromise = models.task.findAll({
       include: [{ model: models.Star }, { model: models.Project }, { model: models.user }],
-      order: [["id", "desc"]],
-    });
+      order: [['id', 'desc']]
+    })
 
     // 担当者一覧
-    let userPromise = models.user.findAll({
+    const userPromise = models.user.findAll({
       include: [{ model: models.task }],
-      order: [["id", "desc"]],
-    });
+      order: [['id', 'desc']]
+    })
 
     return Promise.all([taskPromise, userPromise])
       .then((response) => {
-        let actionUrl = req.originalUrl;
-        let tasks = response[0];
-        let users = response[1];
+        const actionUrl = req.originalUrl
+        const tasks = response[0]
+        const users = response[1]
         // Promiseが解決されたらレスポンス返却
-        return res.render("todo/create", {
+        return res.render('todo/create', {
           actionUrl: actionUrl,
           tasks: tasks,
           users: users,
           projectID: projectID,
           taskStatusList: applicationConfig.statusList,
           priorityStatusList: applicationConfig.priorityStatusList,
-          sessionErrors: sessionErrors,
-        });
+          sessionErrors: sessionErrors
+        })
       })
       .catch((error) => {
         // エラー時はnextメソッドを通じて次の処理へ移す
-        return next(new Error(error));
-      });
+        return next(new Error(error))
+      })
   }
-);
+)
 
-router.post("/create", validationRules["task.create"], (req, res, next) => {
-    // バリデーションチェック
-    if (req.executeValidationCheck(req) !== true) {
-      return res.redirect("back");
-    }
+router.post('/create', validationRules['task.create'], (req, res, next) => {
+  // バリデーションチェック
+  if (req.executeValidationCheck(req) !== true) {
+    return res.redirect('back')
+  }
+  // ログインユーザー情報を取得
+  const user = req.session.user
+  const codeNumber = makeCodeNumber(12)
+  const task = models.task
+  // モデルを使ってtasksテーブルにタスクレコードを挿入する
 
-    let codeNumber = makeCodeNumber(12);
-    let task = models.task;
-    // モデルを使ってtasksテーブルにタスクレコードを挿入する
+  // POSTされたデータを変数化
+  const postData = req.body
 
-    // POSTされたデータを変数化
-    let postData = req.body;
-
-    return models.sequelize.transaction().then((tx) => {
-      return task
-        .create(
+  return models.sequelize.transaction().then((tx) => {
+    return task.create(
+      {
+        task_name: postData.task_name,
+        task_description: postData.task_description,
+        user_id: postData.user_id,
+        status: postData.status,
+        project_id: postData.project_id,
+        priority: postData.priority,
+        is_displayed: applicationConfig.binaryType.on,
+        code_number: codeNumber,
+        start_time: postData.start_time,
+        end_time: postData.end_time,
+        by_user_id: user.id
+      },
+      {
+        transaction: tx
+      }
+    ).then((task) => {
+      // タスクの登録が完了したあと､画像とタスクを紐付ける
+      const imageIDList = req.body.image_id
+      const imagePromiseList = []
+      imageIDList.forEach((imageID, index) => {
+        const pro = models.TaskImage.create(
           {
-            task_name: postData.task_name,
-            task_description: postData.task_description,
-            user_id: postData.user_id,
-            status: postData.status,
-            project_id: postData.project_id,
-            priority: postData.priority,
-            is_displayed: applicationConfig.binaryType.on,
-            code_number: codeNumber,
-            start_time: postData.start_time,
-            end_time: postData.end_time,
+            image_id: imageID,
+            task_id: task.id
           },
           {
-            transaction: tx,
+            transaction: tx
           }
         )
-        .then((task) => {
-          // タスクの登録が完了したあと､画像とタスクを紐付ける
-          let imageIDList = req.body.image_id;
-          let imagePromiseList = [];
-          imageIDList.forEach((imageID, index) => {
-            let pro = models.TaskImage.create(
-              {
-                image_id: imageID,
-                task_id: task.id,
-              },
-              {
-                transaction: tx,
-              }
-            );
-            imagePromiseList.push(pro);
-          });
+        imagePromiseList.push(pro)
+      })
 
-          return Promise.all(imagePromiseList).then((promiseList) => {
-            // トランザクションコミットを実行
-            let promiseTransaction = tx.commit();
-            return promiseTransaction.then((transaction) => {
-              // レコードの新規追加が完了した場合は､リファラーでリダイレクト
-              return res.redirect("back");
-            });
-          });
+      return Promise.all(imagePromiseList).then((promiseList) => {
+        // トランザクションコミットを実行
+        const promiseTransaction = tx.commit()
+        return promiseTransaction.then((transaction) => {
+          // レコードの新規追加が完了した場合は､リファラーでリダイレクト
+          return res.redirect('back')
         })
-        .catch((error) => {
-          return next(new Error(error));
-        });
-    });
-  }
-);
+      })
+    }).catch((error) => {
+      return next(new Error(error))
+    })
+  })
+})
 
 // --------------------------------------------------------
 // 閲覧専用のタスク情報を表示および
 // 当該のタスクに対してのコメントフォームを表示
 // --------------------------------------------------------
-router.get("/detail/:task_id", (req, res, next) => {
-  let sessionErrors = {};
+router.get('/detail/:task_id', (req, res, next) => {
+  let sessionErrors = {}
   if (req.session.sessionErrors) {
-    sessionErrors = req.session.sessionErrors;
+    sessionErrors = req.session.sessionErrors
   }
   // taskモデルのpromiseを取得
-  let taskID = req.params.task_id;
+  const taskID = req.params.task_id
   // userモデルのpromiseを取得
-  let users = models.user.findAll({
-    order: [["id", "asc"]],
-  });
+  const users = models.user.findAll({
+    order: [['id', 'asc']]
+  })
 
   // タスク情報一覧
-  let task = models.task.findByPk(taskID, {
+  const task = models.task.findByPk(taskID, {
     include: [
       { model: models.user },
       { model: models.Project },
@@ -266,33 +264,33 @@ router.get("/detail/:task_id", (req, res, next) => {
               {
                 model: models.Image,
                 where: {
-                  deleted_at: null,
-                },
-              },
-            ],
-          },
-        ],
+                  deleted_at: null
+                }
+              }
+            ]
+          }
+        ]
       },
       {
         model: models.TaskImage,
-        include: [{ model: models.Image }],
-      },
+        include: [{ model: models.Image }]
+      }
     ],
     // 結合先のテーブルにたいしてsortさせる
-    order: [[models.TaskComment, "id", "desc"]],
-  });
-  let projects = models.Project.findAll({
-    include: [{ model: models.task }],
-  });
+    order: [[models.TaskComment, 'id', 'desc']]
+  })
+  const projects = models.Project.findAll({
+    include: [{ model: models.task }]
+  })
 
   // usersとtaskの両方が完了した段階で実行
   return Promise.all([users, task, projects])
     .then((data) => {
-      let users = data[0];
-      let task = data[1];
-      let projects = data[2];
+      const users = data[0]
+      const task = data[1]
+      const projects = data[2]
 
-      return res.render("todo/detail", {
+      return res.render('todo/detail', {
         task: task,
         users: users,
         projects: projects,
@@ -303,221 +301,214 @@ router.get("/detail/:task_id", (req, res, next) => {
         displayStatusList: applicationConfig.displayStatusList,
         sessionErrors: sessionErrors,
         // ログイン情報を渡す
-        user: req.session.user,
-      });
+        user: req.session.user
+      })
     })
     .catch((error) => {
-      return next(new Error(error));
-    });
-});
+      return next(new Error(error))
+    })
+})
 
 // --------------------------------------------------------
 // 指定したタスクに対してのコメント登録処理を実行
 // --------------------------------------------------------
 router.post(
-  "/comment/:task_id",
+  '/comment/:task_id',
   [
-    check("comment", "コメントを必ず入力して下さい"),
-    check("image_id", "添付ファイルが不正です")
+    check('comment', 'コメントを必ず入力して下さい'),
+    check('image_id', '添付ファイルが不正です')
       .isArray()
       .custom((value, obj) => {
         return models.Image.findAll({
           where: {
-            id: value,
-          },
+            id: value
+          }
         })
-          .then((images) => {
-          })
-          .catch((error) => {
-          });
-      }),
+          .then((images) => {})
+          .catch((error) => {})
+      })
   ],
   (req, res, next) => {
-    const errors = validationResult(req);
+    const errors = validationResult(req)
 
     if (errors.isEmpty() !== true) {
-      return res.redirect("back");
+      return res.redirect('back')
     }
 
     // タスクコメントデータを登録するpromiseを生成
     return models.sequelize
       .transaction()
       .then(function (tx) {
-        let transaction = tx;
-        let insertComment = {
+        const transaction = tx
+        const insertComment = {
           comment: req.body.comment,
           task_id: req.body.task_id,
-          user_id: req.body.user_id,
-        };
+          user_id: req.body.user_id
+        }
         return models.TaskComment.create(insertComment, { transaction: transaction })
           .then((taskComment) => {
             // 確定したcomment_idを取得する
-            let commentID = taskComment.id;
-            let createCommentImages = [];
+            const commentID = taskComment.id
+            const createCommentImages = []
             // postデータに画像IDが含まれているかどうか
             req.body.image_id.forEach((image_id) => {
               if (image_id.length > 0) {
                 createCommentImages.push({
                   comment_id: commentID,
-                  image_id: image_id,
-                });
+                  image_id: image_id
+                })
               }
-            });
+            })
 
             if (createCommentImages.length > 0) {
               return models.CommentImage.bulkCreate(createCommentImages, {
-                transaction: transaction,
+                transaction: transaction
+              }).then((images) => {
+                const result = transaction.commit()
+                return res.redirect('back')
               })
-                .then((images) => {
-                  let result = transaction.commit();
-                  return res.redirect("back");
-                })
                 .catch((error) => {
-                  return Promise.reject(new Error(error));
-                });
+                  return Promise.reject(new Error(error))
+                })
             }
-            let result = transaction.commit();
+            const result = transaction.commit()
             // 画像がpostされなかった場合即リダイレクト
-            return res.redirect("back");
+            return res.redirect('back')
           })
           .catch((error) => {
-            transaction.rollback();
-            throw new Error(error);
-          });
+            transaction.rollback()
+            throw new Error(error)
+          })
       })
       .catch((error) => {
-        return next(new Error(error));
-      });
+        return next(new Error(error))
+      })
   }
-);
+)
 
 /**
  * 指定したタスクの詳細情報を確認する
- *
+ * ※タスク作成者のみ編集可能とする
  */
-router.get("/edit/:task_id", (req, res, next) => {
-  let sessionErrors = {};
+router.get('/edit/:task_id', (req, res, next) => {
+  let sessionErrors = {}
   if (req.session.sessionErrors) {
-    sessionErrors = req.session.sessionErrors;
+    sessionErrors = req.session.sessionErrors
   }
   // taskモデルのpromiseを取得
-  let taskID = req.params.task_id;
+  const taskID = req.params.task_id
   // userモデルのpromiseを取得
-  let users = models.user.findAll({
-    order: [["id", "asc"]],
-  });
-  let task = models.task
+  const users = models.user.findAll({
+    order: [['id', 'asc']]
+  })
+  const task = models.task
     .findByPk(taskID, {
-      include: [{ model: models.user }],
+      include: [{ model: models.user }]
     })
     .then((task) => {
       if (task === null) {
-        return Promise.reject(new Error("指定したタスク情報が見つかりませんでした｡"));
+        return Promise.reject(new Error('指定したタスク情報が見つかりませんでした｡'))
       }
-      return task;
-    });
-  let projects = models.Project.findAll({
-    include: [{ model: models.task }],
-  });
+      return task
+    })
+  const projects = models.Project.findAll({
+    include: [{ model: models.task }]
+  })
 
   // usersとtaskの両方が完了した段階で実行
   return Promise.all([users, task, projects])
     .then((data) => {
-      let users = data[0];
-      let task = data[1];
-      let projects = data[2];
-      return res.render("todo/edit", {
+      const users = data[0]
+      const task = data[1]
+      const projects = data[2]
+      return res.render('todo/edit', {
         task: task,
         users: users,
         projects: projects,
         taskStatusList: applicationConfig.statusList,
         priorityStatusList: applicationConfig.priorityStatusList,
         displayStatusList: applicationConfig.displayStatusList,
-        sessionErrors: sessionErrors,
-      });
+        sessionErrors: sessionErrors
+      })
     })
     .catch((error) => {
-      return next(new Error(error));
-    });
-});
+      return next(new Error(error))
+    })
+})
 
 /**
  * 既存のタスク情報を更新する
  */
-router.post("/edit/:taskID", validationRules["task.update"], (req, res, next) => {
-    const errors = validationResult(req);
+router.post('/edit/:taskId', validationRules['task.update'], (req, res, next) => {
+  const errors = validationResult(req)
+  if (req.executeValidationCheck(req) !== true) {
+    return res.redirect('back')
+  }
+  console.log('errors.errors ===> ', errors.errors)
 
-    if (req.executeValidationCheck(req) !== true) {
-      return res.redirect("back");
-    }
-
-
-    let postData = req.body;
-    // 指定したtaskレコードをアップデートする
-    return models.task
-      .findByPk(req.params.taskID)
-      .then((task) => {
-        return task
-          .update({
-            // primaryKeyで取得したレコードを更新する
-            task_name: postData.task_name,
-            task_description: postData.task_description,
-            user_id: postData.user_id,
-            status: postData.status,
-            project_id: postData.project_id,
-            priority: postData.priority,
-            is_displayed: postData.is_displayed,
-          })
-          .then((result) => {
-            return result;
-          })
-          .catch((error) => {
-            return next(new Error(error));
-          });
+  const postData = req.body
+  // 指定したtaskレコードをアップデートする
+  return models.task.findByPk(req.params.taskId).then((task) => {
+    return task
+      .update({
+        // primaryKeyで取得したレコードを更新する
+        task_name: postData.task_name,
+        task_description: postData.task_description,
+        user_id: postData.user_id,
+        status: postData.status,
+        project_id: postData.project_id,
+        priority: postData.priority,
+        is_displayed: postData.is_displayed
       })
       .then((result) => {
-        res.redirect(301, "/todo/edit/" + req.params.taskID);
+        return result
       })
       .catch((error) => {
-        return next(new Error(error));
-      });
-  }
-);
+        return next(new Error(error))
+      })
+  })
+    .then((result) => {
+      res.redirect(301, '/todo/edit/' + req.params.taskId)
+    })
+    .catch((error) => {
+      return next(new Error(error))
+    })
+})
 
 // 指定したタスクにスターを送る
 router.post(
-  "/star",
+  '/star',
   [
-    check("task_id", "指定したタスクIDが存在しませんでした｡").custom(function (value, obj) {
+    check('task_id', '指定したタスクIDが存在しませんでした｡').custom(function (value, obj) {
       // カスタムバリデーション
       // この中でDBのtasksテーブルにPOSTされたtask_idとマッチするものがあるかを検証
       return models.task
         .findByPk(value)
         .then((data) => {
           if (Number(data.id) === Number(value)) {
-            return true;
+            return true
           }
-          return Promise.reject(new Error("指定したタスク情報が見つかりませんでした｡"));
+          return Promise.reject(new Error('指定したタスク情報が見つかりませんでした｡'))
         })
         .catch((error) => {
-          return Promise.reject(new Error(error));
-        });
-    }),
+          return Promise.reject(new Error(error))
+        })
+    })
   ],
   (req, res, next) => {
-    const errors = validationResult(req);
+    const errors = validationResult(req)
 
-    let postData = req.body;
+    const postData = req.body
 
     // バリデーションチェックを実行
     if (errors.isEmpty() !== true) {
-      let sessionErrors = {};
+      const sessionErrors = {}
       errors.errors.forEach((error, index) => {
-        sessionErrors[error.param] = error.msg;
-      });
+        sessionErrors[error.param] = error.msg
+      })
       // エラーをsessionに確保
-      req.session.sessionErrors = sessionErrors;
-      return res.redirect("back");
+      req.session.sessionErrors = sessionErrors
+      return res.redirect('back')
     }
 
     // スターを送られたタスクレコードも更新のみ実行する
@@ -525,15 +516,15 @@ router.post(
       .transaction()
       .then((tx) => {
         // スコープ内にトランザクション変数を明示
-        let transaction = tx;
+        const transaction = tx
 
         return models.Star.create(
           {
             task_id: postData.task_id,
-            user_id: 1,
+            user_id: 1
           },
           {
-            transaction: transaction,
+            transaction: transaction
           }
         )
           .then((star) => {
@@ -545,61 +536,61 @@ router.post(
                 return task
                   .update(
                     {
-                      updated_at: new Date(),
+                      updated_at: new Date()
                     },
                     {
-                      transaction: transaction,
+                      transaction: transaction
                     }
                   )
                   .then((task) => {
                     // 更新成功の場合
-                    transaction.commit();
+                    transaction.commit()
                     // req.__.e.emit('get_star', postData.task_id);
                     // スター追加後はもとページへリダイレクト
-                    return res.redirect(301, "/todo/");
-                  });
+                    return res.redirect(301, '/todo/')
+                  })
               })
               .catch((error) => {
-                return Promise.reject(new Error(error));
-              });
+                return Promise.reject(new Error(error))
+              })
           })
           .catch((error) => {
-            transaction.rollback();
-            return Promise.reject(new Error(error));
-          });
+            transaction.rollback()
+            return Promise.reject(new Error(error))
+          })
       })
       .catch((error) => {
-        return next(new Error(error));
-      });
+        return next(new Error(error))
+      })
   }
-);
+)
 
 // 指定したタスクを削除する
 router.post(
-  "/delete/:task_id",
+  '/delete/:task_id',
   [
-    check("task_id", "指定したタスク情報が見つかりません")
+    check('task_id', '指定したタスク情報が見つかりません')
       .isNumeric()
-      .withMessage("タスクIDは数値で入力して下さい")
+      .withMessage('タスクIDは数値で入力して下さい')
       .custom((value, obj) => {
         // 指定したtask_idが有効かを検証
         return models.task.findByPk(parseInt(value)).then((task) => {
           if (task.id !== value) {
-            throw new Error("指定したタスク情報が見つかりません");
+            throw new Error('指定したタスク情報が見つかりません')
           }
-          return true;
-        });
-      }),
+          return true
+        })
+      })
   ],
   (req, res, next) => {
-    const errors = validationResult(req);
+    const errors = validationResult(req)
     if (errors.isEmpty() !== true) {
-      let sessionErrors = {};
+      const sessionErrors = {}
       errors.errors.forEach((error, index) => {
-        sessionErrors[error.param] = error.msg;
-      });
-      req.session.sessionErrors = sessionErrors;
-      return res.redirect("back");
+        sessionErrors[error.param] = error.msg
+      })
+      req.session.sessionErrors = sessionErrors
+      return res.redirect('back')
     }
 
     // 選択された､タスクを取得し削除する
@@ -610,15 +601,15 @@ router.post(
           .destroy()
           .then((task) => {
             // 削除成功時
-            return res.redirect("back");
+            return res.redirect('back')
           })
           .catch((error) => {
-            return Promise.reject(new Error(error));
-          });
+            return Promise.reject(new Error(error))
+          })
       })
       .catch(function (error) {
-        return next(new Error(error));
-      });
+        return next(new Error(error))
+      })
   }
-);
-module.exports = router;
+)
+module.exports = router

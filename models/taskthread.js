@@ -1,7 +1,7 @@
-'use strict';
+'use strict'
 const {
   Model
-} = require('sequelize');
+} = require('sequelize')
 module.exports = (sequelize, DataTypes) => {
   class TaskThread extends Model {
     /**
@@ -9,16 +9,16 @@ module.exports = (sequelize, DataTypes) => {
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
-    static associate(models) {
+    static associate (models) {
       // define association here
 
       // ------------------------------------
       // TaskThreadはtaskモデルに属する.
       // ------------------------------------
       TaskThread.belongsTo(models.task, {
-        foreignKey: "task_id",
-        sourceKey: "id",
-      });
+        foreignKey: 'task_id',
+        sourceKey: 'id'
+      })
     }
   };
   TaskThread.init({
@@ -31,7 +31,7 @@ module.exports = (sequelize, DataTypes) => {
     // model名とDBの物理テーブル名が異なる場合は､tableNameを明記する
     tableName: 'task_threads',
     // createdAt,updatedAt,deletedAtをアンダースコア形式にする場合は以下を追加
-    underscored: true,
-  });
-  return TaskThread;
-};
+    underscored: true
+  })
+  return TaskThread
+}
