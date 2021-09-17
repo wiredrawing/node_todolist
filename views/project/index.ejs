@@ -28,7 +28,7 @@
             <th width="2%">ID</th>
             <th width="5%">プロジェクト名<br>登録タスク数</th>
             <th width="10%">概要</th>
-            <th width="5%">責任者</th>
+            <th width="5%">作成者<br>責任者</th>
             <th width="5%">開始日<br>終了日</th>
             <th width="5%">作成日<br>更新日</th>
             <th width="2%">編集</th>
@@ -38,9 +38,7 @@
         </thead>
         <tbody>
           <% projects.forEach((data, index) =>  { %>
-          <tr
-          <% if (data.is_displayed !== 1) { %> style="background-color: #ddd;" <% } %>
-          >
+          <tr <% if (data.is_displayed !== 1) { %> style="background-color: #ddd;" <% } %>>
             <td>
               <%- data.id %>
             </td>
@@ -49,12 +47,23 @@
             </td>
             <td><%- data.project_description %></td>
             <td>
+              <!-- プロジェクト作成者 -->
+              <p>
+              <% if (data.userCreatedTask) { %>
+              <%= data.userCreatedTask.user_name %>
+              <% } else { %>
+              ー
+              <% } %>
+              </p>
+              <p>
+              <!-- プロジェクト責任者 -->
               <!-- userデータがnull出ない場合 -->
               <% if (data.user !== null) { %>
               (<%- data.user.id %>)<%- data.user.user_name %>
               <% } else { %>
               ー
               <% } %>
+              </p>
             </td>
             <td>
               <%- data.formattedStartTime() %><br>

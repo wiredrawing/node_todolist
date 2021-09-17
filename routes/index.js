@@ -1,53 +1,59 @@
-var express = require("express");
-const { DatabaseError } = require("pg");
-var router = express.Router();
+const express = require('express')
+const router = express.Router()
 // モデルロード
-const models = require("../models/index.js");
-const applicationConfig = require("../config/application-config.js");
+const models = require('../models/index.js')
+const applicationConfig = require('../config/application-config.js')
 
-let priorityStatusNameList = {};
-applicationConfig["priorityStatusList"].forEach((data, index) => {
-  priorityStatusNameList[data.id] = data.value;
-});
-let taskStatusNameList = {};
-applicationConfig["statusList"].forEach((data, index) => {
-  taskStatusNameList[data.id] = data.value;
-});
+const priorityStatusNameList = {}
+applicationConfig.priorityStatusList.forEach((data, index) => {
+  priorityStatusNameList[data.id] = data.value
+})
+const taskStatusNameList = {}
+applicationConfig.statusList.forEach((data, index) => {
+  taskStatusNameList[data.id] = data.value
+})
 
 /* GET home page. */
-router.get("/", function (req, res, next) {
-  let user = req.session.user;
-  // ログイン中ユーザーの作業中タスク
-  let tasks = [];
+router.get('/', function (req, res, next) {
+  const user = req.session.user
 
-  models.task
-    .findAll({
-      include: [
-        { model: models.Project },
-        { model: models.Star }
-      ],
-      where: {
-        user_id: user.id,
-      },
-      // 締切が早い順
-      order: [
-        ["end_time", "asc"],
-        ["priority", "desc"]
-      ],
-    })
-    .then(function (tasks) {
-      console.log("tasks => ", tasks);
+  // 担当中タスク
+  const taskPromise = models.task.findAll({
+    include: [{ model: models.Project }, { model: models.Star }],
+    where: {
+      user_id: user.id
+    },
+    // 締切が早い順
+    order: [
+      ['end_time', 'asc'],
+      ['priority', 'desc']
+    ]
+  })
+
+  // 作成したタスク
+  const projectPromise = models.Project.findAll({
+    where: {
+      by_user_id: req.session.user.id
+    }
+  })
+
+  return Promise.all([taskPromise, projectPromise])
+    .then(function (data) {
+      const tasks = data[0]
+      const projects = data[1]
+      console.log('projects---->', projects)
       // TOPページをレンダリング
-      res.render("./top/index", {
+      return res.render('./top/index', {
         tasks: tasks,
+        projects: projects,
         priorityStatusNameList: priorityStatusNameList,
-        taskStatusNameList: taskStatusNameList,
-      });
+        taskStatusNameList: taskStatusNameList
+      })
     })
     .catch(function (error) {
       // エラーハンドリング
-      return next(new Error(error));
-    });
-});
+      return next(new Error(error))
+    })
+})
 
-module.exports = router;
+module.exports = router

@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'project_id',
         sourceKey: 'id'
       })
+      // 責任者ユーザー
       Project.hasOne(models.user, {
         foreignKey: 'id',
         sourceKey: 'user_id'
@@ -25,6 +26,12 @@ module.exports = (sequelize, DataTypes) => {
       Project.hasMany(models.ProjectImage, {
         foreignKey: 'project_id',
         sourceKey: 'id'
+      })
+      // プロジェクト作成ユーザー
+      Project.hasOne(models.user, {
+        foreignKey: 'id',
+        sourceKey: 'by_user_id',
+        as: 'userCreatedTask'
       })
       // define association here
     }
@@ -56,6 +63,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     end_time: {
       type: DataTypes.DATE
+    },
+    by_user_id: {
+      type: DataTypes.BIGINT
     }
   }, {
     sequelize,

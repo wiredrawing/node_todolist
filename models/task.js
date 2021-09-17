@@ -21,9 +21,10 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'id',
         as: 'belongsToUser'
       })
+      // タスク作成者IDに紐付ける
       task.hasOne(models.user, {
         foreignKey: 'id',
-        sourceKey: 'user_id',
+        sourceKey: 'by_user_id',
         as: 'userCreatedTask'
       })
       // starsテーブルに紐づく

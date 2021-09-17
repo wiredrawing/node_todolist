@@ -217,6 +217,70 @@ const validationRules = {
       })
   ],
   // --------------------------------------------------
+  // 既存プロジェクトのアップデート
+  // --------------------------------------------------
+  'project.update':
+  [
+    // カスタムバリデーター
+    check('user_id')
+      .isNumeric()
+      .withMessage('正しいフォーマットで指定して下さい')
+      .custom(function (value, request) {
+        if (isNaN(value) === true) {
+          throw new Error('正しいフォーマットで指定して下さい')
+        }
+        // user_idがDBレコードに存在するかバリデーションする
+        return models.user
+          .findByPk(value)
+          .then((data) => {
+            if (data.id === value) {
+              return true
+            }
+            throw new Error('DBレコードに一致しません｡')
+          })
+          .catch((error) => {
+            throw new Error(error)
+          })
+      }),
+    check('project_name').isLength({ min: 1, max: 256 }).withMessage('プロジェクト名を入力して下さい'),
+    check('project_description').isLength({ min: 1, max: 4096 }).withMessage('プロジェクトの概要を4000文字以内で入力して下さい｡'),
+    check('project_id')
+      .isNumeric()
+      .custom((value, { req }) => {
+        // DBに存在するproject_idかどうかをチェックする
+        return models.Project.findByPk(parseInt(value))
+          .then((project) => {
+            // 正しいproject_id
+            if (parseInt(project.id) === parseInt(value)) {
+              return true
+            }
+            throw new Error('プロジェクトが見つかりませんでした')
+          })
+          .catch((error) => {
+            throw new Error(error)
+          })
+      })
+      .withMessage('正しいフォーマットで入力して下さい'),
+    check('is_displayed', '表示状態を正しく選択して下さい').isIn(displayStatusList),
+    check('by_user_id').custom(function (value, obj) {
+      // ログインユーザー
+      const userId = parseInt(obj.req.session.user.id)
+      // プロジェクトID
+      const projectId = parseInt(obj.req.body.project_id)
+      return models.Project.findByPk(projectId).then(function (project) {
+        if (!project) {
+          throw new Error('プロジェクトが見つかりませんでした')
+        }
+        const byUserId = parseInt(project.by_user_id)
+        if (userId === byUserId) {
+          console.log('プロジェクト更新者と作成者が一致しました')
+          return true
+        }
+        throw new Error('プロジェクト作成者のみ更新できます')
+      })
+    })
+  ],
+  // --------------------------------------------------
   // 新規タスクの作成ルール
   // --------------------------------------------------//
   'task.create': [

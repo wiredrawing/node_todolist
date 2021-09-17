@@ -1,6 +1,6 @@
 // 実行コマンド
 //  sequelize model:generate --name TaskImage --attributes task_id:bigint,image_id:bigint
-'use strict';
+'use strict'
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('task_images', {
@@ -30,9 +30,9 @@ module.exports = {
         allowNull: true,
         type: Sequelize.DATE
       }
-    });
+    })
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('task_images');
+    await queryInterface.dropTable('task_images')
   }
-};
+}

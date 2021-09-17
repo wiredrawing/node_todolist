@@ -3,8 +3,6 @@ const router = express.Router()
 const bcrypt = require('bcrypt')
 const models = require('../models/index.js')
 const validationRules = require('../config/validationRules.js')
-const { check, validationResult } = require('express-validator')
-const { urlencoded } = require('express')
 
 // ------------------------------------------------
 // 新規アカウント作成フォーム
@@ -15,9 +13,7 @@ router.get('/create', function (req, res, next) {
   if (req.session.user !== null) {
     // return res.redirect("/project");
   }
-  return res.render('register/create', [
-
-  ])
+  return res.render('register/create', [])
 })
 
 // ------------------------------------------
@@ -53,16 +49,19 @@ router.post('/create', function (req, res, next) {
       }
 
       // hash化成功の場合
-      return models.user.create({
-        user_name: req.body.user_name,
-        email: req.body.email,
-        description: req.body.description,
-        password: hash
-      }).then(function (user) {
-        return res.redirect('/login')
-      }).catch(function (error) {
-        return next(new Error(error))
-      })
+      return models.user
+        .create({
+          user_name: req.body.user_name,
+          email: req.body.email,
+          description: req.body.description,
+          password: hash
+        })
+        .then(function (user) {
+          return res.redirect('/login')
+        })
+        .catch(function (error) {
+          return next(new Error(error))
+        })
     })
   })
 })

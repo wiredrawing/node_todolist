@@ -28,7 +28,7 @@
             <th>ID</th>
             <th>タスク名</th>
             <th>プロジェクト名</th>
-            <th>担当者</th>
+            <th>タスク作成者<br>担当者</th>
             <th>
               <small>ステータス</small><br>
               <small>優先度</small>
@@ -57,8 +57,12 @@
               <% } %>
             </td>
             <td>
+              <% if (data.userCreatedTask) {%>
+              <small><%- data.userCreatedTask.user_name %></small>
+              <% } %>
+              <br>
               <% if (data.user) { %>
-              <%- data.user.user_name %>
+              <small><%- data.user.user_name %></small>
               <% } else { %>
               ー
               <% } %>

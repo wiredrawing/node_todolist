@@ -74,7 +74,7 @@ router.get('/', (req, res, next) => {
           }
         ]
       },
-      include: [{ model: models.Star }, { model: models.Project }, { model: models.user }, { model: models.user, as: 'belongsToUser' }, { model: models.TaskImage }],
+      include: [{ model: models.Star }, { model: models.Project }, { model: models.user }, { model: models.user, as: 'belongsToUser' }, { model: models.TaskImage }, { model: models.user, as: 'userCreatedTask' }],
       order: [['id', 'desc']]
     })
     .then((response) => {
@@ -185,51 +185,54 @@ router.post('/create', validationRules['task.create'], (req, res, next) => {
   const postData = req.body
 
   return models.sequelize.transaction().then((tx) => {
-    return task.create(
-      {
-        task_name: postData.task_name,
-        task_description: postData.task_description,
-        user_id: postData.user_id,
-        status: postData.status,
-        project_id: postData.project_id,
-        priority: postData.priority,
-        is_displayed: applicationConfig.binaryType.on,
-        code_number: codeNumber,
-        start_time: postData.start_time,
-        end_time: postData.end_time,
-        by_user_id: user.id
-      },
-      {
-        transaction: tx
-      }
-    ).then((task) => {
-      // タスクの登録が完了したあと､画像とタスクを紐付ける
-      const imageIDList = req.body.image_id
-      const imagePromiseList = []
-      imageIDList.forEach((imageID, index) => {
-        const pro = models.TaskImage.create(
-          {
-            image_id: imageID,
-            task_id: task.id
-          },
-          {
-            transaction: tx
-          }
-        )
-        imagePromiseList.push(pro)
-      })
+    return task
+      .create(
+        {
+          task_name: postData.task_name,
+          task_description: postData.task_description,
+          user_id: postData.user_id,
+          status: postData.status,
+          project_id: postData.project_id,
+          priority: postData.priority,
+          is_displayed: applicationConfig.binaryType.on,
+          code_number: codeNumber,
+          start_time: postData.start_time,
+          end_time: postData.end_time,
+          by_user_id: user.id
+        },
+        {
+          transaction: tx
+        }
+      )
+      .then((task) => {
+        // タスクの登録が完了したあと､画像とタスクを紐付ける
+        const imageIDList = req.body.image_id
+        const imagePromiseList = []
+        imageIDList.forEach((imageID, index) => {
+          const pro = models.TaskImage.create(
+            {
+              image_id: imageID,
+              task_id: task.id
+            },
+            {
+              transaction: tx
+            }
+          )
+          imagePromiseList.push(pro)
+        })
 
-      return Promise.all(imagePromiseList).then((promiseList) => {
-        // トランザクションコミットを実行
-        const promiseTransaction = tx.commit()
-        return promiseTransaction.then((transaction) => {
-          // レコードの新規追加が完了した場合は､リファラーでリダイレクト
-          return res.redirect('back')
+        return Promise.all(imagePromiseList).then((promiseList) => {
+          // トランザクションコミットを実行
+          const promiseTransaction = tx.commit()
+          return promiseTransaction.then((transaction) => {
+            // レコードの新規追加が完了した場合は､リファラーでリダイレクト
+            return res.redirect('back')
+          })
         })
       })
-    }).catch((error) => {
-      return next(new Error(error))
-    })
+      .catch((error) => {
+        return next(new Error(error))
+      })
   })
 })
 
@@ -363,10 +366,11 @@ router.post(
             if (createCommentImages.length > 0) {
               return models.CommentImage.bulkCreate(createCommentImages, {
                 transaction: transaction
-              }).then((images) => {
-                const result = transaction.commit()
-                return res.redirect('back')
               })
+                .then((images) => {
+                  const result = transaction.commit()
+                  return res.redirect('back')
+                })
                 .catch((error) => {
                   return Promise.reject(new Error(error))
                 })
@@ -448,25 +452,27 @@ router.post('/edit/:taskId', validationRules['task.update'], (req, res, next) =>
 
   const postData = req.body
   // 指定したtaskレコードをアップデートする
-  return models.task.findByPk(req.params.taskId).then((task) => {
-    return task
-      .update({
-        // primaryKeyで取得したレコードを更新する
-        task_name: postData.task_name,
-        task_description: postData.task_description,
-        user_id: postData.user_id,
-        status: postData.status,
-        project_id: postData.project_id,
-        priority: postData.priority,
-        is_displayed: postData.is_displayed
-      })
-      .then((result) => {
-        return result
-      })
-      .catch((error) => {
-        return next(new Error(error))
-      })
-  })
+  return models.task
+    .findByPk(req.params.taskId)
+    .then((task) => {
+      return task
+        .update({
+          // primaryKeyで取得したレコードを更新する
+          task_name: postData.task_name,
+          task_description: postData.task_description,
+          user_id: postData.user_id,
+          status: postData.status,
+          project_id: postData.project_id,
+          priority: postData.priority,
+          is_displayed: postData.is_displayed
+        })
+        .then((result) => {
+          return result
+        })
+        .catch((error) => {
+          return next(new Error(error))
+        })
+    })
     .then((result) => {
       res.redirect(301, '/todo/edit/' + req.params.taskId)
     })
