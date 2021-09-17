@@ -76,10 +76,9 @@
               <%= data.formattedEndTime() %>
             </td>
             <td>
-              <%- data.Stars.length %>個
               <form action="<%- actionUrlToStar %>" method="POST">
                 <input type="hidden" name="task_id" value="<%- data.id %>">
-                <input class="btn btn-outline-primary" type="submit" value="スター★">
+                <input class="btn btn-outline-primary" type="submit" value="★/<%- data.Stars.length %>個">
               </form>
             </td>
             <td>

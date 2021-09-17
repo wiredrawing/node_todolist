@@ -19,7 +19,13 @@ router.get('/', function (req, res, next) {
 
   // 担当中タスク
   const taskPromise = models.task.findAll({
-    include: [{ model: models.Project }, { model: models.Star }],
+    include: [
+      {
+        model: models.Project
+      },
+      { model: models.Star }
+    ],
+    // ログイン中ユーザーのタスク
     where: {
       user_id: user.id
     },
@@ -30,10 +36,13 @@ router.get('/', function (req, res, next) {
     ]
   })
 
-  // 作成したタスク
+  // 作成したproject
   const projectPromise = models.Project.findAll({
     where: {
       by_user_id: req.session.user.id
+    },
+    include: {
+      model: models.task
     }
   })
 

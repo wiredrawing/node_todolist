@@ -89,6 +89,8 @@
             <th>ID</th>
             <th>プロジェクト名</th>
             <th>開始日<br>終了日</th>
+            <th>作成日<br>更新日</th>
+            <th>タスク数</th>
           </tr>
         </thead>
         <tbody>
@@ -108,6 +110,7 @@
               <small><%- data.formattedCreatedAt() %></small><br>
               <small><%- data.formattedUpdatedAt() %></small>
             </td>
+            <td><%= data.tasks.length %></td>
           </tr>
           <% }) %>
         </tbody>

@@ -74,7 +74,14 @@ router.get('/', (req, res, next) => {
           }
         ]
       },
-      include: [{ model: models.Star }, { model: models.Project }, { model: models.user }, { model: models.user, as: 'belongsToUser' }, { model: models.TaskImage }, { model: models.user, as: 'userCreatedTask' }],
+      include: [
+        { model: models.Star },
+        { model: models.Project },
+        { model: models.user },
+        { model: models.TaskImage },
+        { model: models.user, as: 'belongsToUser' },
+        { model: models.user, as: 'userCreatedTask' }
+      ],
       order: [['id', 'desc']]
     })
     .then((response) => {
@@ -185,6 +192,7 @@ router.post('/create', validationRules['task.create'], (req, res, next) => {
   const postData = req.body
 
   return models.sequelize.transaction().then((tx) => {
+    const transaction = tx
     return task
       .create(
         {
@@ -215,7 +223,7 @@ router.post('/create', validationRules['task.create'], (req, res, next) => {
               task_id: task.id
             },
             {
-              transaction: tx
+              transaction: transaction
             }
           )
           imagePromiseList.push(pro)
@@ -369,6 +377,7 @@ router.post(
               })
                 .then((images) => {
                   const result = transaction.commit()
+                  console.log('transaction.commit() ==> ', result)
                   return res.redirect('back')
                 })
                 .catch((error) => {
@@ -376,6 +385,7 @@ router.post(
                 })
             }
             const result = transaction.commit()
+            console.log('transaction.commit() ==> ', result)
             // 画像がpostされなかった場合即リダイレクト
             return res.redirect('back')
           })
