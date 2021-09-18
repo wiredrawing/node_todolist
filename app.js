@@ -1,58 +1,55 @@
-var createError = require("http-errors");
-var express = require("express");
-var path = require("path");
-var cookieParser = require("cookie-parser");
-var logger = require("morgan");
-let bodyParser = require("body-parser");
-let parseUrl = require("parseUrl");
-const { validationResult } = require("express-validator");
+const createError = require('http-errors')
+const express = require('express')
+const path = require('path')
+const cookieParser = require('cookie-parser')
+const logger = require('morgan')
+const bodyParser = require('body-parser')
+const parseUrl = require('parseUrl')
+const { validationResult } = require('express-validator')
 // テンプレート用ルーティング
-var indexRouter = require("./routes/index");
-var userRouter = require("./routes/user");
-let todoRouter = require("./routes/todo");
-let projectRouter = require("./routes/project");
-let imageRouter = require("./routes/image.js");
-let loginRouter = require("./routes/login");
-let logoutRouter = require("./routes/logout");
-let registerRouter = require("./routes/register");
+const indexRouter = require('./routes/index')
+const userRouter = require('./routes/user')
+const todoRouter = require('./routes/todo')
+const projectRouter = require('./routes/project')
+const imageRouter = require('./routes/image.js')
+const loginRouter = require('./routes/login')
+const logoutRouter = require('./routes/logout')
+const registerRouter = require('./routes/register')
 
 // API向けルーティング
-let imageApiRouter = require("./routes/api/image");
-let projectApiRouter = require("./routes/api/project");
+const imageApiRouter = require('./routes/api/image')
+const projectApiRouter = require('./routes/api/project')
+const starApiRouter = require('./routes/api/star')
 
-// es6 modules
-let models = require("./models/index.js");
+const config = require('./config/config.json')
 
-let config = require("./config/config.json");
-
-const session = require("express-session");
-const fileUpload = require("express-fileupload");
+const session = require('express-session')
+const fileUpload = require('express-fileupload')
 // session用のpostgresql storeの実行用
-const { Pool } = require("pg");
-const { ValidationHalt } = require("express-validator/src/base");
-let pgSession = require("connect-pg-simple")(session);
+const { Pool } = require('pg')
+const pgSession = require('connect-pg-simple')(session)
 
-var app = express();
+const app = express()
 
 // view engine setup
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "ejs");
+app.set('views', path.join(__dirname, 'views'))
+app.set('view engine', 'ejs')
 
-app.use(logger("dev"));
-app.use(express.json());
+app.use(logger('dev'))
+app.use(express.json())
 app.use(
   express.urlencoded({
-    extended: true,
+    extended: true
   })
-);
+)
 app.use(
   bodyParser.urlencoded({
-    extended: true,
+    extended: true
   })
-);
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
+)
+app.use(express.urlencoded({ extended: false }))
+app.use(cookieParser())
+app.use(express.static(path.join(__dirname, 'public')))
 
 // sequelizeの設定ファイルと共有する
 const pool = new Pool({
@@ -63,8 +60,8 @@ const pool = new Pool({
   port: config.development.port,
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-});
+  connectionTimeoutMillis: 2000
+})
 
 // ------------------------------------------
 // ログイン情報の保持にセッションを利用する
@@ -73,62 +70,59 @@ app.use(
   session({
     store: new pgSession({
       pool: pool, // Connection pool
-      tableName: "session", // Use another table-name than the default "session" one
+      tableName: 'session' // Use another table-name than the default "session" one
     }),
-    secret: "暗号化ソルト",
+    secret: '暗号化ソルト',
     resave: false,
     saveUninitialized: false,
-    name: "task-managing-tool-cookie",
+    name: 'task-managing-tool-cookie',
     rolling: true,
     // 30 日間
-    cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 },
+    cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }
   })
-);
+)
 
 // ------------------------------------------
 // POSTメソッドの場合は､req.bodyをセッションに格納する
 // ------------------------------------------
 app.use(function (req, res, next) {
-
-  let sessionPostData = {};
-  if (req.method === "POST") {
-    req.session.sessionPostData = req.body;
+  let sessionPostData = {}
+  if (req.method === 'POST') {
+    req.session.sessionPostData = req.body
   } else {
     if (req.session.sessionPostData) {
-      sessionPostData = req.session.sessionPostData;
-      req.session.sessionPostData = null;
+      sessionPostData = req.session.sessionPostData
+      req.session.sessionPostData = null
     }
   }
   const old = (function (postData) {
-    return function (param, defaultValue = "") {
+    return function (param, defaultValue = '') {
       if (postData && postData[param]) {
         if (isNaN(postData[param])) {
-          return postData[param];
+          return postData[param]
         }
         // 数値型の場合は､Numberにキャストする
-        return Number(postData[param]);
+        return Number(postData[param])
       }
-      return defaultValue;
-    };
-  })(sessionPostData);
-  req.old = old;
+      return defaultValue
+    }
+  })(sessionPostData)
+  req.old = old
   // ejsテンプレート上にhelper関数として登録
-  res.locals.old = old;
-  return next();
-});
-
+  res.locals.old = old
+  return next()
+})
 
 // ファイルアップロードのためのミドルウェア
 app.use(
   fileUpload({
     createParentPath: true,
     useTempFiles: true,
-    tempFileDir: "tmp/",
+    tempFileDir: 'tmp/',
     setFileNames: true,
-    debug: true,
+    debug: true
   })
-);
-
+)
 
 // app.use(function (req, res, next) {
 //   let validationErrors = {};
@@ -149,96 +143,101 @@ app.use(
 // });
 
 app.use((req, res, next) => {
-
   // applicationPath
-  req.applicationPath = __dirname;
+  req.applicationPath = __dirname
 
-  let executeValidationCheck = function (request) {
+  const executeValidationCheck = function (request) {
     // バリデーション検証
-    const errors = validationResult(request);
+    const errors = validationResult(request)
     // バリデーションエラー無し
     if (errors.isEmpty() === true) {
-      request.session.validationErrors = null;
-      return true;
+      request.session.validationErrors = null
+      return true
     }
-    console.log(errors.errors);
-    request.session.validationErrors = errors.errors;
-    return false;
+    console.log(errors.errors)
+    request.session.validationErrors = errors.errors
+    return false
   }
-  req.executeValidationCheck = executeValidationCheck;
+  req.executeValidationCheck = executeValidationCheck
 
-
-  let checkValidationErrors = function (request) {
-    let validationErrors = [];
-    let errors = request.session.validationErrors;
+  const checkValidationErrors = function (request) {
+    const validationErrors = []
+    const errors = request.session.validationErrors
     if (Array.isArray(errors) && errors.length > 0) {
       errors.forEach((error, index) => {
-        validationErrors[error.param] = error.msg;
-      });
+        validationErrors[error.param] = error.msg
+      })
     }
-    console.log("validationErrors => ", validationErrors);
-    request.session.validationErrors = null;
+    console.log('validationErrors => ', validationErrors)
+    request.session.validationErrors = null
     return function (param) {
       if (validationErrors[param]) {
-        return validationErrors[param];
+        return validationErrors[param]
       }
-      return "";
+      return ''
     }
-  };
-  res.locals.errors = checkValidationErrors(req);
+  }
+  res.locals.errors = checkValidationErrors(req)
 
   // -------------------------------------------
   // 未ログインの場合のみアクセスできるURL
   // -------------------------------------------
-  let notRequiredList = [
-    "/login/",
-    "/login/authenticate/",
-    "/register/create/"
-  ];
-  let pathname = parseUrl(req).pathname;
-  if (pathname.substr(-1) !== "/") {
-    pathname += "/";
+  const notRequiredList = [
+    '/login/',
+    '/login/authenticate/',
+    '/register/create/',
+    '/api/'
+  ]
+  let pathname = parseUrl(req).pathname
+  if (pathname.substr(-1) !== '/') {
+    pathname += '/'
   }
-  if (notRequiredList.includes(pathname)) {
-    if (req.session.user) {
-      return res.redirect("/project");
+
+  let isAllowed = false
+  for (let index = 0; index < notRequiredList.length; index++) {
+    // URLリストから正規表現を作成
+    const pathRegex = new RegExp(notRequiredList[index])
+    if (pathRegex.test(pathname) === true) {
+      console.log('pathRegex.test(pathname) ==> ', pathRegex.test(pathname), pathname)
+      isAllowed = true
+      break
     }
-  } else {
+  }
+  if (isAllowed !== true) {
     if (req.session.user === null || req.session.user === undefined) {
-
-      return res.redirect("/login");
+      return res.redirect('/login')
     }
   }
-
-  res.locals.req = req;
-  return next();
-});
-app.use("/", indexRouter);
-app.use("/register", registerRouter);
-app.use("/login", loginRouter);
-app.use("/logout", logoutRouter);
-app.use("/user", userRouter);
-app.use("/todo", todoRouter);
-app.use("/project", projectRouter);
-app.use("/image", imageRouter);
+  res.locals.req = req
+  return next()
+})
+app.use('/', indexRouter)
+app.use('/register', registerRouter)
+app.use('/login', loginRouter)
+app.use('/logout', logoutRouter)
+app.use('/user', userRouter)
+app.use('/todo', todoRouter)
+app.use('/project', projectRouter)
+app.use('/image', imageRouter)
 
 // API用ルーティング
-app.use("/api/image", imageApiRouter);
-app.use("/api/project", projectApiRouter);
+app.use('/api/image', imageApiRouter)
+app.use('/api/project', projectApiRouter)
+app.use('/api/star', starApiRouter)
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-  next(createError(404));
-});
+  next(createError(404))
+})
 
 // error handler
 app.use(function (err, req, res, next) {
   // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get("env") === "development" ? err : {};
+  res.locals.message = err.message
+  res.locals.error = req.app.get('env') === 'development' ? err : {}
   // render the error page
-  res.status(err.status || 500);
-  res.render("error");
-});
+  res.status(err.status || 500)
+  res.render('error')
+})
 
-module.exports = app;
+module.exports = app

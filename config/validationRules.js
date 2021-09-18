@@ -420,6 +420,44 @@ const validationRules = {
           return Promise.reject(new Error(error))
         })
     })
+  ],
+  // ---------------------------------
+  // タスクに対してスターを送る
+  // ---------------------------------
+  'star.create': [
+    check('task_id').custom(function (value, obj) {
+      const taskId = parseInt(value)
+      return models.task.findByPk(taskId).then(function (task) {
+        if (task !== null && parseInt(task.id) === taskId) {
+          return true
+        }
+        throw new Error('タスクIDが不正です')
+      }).catch(function (error) {
+        return Promise.reject(new Error(error))
+      })
+    }),
+    check('user_id').custom(function (value, obj) {
+      const userId = parseInt(value)
+      return models.user.findByPk(userId).then(function (user) {
+        if (user !== null && parseInt(user.id) === userId) {
+          // user_idとtask_idの組み合わせはユニークであること
+          return models.Star.findAll({
+            where: {
+              user_id: userId,
+              task_id: obj.req.body.task_id
+            }
+          }).then(function (star) {
+            if (star !== null) {
+              throw new Error('既にスターリング済みです')
+            }
+            return true
+          })
+        }
+        throw new Error('ユーザーIDが不正です')
+      }).catch(function (error) {
+        return Promise.reject(new Error(error))
+      })
+    })
   ]
 }
 
