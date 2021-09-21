@@ -30,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
       // プロジェクト作成ユーザー
       Project.hasOne(models.user, {
         foreignKey: 'id',
-        sourceKey: 'by_user_id',
+        sourceKey: 'created_by',
         as: 'userCreatedTask'
       })
       // define association here
@@ -64,7 +64,7 @@ module.exports = (sequelize, DataTypes) => {
     end_time: {
       type: DataTypes.DATE
     },
-    by_user_id: {
+    created_by: {
       type: DataTypes.BIGINT
     }
   }, {

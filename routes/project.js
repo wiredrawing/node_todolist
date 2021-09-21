@@ -112,7 +112,7 @@ router.post('/create', validationRules['project.create'], (req, res, next) => {
         code_number: codeNumber,
         start_time: postData.start_time,
         end_time: postData.end_time,
-        by_user_id: req.session.user.id
+        created_by: req.session.user.id
       },
       {
         transaction: transaction

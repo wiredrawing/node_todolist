@@ -1,6 +1,7 @@
 <%- include("../common/header") %>
 
 <div class="col-md-10" id="app">
+
   <div class="content-box-large">
     <div class="panel-heading">
       <div class="row mb-5">
@@ -23,8 +24,11 @@
     </div>
 
     <!-- 作業中タスク一覧 -->
+    <div class="panel-heading">
+      <h4><%= req.session.user.user_name %>さんの作業中タスク一覧</h4>
+    </div>
     <div class="panel-body">
-      <table cellpadding="0" cellspacing="0" class="table table-bordered" id="example">
+      <table cellpadding="0" cellspacing="0" class="table table-bordered" id="tasks-you-need-to-to">
         <thead>
           <tr>
             <th>ID</th>
@@ -80,10 +84,15 @@
         </tbody>
       </table>
     </div>
+  </div>
 
-    <!-- 作成したプロジェクト一覧 -->
+  <!-- 作成したプロジェクト一覧 -->
+  <div class="content-box-large">
+    <div class="panel-heading">
+      <h4><%= req.session.user.user_name %>さんが作成したプロジェクト一覧</h4>
+    </div>
     <div class="panel-body">
-      <table cellpadding="0" cellspacing="0" class="table table-bordered" id="example">
+      <table cellpadding="0" cellspacing="0" class="table table-bordered" id="tasks-user-made">
         <thead>
           <tr>
             <th>ID</th>
@@ -116,8 +125,47 @@
         </tbody>
       </table>
     </div>
-
   </div>
+
+  <!-- 完了済みタスク 一覧 -->
+  <div class="content-box-large">
+    <div class="panel-heading">
+      <h4><%= req.session.user.user_name %>さんの完了済みタスク一覧</h4>
+    </div>
+    <div class="panel-body">
+      <table cellpadding="0" cellspacing="0" class="table table-bordered" id="completed-tasks">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>タスク名</th>
+            <th>開始日<br>終了日</th>
+            <th>作成日<br>更新日</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% completedTasks.forEach((data, index) =>  { %>
+          <tr>
+            <td><%- data.id %></td>
+            <td>
+              <a href="/todo/detail/<%- data.id %>">
+                <%- data.task_name %>
+              </a>
+            </td>
+            <td>
+              <%= data.formattedStartTime() %><br>
+              <%= data.formattedEndTime() %>
+            </td>
+            <td>
+              <small><%- data.formattedCreatedAt() %></small><br>
+              <small><%- data.formattedUpdatedAt() %></small>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 
 <%- include("../common/footer") %>

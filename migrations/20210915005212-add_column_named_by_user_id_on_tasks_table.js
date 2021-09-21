@@ -1,4 +1,4 @@
-// sequelize migration:generate --name add_column_named_by_user_id_on_tasks_table
+// sequelize migration:generate --name add_column_named_created_by_on_tasks_table
 'use strict';
 
 module.exports = {
@@ -9,7 +9,7 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    return queryInterface.addColumn("tasks", "by_user_id", {
+    return queryInterface.addColumn("tasks", "created_by", {
       allowNull: true,
       type: Sequelize.BIGINT,
       defaultValue: null,
@@ -24,6 +24,6 @@ module.exports = {
      * await queryInterface.dropTable('users');
      */
 
-    return queryInterface.removeColumn("tasks", "by_user_id")
+    return queryInterface.removeColumn("tasks", "created_by")
   }
 };

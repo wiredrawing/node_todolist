@@ -262,7 +262,7 @@ const validationRules = {
       })
       .withMessage('正しいフォーマットで入力して下さい'),
     check('is_displayed', '表示状態を正しく選択して下さい').isIn(displayStatusList),
-    check('by_user_id').custom(function (value, obj) {
+    check('created_by').custom(function (value, obj) {
       // ログインユーザー
       const userId = parseInt(obj.req.session.user.id)
       // プロジェクトID
@@ -271,7 +271,7 @@ const validationRules = {
         if (!project) {
           throw new Error('プロジェクトが見つかりませんでした')
         }
-        const byUserId = parseInt(project.by_user_id)
+        const byUserId = parseInt(project.created_by)
         if (userId === byUserId) {
           console.log('プロジェクト更新者と作成者が一致しました')
           return true
@@ -366,6 +366,15 @@ const validationRules = {
   ],
   'task.update': [
     // バリデーションチェック
+    check('task_id').custom(function (value, obj) {
+      const taskId = parseInt(value)
+      return models.task.findByPk(taskId).then(function (task) {
+        if (task !== null && parseInt(task.id) === taskId) {
+          return true
+        }
+        throw new Error('タスクが見つかりません')
+      })
+    }),
     check('task_name').isLength({ min: 1, max: 256 }).withMessage('タスク名を正しく入力して下さい｡'),
     check('task_description').isLength({ min: 1, max: 2048 }).withMessage('1文字以上2000文字以内で入力して下さい｡'),
     check('user_id').custom((value, { req }) => {
@@ -401,24 +410,26 @@ const validationRules = {
     check('status').isNumeric().isIn(taskStatusList).withMessage('タスクステータスは有効な値を設定して下さい｡'),
     check('priority').isNumeric().isIn(priorityStatusList).withMessage('優先度は正しい値で設定して下さい'),
     check('is_displayed', '正しい表示状態を選択して下さい').isIn(displayStatusList),
-    check('by_user_id').custom(function (value, obj) {
+    check('created_by').custom(function (value, obj) {
+      // updateしようとしているユーザーが担当者orタスク作成者である必要がある
       const user = obj.req.session.user
       const taskId = obj.req.body.task_id
-      return models.task
-        .findByPk(taskId)
-        .then(function (task) {
-          if (task === null) {
-            throw new Error('タスク情報がみつかりません')
+      return models.task.findOne({
+        where: {
+          id: taskId,
+          [Op.or]: {
+            user_id: user.id,
+            created_by: user.id
           }
-          // タスク作成者とタスク編集者が同一ユーザーの場合のみ編集可能
-          if (parseInt(task.by_user_id) === parseInt(user.id)) {
-            return true
-          }
+        }
+      }).then(function (task) {
+        if (task === null) {
           throw new Error('タスク作成者のみ編集可能です')
-        })
-        .catch(function (error) {
-          return Promise.reject(new Error(error))
-        })
+        }
+        return true
+      }).catch(function (error) {
+        return Promise.reject(new Error(error))
+      })
     })
   ],
   // ---------------------------------

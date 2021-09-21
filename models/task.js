@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
       // タスク作成者IDに紐付ける
       task.hasOne(models.user, {
         foreignKey: 'id',
-        sourceKey: 'by_user_id',
+        sourceKey: 'created_by',
         as: 'userCreatedTask'
       })
       // starsテーブルに紐づく
@@ -74,7 +74,7 @@ module.exports = (sequelize, DataTypes) => {
     priority: DataTypes.INTEGER,
     is_displayed: DataTypes.INTEGER,
     code_number: DataTypes.STRING,
-    by_user_id: DataTypes.BIGINT,
+    created_by: DataTypes.BIGINT,
     deleted_at: {
       type: DataTypes.DATE
       // fieldName: "deleted_at",
