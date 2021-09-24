@@ -4,7 +4,7 @@
 // 上記マイグレーションファイルを実行する場合は
 // sequelize db:migrate コマンドを実行する
 // --------------------------------------------------------------------------
-'use strict';
+'use strict'
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('task_threads', {
@@ -39,9 +39,9 @@ module.exports = {
         allowNull: true,
         type: Sequelize.DATE
       }
-    });
+    })
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('task_threads');
+    await queryInterface.dropTable('task_threads')
   }
-};
+}

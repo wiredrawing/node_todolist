@@ -3,6 +3,7 @@ const router = express.Router()
 // モデルロード
 const models = require('../models/index.js')
 const applicationConfig = require('../config/application-config.js')
+const { Op } = require('Sequelize')
 
 const priorityStatusNameList = {}
 applicationConfig.priorityStatusList.forEach((data, index) => {
@@ -27,7 +28,11 @@ router.get('/', function (req, res, next) {
     ],
     // ログイン中ユーザーのタスク
     where: {
-      user_id: user.id
+      user_id: user.id,
+      status: {
+        // where status < applicationConfig.status.finish
+        [Op.lt]: applicationConfig.status.finish
+      }
     },
     // 締切が早い順
     order: [

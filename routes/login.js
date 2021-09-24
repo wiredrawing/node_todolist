@@ -19,24 +19,25 @@ router.post('/authenticate', validationRules['login.index'], function (req, res,
     }
   }).then(function (user) {
     if (user === null) {
-      return Promise.reject('ユーザー認証に失敗しました｡')
+      throw new Error('ユーザー認証に失敗しました｡')
     }
     // emailからユーザーの存在確認後,パスワードの認証をする
     return bcrypt.compare(password, user.password).then(function (authenticate) {
       if (authenticate !== true) {
-        return Promise.reject('ユーザー認証に失敗しました｡')
+        throw new Error('ユーザー認証に失敗しました｡')
       }
       // ログイン情報をセッションに保持
       req.session.isLoggedIn = authenticate
       req.session.user = user
-      // プロジェクト一覧ページへリダイレクト
-      return res.redirect('/project')
+
+      // my pageへ遷移
+      return res.redirect('/')
     }).catch(function (error) {
       throw new Error(error)
     })
   }).catch(function (error) {
+    console.log(error)
     return res.redirect('back')
-    // return next(new Error(error));
   })
 })
 

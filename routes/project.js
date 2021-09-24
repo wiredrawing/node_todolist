@@ -93,14 +93,15 @@ router.post('/create', validationRules['project.create'], (req, res, next) => {
   // POSTデータを取得
   const postData = req.body
   // express-validatorを使ったバリデーション結果を取得する
-  const errors = validationResult(req)
+  // const errors = validationResult(req)
   if (req.executeValidationCheck(req) !== true) {
     return res.redirect('back')
   }
 
-  return models.sequelize.transaction((tx) => {
+  return models.sequelize.transaction().then(tx => {
     const transaction = tx
     const codeNumber = makeCodeNumber(12)
+    let projectId = null
     // バリデーションチェックを通過した場合
     return models.Project.create(
       {
@@ -117,32 +118,47 @@ router.post('/create', validationRules['project.create'], (req, res, next) => {
       {
         transaction: transaction
       }
-    )
-      .then((data) => {
-        // lastInsertIDを取得
-        const projectId = data.id
-        const projectImagesForBulk = []
-        req.body.image_id.forEach((id, index) => {
-          projectImagesForBulk.push({
-            image_id: id,
+    ).then((data) => {
+      // lastInsertIDを取得
+      projectId = data.id
+      const projectImagesForBulk = []
+      req.body.image_id.forEach((id, index) => {
+        projectImagesForBulk.push({
+          image_id: id,
+          project_id: projectId
+        })
+      })
+
+      return models.ProjectImage.bulkCreate(projectImagesForBulk, {
+        transaction: transaction
+      }).then((projectImages) => {
+        // ---------------------------------------------------
+        // プロジェクトに参加するユーザーをテーブルにinsert
+        // ---------------------------------------------------
+        const projectUsers = []
+        req.body.users.forEach((userId) => {
+          projectUsers.push({
+            user_id: userId,
             project_id: projectId
           })
         })
-
-        return models.ProjectImage.bulkCreate(projectImagesForBulk, {
+        return models.ProjectUser.bulkCreate(projectUsers, {
           transaction: transaction
+        }).then(function (projectUsers) {
+          console.log('projectUsers --->', projectUsers)
+          transaction.commit()
+          return res.redirect('back')
         })
-          .then((projectImages) => {
-            return res.redirect('back')
-          })
-          .catch((error) => {
-            throw new Error(error)
-          })
+      }).catch((error) => {
+        console.log(error)
+        throw new Error(error)
       })
-      .catch((error) => {
-        // return
-        return next(new Error(error))
-      })
+    }).catch((error) => {
+      // return
+      transaction.rollback()
+      console.log(error)
+      return next(new Error(error))
+    })
   })
 })
 
