@@ -20,6 +20,7 @@ const registerRouter = require('./routes/register')
 const imageApiRouter = require('./routes/api/image')
 const projectApiRouter = require('./routes/api/project')
 const starApiRouter = require('./routes/api/star')
+const userApiRouter = require('./routes/api/user')
 
 const config = require('./config/config.json')
 
@@ -224,6 +225,7 @@ app.use('/image', imageRouter)
 app.use('/api/image', imageApiRouter)
 app.use('/api/project', projectApiRouter)
 app.use('/api/star', starApiRouter)
+app.use('/api/user', userApiRouter)
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

@@ -133,6 +133,33 @@
             </div>
           </div>
 
+          <div class="row">
+            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
+              <p>プロジェクト参画ユーザーID</p>
+              <p>
+                <select class="form-control form-select" id="select-project-users">
+                  <% users.forEach((user, index) => { %>
+                  <option value="<%- user.id %>"><%- user.user_name %></option>
+                  <% }) %>
+                </select>
+              </p>
+
+              <% if (errors("user_id").length > 0) {%>
+              <!-- エラーメッセージ -->
+              <div v-for="data in errors.delivery " class="col-md-12 col-lg-12 col-xl-12 ">
+                <p class="alert alert-danger "><%- errors("user_id") %></p>
+              </div>
+              <!-- エラーメッセージ -->
+              <% } %>
+            </div>
+
+
+            <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
+              <div class="row" id="project-users">
+              </div>
+            </div>
+          </div>
+
           <div class="row ">
             <div class="col-sm-12 col-md-12 col-lg-12 col-xl-12 ">
               <p>プロジェクト詳細</p>
@@ -167,34 +194,46 @@
 <script>
   $(function(e) {
 
+    const addedProjectUsers = [];
+    // 選択したユーザーをプロジェクトへ参加させる
+    $("#select-project-users").on("change", function(e) {
+      console.log("change --->", this);
+      let selectedUserId = $(this).val();
+      let selectedUserName = $(this).text();
+      alert(selectedUserName);
+      if (addedProjectUsers.includes(selectedUserId) !== true) {
+        addedProjectUsers.push(selectedUserId);
+        $("#project-users").append(selectedUserId);
+      }
+    });
 
-//     // EasyMDE
-//     let easyMDE = new EasyMDE({
-//       element: document.getElementById("project_description"),
-//       previewImagesInEditor: true,
-//       forceSync: true,
-//       preveiwClass: "previewClass",
-//       previewRender: function (plain, preview) {
-//         console.log(plain);
-//         console.log(preview);
-//         console.log(this === easyMDE);
-//       }
-//     });
-// easyMDE.value('New input for **EasyMDE**');
-// alert(easyMDE.value());
-//     alert(easyMDE.previewRender("## ああああ"));
-//     // let preview = new EasyMDE({
-//     //   element: document.getElementById("project_description"),
-//     //   previewImagesInEditor: true,
-//     // });
-//     document.getElementById("project_description").addEventListener("change", function (e) {
-//       alert("--");
-//     });
+    //     // EasyMDE
+    //     let easyMDE = new EasyMDE({
+    //       element: document.getElementById("project_description"),
+    //       previewImagesInEditor: true,
+    //       forceSync: true,
+    //       preveiwClass: "previewClass",
+    //       previewRender: function (plain, preview) {
+    //         console.log(plain);
+    //         console.log(preview);
+    //         console.log(this === easyMDE);
+    //       }
+    //     });
+    // easyMDE.value('New input for **EasyMDE**');
+    // alert(easyMDE.value());
+    //     alert(easyMDE.previewRender("## ああああ"));
+    //     // let preview = new EasyMDE({
+    //     //   element: document.getElementById("project_description"),
+    //     //   previewImagesInEditor: true,
+    //     // });
+    //     document.getElementById("project_description").addEventListener("change", function (e) {
+    //       alert("--");
+    //     });
 
-//     // easyMDE.codemirror.on("change", function() {
-//     //   alert("-");
-//     //   $(".editor-preview").eq(0).html(preview.togglePreview(easyMDE.value()));
-//     // });
+    //     // easyMDE.codemirror.on("change", function() {
+    //     //   alert("-");
+    //     //   $(".editor-preview").eq(0).html(preview.togglePreview(easyMDE.value()));
+    //     // });
 
 
     let uploadInput = $("input[name='upload_file']");
