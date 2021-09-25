@@ -23,10 +23,7 @@
               <% } %>
             </div>
           </div>
-          <input type="text" name="users[]" value="1">
-          <input type="text" name="users[]" value="2">
-          <input type="text" name="users[]" value="3">
-          <input type="text" name="users[]" value="4">
+
           <div class="row">
             <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
               <p>開始日時</p>
@@ -137,11 +134,7 @@
             <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
               <p>プロジェクト参画ユーザーID</p>
               <p>
-                <select class="form-control form-select" id="select-project-users">
-                  <% users.forEach((user, index) => { %>
-                  <option value="<%- user.id %>"><%- user.user_name %></option>
-                  <% }) %>
-                </select>
+                <select class="form-control form-select" id="select-project-users"></select>
               </p>
 
               <% if (errors("user_id").length > 0) {%>
@@ -194,47 +187,50 @@
 <script>
   $(function(e) {
 
+    let users = null;
+
     const addedProjectUsers = [];
     // 選択したユーザーをプロジェクトへ参加させる
     $("#select-project-users").on("change", function(e) {
+      console.log("addedProjectUsers --->", addedProjectUsers);
       console.log("change --->", this);
       let selectedUserId = $(this).val();
-      let selectedUserName = $(this).text();
-      alert(selectedUserName);
       if (addedProjectUsers.includes(selectedUserId) !== true) {
         addedProjectUsers.push(selectedUserId);
-        $("#project-users").append(selectedUserId);
+        let selectedUser = null;
+        users.forEach(function(user, index) {
+          if (user.id == selectedUserId) {
+            let h = '<div class="col-3 mx-3 my-3 btn btn-outline-primary selected-project-users">' + users[index].user_name + '<input type="hidden" name="users[]" value="' + selectedUserId + '"></div>';
+            $("#project-users").append(h);
+          }
+        });
+        // ダブルクリックで､選択したユーザーを削除する
+        $("div.selected-project-users").each(function(index) {
+          $("div.selected-project-users").eq(index).off("dblclick");
+          $("div.selected-project-users").eq(index).on("dblclick", function(e) {
+            if (confirm("指定したユーザーを削除します｡よろしいですか?")) {
+              $(this).remove();
+              let index = addedProjectUsers.indexOf($(this).find("input").val());
+              if(index !== -1) {
+                addedProjectUsers.splice(index, 1);
+              }
+            }
+          });
+        });
       }
     });
 
-    //     // EasyMDE
-    //     let easyMDE = new EasyMDE({
-    //       element: document.getElementById("project_description"),
-    //       previewImagesInEditor: true,
-    //       forceSync: true,
-    //       preveiwClass: "previewClass",
-    //       previewRender: function (plain, preview) {
-    //         console.log(plain);
-    //         console.log(preview);
-    //         console.log(this === easyMDE);
-    //       }
-    //     });
-    // easyMDE.value('New input for **EasyMDE**');
-    // alert(easyMDE.value());
-    //     alert(easyMDE.previewRender("## ああああ"));
-    //     // let preview = new EasyMDE({
-    //     //   element: document.getElementById("project_description"),
-    //     //   previewImagesInEditor: true,
-    //     // });
-    //     document.getElementById("project_description").addEventListener("change", function (e) {
-    //       alert("--");
-    //     });
 
-    //     // easyMDE.codemirror.on("change", function() {
-    //     //   alert("-");
-    //     //   $(".editor-preview").eq(0).html(preview.togglePreview(easyMDE.value()));
-    //     // });
-
+    const fetchAllUsers = function() {
+      axios.get("/api/user").then(function(data) {
+        users = data.data.response;
+        console.log("users -->", users);
+        users.forEach(function(user, index) {
+          $("#select-project-users").append($("<option>").val(user.id).html(user.user_name));
+        })
+      });
+    }
+    fetchAllUsers();
 
     let uploadInput = $("input[name='upload_file']");
     let uploadedFileUrlList = [];

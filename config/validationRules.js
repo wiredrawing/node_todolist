@@ -216,7 +216,7 @@ const validationRules = {
         throw new Error('不正な終了時間です')
       }),
     check('users').custom(function (value, obj) {
-      console.log('value --->', value)
+      console.log('users value --->', value)
       return true
     })
   ],
