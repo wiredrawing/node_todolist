@@ -3,7 +3,7 @@ node_modules
 
 /uploaded_images/*
 uploaded_images
-
+.idea/*
 /tmp/*
 tmp
 

@@ -1,15 +1,22 @@
-const express = require('express')
+import express from 'express'
+// const express = require('express')
 const router = express.Router()
 
 // モデルロード
-const models = require('../models/index.js')
+import models from '../models/index.js'
+// const models = require('../models/index.js')
 // バリデーション用のモジュールを読み込み
-const { check, validationResult } = require('express-validator')
-const applicationConfig = require('../config/application-config')
-const validationRules = require('../config/validationRules.js')
-const { Op } = require('sequelize')
+import { check, validationResult } from 'express-validator'
+// const { check, validationResult } = require('express-validator')
+import applicationConfig from '../config/application-config.js'
+// const applicationConfig = require('../config/application-config')
+import validationRules from '../config/validationRules.js'
+// const validationRules = require('../config/validationRules.js')
+import { Op } from 'sequelize'
+// const { Op } = require('sequelize')
 // 識別使用コード生成関数
-const makeCodeNumber = require('../config/makeCodeNumber.js')
+import makeCodeNumber from '../config/makeCodeNumber.js'
+// const makeCodeNumber = require('../config/makeCodeNumber.js')
 // 表示フラグのバリデーション用
 const displayStatusList = []
 applicationConfig.displayStatusList.forEach((status, index) => {
@@ -19,7 +26,7 @@ applicationConfig.displayStatusList.forEach((status, index) => {
 // プロジェクト一覧ページ
 router.get('/', function (req, res, next) {
   let keyword = ''
-  if (req.query.keyword) {
+  if ( req.query.keyword ) {
     keyword = req.query.keyword
   }
 
@@ -38,7 +45,7 @@ router.get('/', function (req, res, next) {
         }
       ]
     },
-    include: [{ model: models.task }, { model: models.user }],
+    include: [{ model: models.Task }, { model: models.user }],
     order: [['id', 'desc']]
   })
     .then((projects) => {
@@ -61,7 +68,7 @@ router.get('/create', (req, res, next) => {
 
   // 現在登録中のプロジェクト一覧を取得する
   const projects = models.Project.findAll({
-    include: [{ model: models.task }],
+    include: [{ model: models.Task }],
     order: [['id', 'desc']]
   })
 
@@ -94,7 +101,7 @@ router.post('/create', validationRules['project.create'], (req, res, next) => {
   const postData = req.body
   // express-validatorを使ったバリデーション結果を取得する
   // const errors = validationResult(req)
-  if (req.executeValidationCheck(req) !== true) {
+  if ( req.executeValidationCheck(req) !== true ) {
     return res.redirect('back')
   }
 
@@ -175,7 +182,7 @@ router.get(
         const projectId = parseInt(value)
         return models.Project.findByPk(projectId)
           .then(function (project) {
-            if (parseInt(project.id) === projectId) {
+            if ( parseInt(project.id) === projectId ) {
               return true
             }
             throw new Error('指定したプロジェクトデータが見つかりません')
@@ -190,12 +197,12 @@ router.get(
     // URLパラメータの取得
     const projectId = req.params.projectId
     const errors = validationResult(req)
-    if (errors.isEmpty() !== true) {
+    if ( errors.isEmpty() !== true ) {
       return next(new Error(errors.errors))
     }
 
     let sessionErrors = {}
-    if (req.session.sessionErrors) {
+    if ( req.session.sessionErrors ) {
       sessionErrors = req.session.sessionErrors
       delete req.session.sessionErrors
     }
@@ -205,7 +212,7 @@ router.get(
     const project = models.Project.findByPk(projectId, {
       include: [
         {
-          model: models.task,
+          model: models.Task,
           include: [{ model: models.user }]
         },
         {
@@ -213,7 +220,7 @@ router.get(
           include: [{ model: models.Image }]
         }
       ],
-      order: [[models.task, 'id', 'desc']]
+      order: [[models.Task, 'id', 'desc']]
     })
 
     Promise.all([users, project])
@@ -236,7 +243,7 @@ router.get(
 
 router.post('/detail/:projectId', validationRules['project.update'], (req, res, next) => {
   // バリデーションチェック開始
-  if (req.executeValidationCheck(req) !== true) {
+  if ( req.executeValidationCheck(req) !== true ) {
     console.log('バリデーションチェックに引っかかっています')
 
     return res.redirect('back')
@@ -258,7 +265,7 @@ router.post('/detail/:projectId', validationRules['project.update'], (req, res, 
       return models.Project.findByPk(projectId)
         .then((project) => {
           console.log('project ===> ', project)
-          if (parseInt(project.id) !== projectId) {
+          if ( parseInt(project.id) !== projectId ) {
             return next(new Error('プロジェクトIDがマッチしませんでした'))
           }
 
@@ -277,7 +284,7 @@ router.post('/detail/:projectId', validationRules['project.update'], (req, res, 
               }
             )
             .then((project) => {
-              if (parseInt(project.id) !== projectId) {
+              if ( parseInt(project.id) !== projectId ) {
                 // 詳細画面に戻る
                 return res.redirect('back')
               }
@@ -337,7 +344,8 @@ router.get(
       .custom((value, { req }) => {
         value = parseInt(value)
         return models.Project.findByPk(value)
-          .then((project) => {})
+          .then((project) => {
+          })
           .catch((error) => {
             return Promise.reject(error)
           })
@@ -350,11 +358,11 @@ router.get(
     return models.Project.findByPk(projectId, {
       include: [
         {
-          model: models.task,
+          model: models.Task,
           include: [{ model: models.user }, { model: models.Star }]
         }
       ],
-      order: [[models.task, 'id', 'desc']]
+      order: [[models.Task, 'id', 'desc']]
     })
       .then((project) => {
         // ビューを返却
@@ -375,12 +383,13 @@ router.post(
       .isNumeric()
       .custom(function (value, obj) {
         const projectId = parseInt(value)
-        return models.Project.findByPk(projectId).then(function (project) {})
+        return models.Project.findByPk(projectId).then(function (project) {
+        })
       })
   ],
   function (req, res, next) {
     const errors = validationResult(req)
-    if (errors.isEmpty() !== true) {
+    if ( errors.isEmpty() !== true ) {
       return req.res.redirect('back')
     }
     const body = req.body
@@ -400,4 +409,5 @@ router.post(
       })
   }
 )
-module.exports = router
+export default router
+// module.exports = router

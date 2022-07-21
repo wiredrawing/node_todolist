@@ -1,11 +1,18 @@
-const express = require('express')
+import express from 'express'
+// const express = require('express')
 const router = express.Router()
-const models = require('../models/index.js')
-const { check, validationResult } = require('express-validator')
-const applicationConfig = require('../config/application-config.js')
-const { Op } = require('sequelize')
-const makeCodeNumber = require('../config/makeCodeNumber.js')
-const validationRules = require('../config/validationRules.js')
+import models from '../models/index.js'
+// const models = require('../models/index.js')
+import { check, validationResult } from 'express-validator'
+// const { check, validationResult } = require('express-validator')
+import applicationConfig from '../config/application-config.js'
+// const applicationConfig = require('../config/application-config.js')
+import { Op } from 'sequelize'
+// const { Op } = require('sequelize')
+import makeCodeNumber from '../config/makeCodeNumber.js'
+// const makeCodeNumber = require('../config/makeCodeNumber.js')
+import validationRules from '../config/validationRules.js'
+// const validationRules = require('../config/validationRules.js')
 
 const userIDList = []
 models.user
@@ -23,7 +30,7 @@ models.user
 const taskStatusList = []
 const taskStatusNameList = []
 applicationConfig.statusList.forEach((status, index) => {
-  if (status.id > 0) {
+  if ( status.id > 0 ) {
     // バリデーション用に1以上を保持
     taskStatusList.push(status.id)
   }
@@ -33,7 +40,7 @@ applicationConfig.statusList.forEach((status, index) => {
 const priorityStatusList = []
 const priorityStatusNameList = []
 applicationConfig.priorityStatusList.forEach((data, index) => {
-  if (data.id > 0) {
+  if ( data.id > 0 ) {
     // バリデーション用に1以上を保持
     priorityStatusList.push(data.id)
   }
@@ -51,14 +58,14 @@ applicationConfig.displayStatusList.forEach((status, index) => {
 router.get('/', (req, res, next) => {
   // 検索用キーワード
   let keyword = ''
-  if (req.query.keyword) {
+  if ( req.query.keyword ) {
     keyword = req.query.keyword
   }
 
   const actionUrlToStar = '/todo/star'
 
   // タスク一覧を取得するプロミス
-  return models.task
+  return models.Task
     .findAll({
       where: {
         [Op.or]: [
@@ -79,14 +86,21 @@ router.get('/', (req, res, next) => {
         { model: models.Project },
         { model: models.user },
         { model: models.TaskImage },
-        { model: models.user, as: 'belongsToUser' },
-        { model: models.user, as: 'userCreatedTask' }
+        {
+          model: models.user,
+          as: 'belongsToUser'
+        },
+        {
+          model: models.user,
+          as: 'userCreatedTask'
+        }
       ],
       order: [['id', 'desc']]
     })
     .then((response) => {
       // ビューを表示
-      response.forEach((data, index) => {})
+      response.forEach((data, index) => {
+      })
       return res.render('./todo/index', {
         tasks: response,
         actionUrlToStar: actionUrlToStar,
@@ -110,7 +124,7 @@ router.get(
       const projectID = parseInt(value)
       return models.Project.findByPk(projectID)
         .then((project) => {
-          if (parseInt(project.id) === projectID) {
+          if ( parseInt(project.id) === projectID ) {
             return true
           }
           return Promise.reject(new Error('指定したプロジェクトを取得できませんでした'))
@@ -130,7 +144,7 @@ router.get(
     // バリデーションエラーチェック
     const errors = validationResult(req)
     console.log('errors.errors ===> ', errors.errors)
-    if (errors.isEmpty() !== true) {
+    if ( errors.isEmpty() !== true ) {
       errors.errors.forEach((error, index) => {
         sessionErrors[error.param] = error.msg
       })
@@ -138,19 +152,19 @@ router.get(
       return res.redirect('back')
     }
 
-    if (req.session.sessionErrors) {
+    if ( req.session.sessionErrors ) {
       sessionErrors = req.session.sessionErrors
       req.session.sessionErrors = null
     }
     // タスク一覧を取得するプロミス
-    const taskPromise = models.task.findAll({
+    const taskPromise = models.Task.findAll({
       include: [{ model: models.Star }, { model: models.Project }, { model: models.user }],
       order: [['id', 'desc']]
     })
 
     // 担当者一覧
     const userPromise = models.user.findAll({
-      include: [{ model: models.task }],
+      include: [{ model: models.Task }],
       order: [['id', 'desc']]
     })
 
@@ -179,13 +193,13 @@ router.get(
 
 router.post('/create', validationRules['task.create'], (req, res, next) => {
   // バリデーションチェック
-  if (req.executeValidationCheck(req) !== true) {
+  if ( req.executeValidationCheck(req) !== true ) {
     return res.redirect('back')
   }
   // ログインユーザー情報を取得
   const user = req.session.user
   const codeNumber = makeCodeNumber(12)
-  const task = models.task
+  const task = models.Task
   // モデルを使ってtasksテーブルにタスクレコードを挿入する
 
   // POSTされたデータを変数化
@@ -250,7 +264,7 @@ router.post('/create', validationRules['task.create'], (req, res, next) => {
 // --------------------------------------------------------
 router.get('/detail/:task_id', (req, res, next) => {
   let sessionErrors = {}
-  if (req.session.sessionErrors) {
+  if ( req.session.sessionErrors ) {
     sessionErrors = req.session.sessionErrors
   }
   // taskモデルのpromiseを取得
@@ -261,7 +275,7 @@ router.get('/detail/:task_id', (req, res, next) => {
   })
 
   // タスク情報一覧
-  const task = models.task.findByPk(taskID, {
+  const task = models.Task.findByPk(taskID, {
     include: [
       { model: models.user },
       { model: models.Project },
@@ -291,7 +305,7 @@ router.get('/detail/:task_id', (req, res, next) => {
     order: [[models.TaskComment, 'id', 'desc']]
   })
   const projects = models.Project.findAll({
-    include: [{ model: models.task }]
+    include: [{ model: models.Task }]
   })
 
   // usersとtaskの両方が完了した段階で実行
@@ -335,14 +349,16 @@ router.post(
             id: value
           }
         })
-          .then((images) => {})
-          .catch((error) => {})
+          .then((images) => {
+          })
+          .catch((error) => {
+          })
       })
   ],
   (req, res, next) => {
     const errors = validationResult(req)
 
-    if (errors.isEmpty() !== true) {
+    if ( errors.isEmpty() !== true ) {
       return res.redirect('back')
     }
 
@@ -363,7 +379,7 @@ router.post(
             const createCommentImages = []
             // postデータに画像IDが含まれているかどうか
             req.body.image_id.forEach((image_id) => {
-              if (image_id.length > 0) {
+              if ( image_id.length > 0 ) {
                 createCommentImages.push({
                   comment_id: commentID,
                   image_id: image_id
@@ -371,7 +387,7 @@ router.post(
               }
             })
 
-            if (createCommentImages.length > 0) {
+            if ( createCommentImages.length > 0 ) {
               return models.CommentImage.bulkCreate(createCommentImages, {
                 transaction: transaction
               })
@@ -406,7 +422,7 @@ router.post(
  */
 router.get('/edit/:task_id', (req, res, next) => {
   let sessionErrors = {}
-  if (req.session.sessionErrors) {
+  if ( req.session.sessionErrors ) {
     sessionErrors = req.session.sessionErrors
   }
   // taskモデルのpromiseを取得
@@ -415,18 +431,18 @@ router.get('/edit/:task_id', (req, res, next) => {
   const users = models.user.findAll({
     order: [['id', 'asc']]
   })
-  const task = models.task
+  const task = models.Task
     .findByPk(taskID, {
       include: [{ model: models.user }]
     })
     .then((task) => {
-      if (task === null) {
+      if ( task === null ) {
         return Promise.reject(new Error('指定したタスク情報が見つかりませんでした｡'))
       }
       return task
     })
   const projects = models.Project.findAll({
-    include: [{ model: models.task }]
+    include: [{ model: models.Task }]
   })
 
   // usersとtaskの両方が完了した段階で実行
@@ -455,14 +471,14 @@ router.get('/edit/:task_id', (req, res, next) => {
  */
 router.post('/edit/:taskId', validationRules['task.update'], (req, res, next) => {
   const errors = validationResult(req)
-  if (req.executeValidationCheck(req) !== true) {
+  if ( req.executeValidationCheck(req) !== true ) {
     return res.redirect('back')
   }
   console.log('errors.errors ===> ', errors.errors)
 
   const postData = req.body
   // 指定したtaskレコードをアップデートする
-  return models.task
+  return models.Task
     .findByPk(req.params.taskId)
     .then((task) => {
       return task
@@ -498,10 +514,10 @@ router.post(
     check('task_id', '指定したタスクIDが存在しませんでした｡').custom(function (value, obj) {
       // カスタムバリデーション
       // この中でDBのtasksテーブルにPOSTされたtask_idとマッチするものがあるかを検証
-      return models.task
+      return models.Task
         .findByPk(value)
         .then((data) => {
-          if (Number(data.id) === Number(value)) {
+          if ( Number(data.id) === Number(value) ) {
             return true
           }
           return Promise.reject(new Error('指定したタスク情報が見つかりませんでした｡'))
@@ -517,7 +533,7 @@ router.post(
     const postData = req.body
 
     // バリデーションチェックを実行
-    if (errors.isEmpty() !== true) {
+    if ( errors.isEmpty() !== true ) {
       const sessionErrors = {}
       errors.errors.forEach((error, index) => {
         sessionErrors[error.param] = error.msg
@@ -546,7 +562,7 @@ router.post(
           .then((star) => {
             // 新規作成レコード
             // スターテーブルの更新完了後tasksレコードも更新させる
-            return models.task
+            return models.Task
               .findByPk(postData.task_id)
               .then((task) => {
                 return task
@@ -590,8 +606,8 @@ router.post(
       .withMessage('タスクIDは数値で入力して下さい')
       .custom((value, obj) => {
         // 指定したtask_idが有効かを検証
-        return models.task.findByPk(parseInt(value)).then((task) => {
-          if (task.id !== value) {
+        return models.Task.findByPk(parseInt(value)).then((task) => {
+          if ( task.id !== value ) {
             throw new Error('指定したタスク情報が見つかりません')
           }
           return true
@@ -600,7 +616,7 @@ router.post(
   ],
   (req, res, next) => {
     const errors = validationResult(req)
-    if (errors.isEmpty() !== true) {
+    if ( errors.isEmpty() !== true ) {
       const sessionErrors = {}
       errors.errors.forEach((error, index) => {
         sessionErrors[error.param] = error.msg
@@ -610,7 +626,7 @@ router.post(
     }
 
     // 選択された､タスクを取得し削除する
-    return models.task
+    return models.Task
       .findByPk(req.body.task_id)
       .then(function (task) {
         return task
@@ -628,4 +644,5 @@ router.post(
       })
   }
 )
-module.exports = router
+export default router
+// module.exports = router

@@ -1,8 +1,12 @@
-const express = require('express')
+import express from 'express'
+// const express = require('express')
 const router = express.Router()
-const bcrypt = require('bcrypt')
-const models = require('../models/index.js')
-const validationRules = require('../config/validationRules.js')
+import bcrypt from 'bcrypt'
+// const bcrypt = require('bcrypt')
+import models from '../models/index.js'
+// const models = require('../models/index.js')
+import validationRules from '../config/validationRules.js'
+// const validationRules = require('../config/validationRules.js')
 
 // ------------------------------------------------
 // 新規アカウント作成フォーム
@@ -10,7 +14,7 @@ const validationRules = require('../config/validationRules.js')
 router.get('/create', function (req, res, next) {
   // セッションにユーザー情報が入っていたらログイン後ページへ
   console.log(req.session.user)
-  if (req.session.user !== null) {
+  if ( req.session.user !== null ) {
     // return res.redirect("/project");
   }
   return res.render('register/create', [])
@@ -32,19 +36,19 @@ router.post('/create', validationRules['register.create'], function (req, res, n
 // 新規アカウント作成処理の実行
 // ------------------------------------------------
 router.post('/create', function (req, res, next) {
-  if (req.session.validationErrors !== null) {
+  if ( req.session.validationErrors !== null ) {
     return res.redirect('back')
   }
 
   return bcrypt.genSalt(12, function (err, salt) {
-    if (err) {
+    if ( err ) {
       return next(new Error(err))
     }
 
     // passwordをハッシュ化する
     bcrypt.hash(req.body.password, salt, function (err, hash) {
       // パスワードのハッシュ化失敗
-      if (err) {
+      if ( err ) {
         return next(new Error(err))
       }
 
@@ -66,4 +70,5 @@ router.post('/create', function (req, res, next) {
   })
 })
 
-module.exports = router
+export default router
+// module.exports = router

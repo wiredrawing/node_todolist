@@ -1,6 +1,8 @@
-const express = require('express')
+import express from 'express'
+// const express = require('express')
 const router = express.Router()
-const models = require('../../models/index.js')
+import models from '../../models/index.js'
+// const models = require('../../models/index.js')
 // ---------------------------------------------------
 // 登録中のユーザー情報一覧を取得する
 // ---------------------------------------------------
@@ -9,7 +11,7 @@ router.get('/', function (req, res, next) {
 
   // 登録中のユーザー情報一覧を取得する
   return models.user.findAll().then(function (users) {
-    if (users) {
+    if ( users ) {
       // 成功時のレスポンス
       result = {
         status: true,
@@ -32,4 +34,5 @@ router.get('/', function (req, res, next) {
   })
 })
 
-module.exports = router
+export default router
+// module.exports = router

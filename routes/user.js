@@ -1,9 +1,14 @@
-const express = require('express')
+import express from "express";
+// const express = require('express')
 const router = express.Router()
-const models = require('../models/index.js')
-const { check, validationResult } = require('express-validator')
-const applicationConfig = require('../config/application-config.js')
-const { Op } = require('Sequelize')
+import models from "../models/index.js";
+// const models = require('../models/index.js')
+import {check, validationResult} from 'express-validator'
+// const { check, validationResult } = require('express-validator')
+import applicationConfig from "../config/application-config.js";
+// const applicationConfig = require('../config/application-config.js')
+import {Op} from "sequelize";
+// const { Op } = require('Sequelize')
 
 const sectionTypeIDList = []
 applicationConfig.sectionType.map((data, index) => {
@@ -19,7 +24,7 @@ router.get('/', function (req, res, next) {
     ['id', 'desc']
   ]
   ormOption.include = [
-    { model: models.task }
+    { model: models.Task }
   ]
   if (query.keyword && query.keyword.length > 0) {
     // orm用オプションを指定
@@ -49,7 +54,7 @@ router.get('/create', (req, res, next) => {
   models.user
     .findAll({
       order: [['id', 'asc']],
-      include: [{ model: models.task }]
+      include: [{ model: models.Task }]
     })
     .then((users) => {
       const data = {
@@ -99,7 +104,7 @@ router.post(
       user
         .findAll({
           order: [['id', 'asc']],
-          include: [{ model: models.task }]
+          include: [{ model: models.Task }]
         })
         .then((users) => {
           // console.log(users);
@@ -123,7 +128,7 @@ router.get('/:userID', (req, res, next) => {
 
   models.user
     .findByPk(userID, {
-      include: [{ model: models.task }]
+      include: [{ model: models.Task }]
     })
     .then((user) => {
       res.render('./user/detail', {
@@ -135,4 +140,6 @@ router.get('/:userID', (req, res, next) => {
       return next(new Error(error))
     })
 })
-module.exports = router
+
+export default router;
+// module.exports = router

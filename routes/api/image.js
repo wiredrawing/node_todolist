@@ -1,10 +1,16 @@
-const express = require('express')
+import express from 'express'
+// const express = require('express')
 const router = express.Router()
-const models = require('../../models/index.js')
-const { v4: uuid } = require('uuid')
-const applicationConfig = require('../../config/application-config.js')
-const moment = require('moment')
-const fs = require('fs')
+import models from '../../models/index.js'
+// const models = require('../../models/index.js')
+import { v4 as uuid } from 'uuid';
+// const { v4: uuid } = require('uuid')
+import applicationConfig from '../../config/application-config.js'
+// const applicationConfig = require('../../config/application-config.js')
+import moment from 'moment'
+// const moment = require('moment')
+import fs from 'fs'
+// const fs = require('fs')
 
 // ファイルのアップロード処理
 router.post('/upload', function (req, res, next) {
@@ -77,7 +83,7 @@ router.get('/show/:image_id', (req, res, next) => {
 
   return models.Image.findByPk(imageID)
     .then((image) => {
-      if (image === null) {
+      if ( image === null ) {
         return Promise.reject(new Error('指定した画像が見つかりませんでした｡'))
       }
       // console.log(image);
@@ -86,7 +92,7 @@ router.get('/show/:image_id', (req, res, next) => {
       // 画像ファイルを読み込み出力する
       fs.readFile(destinationFilePath, function (error, result) {
         // console.log(error);
-        if (error !== null) {
+        if ( error !== null ) {
           return next(new Error(error))
         }
         res.type(image.mimetype)
@@ -98,4 +104,5 @@ router.get('/show/:image_id', (req, res, next) => {
     })
 })
 
-module.exports = router
+export default router
+// module.exports = router

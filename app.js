@@ -1,36 +1,66 @@
-const createError = require('http-errors')
-const express = require('express')
-const path = require('path')
-const cookieParser = require('cookie-parser')
-const logger = require('morgan')
-const bodyParser = require('body-parser')
-const parseUrl = require('parseUrl')
-const { validationResult } = require('express-validator')
+import createError from "http-errors";
+// const createError = require('http-errors')
+import express from "express";
+// const express = require('express')
+import path  from "path";
+// const path = require('path')
+import cookieParser from "cookie-parser";
+// const cookieParser = require('cookie-parser')
+import logger from "morgan";
+// const logger = require('morgan')
+import bodyParser from 'body-parser'
+// const bodyParser = require('body-parser')
+import parseUrl from 'parse-url'
+// const parseUrl = require('parseUrl')
+import {check, validationResult} from 'express-validator'
+// const { validationResult } = require('express-validator')
 // テンプレート用ルーティング
-const indexRouter = require('./routes/index')
-const userRouter = require('./routes/user')
-const todoRouter = require('./routes/todo')
-const projectRouter = require('./routes/project')
-const imageRouter = require('./routes/image.js')
-const loginRouter = require('./routes/login')
-const logoutRouter = require('./routes/logout')
-const registerRouter = require('./routes/register')
+import indexRouter from "./routes/index.js";
+// const indexRouter = require('./routes/index')
+import userRouter from "./routes/user.js";
+// const userRouter = require('./routes/user')
+import todoRouter from "./routes/todo.js";
+// const todoRouter = require('./routes/todo')
+import projectRouter from "./routes/project.js";
+// const projectRouter = require('./routes/project')
+import imageRouter from "./routes/image.js";
+// const imageRouter = require('./routes/image.js')
+import loginRouter from "./routes/login.js";
+// const loginRouter = require('./routes/login')
+import logoutRouter from "./routes/logout.js";
+// const logoutRouter = require('./routes/logout')
+import registerRouter from "./routes/register.js";
+// const registerRouter = require('./routes/register')
 
 // API向けルーティング
-const imageApiRouter = require('./routes/api/image')
-const projectApiRouter = require('./routes/api/project')
-const starApiRouter = require('./routes/api/star')
-const userApiRouter = require('./routes/api/user')
+import imageApiRouter from "./routes/api/image.js";
+// const imageApiRouter = require('./routes/api/image')
+import projectApiRouter from "./routes/api/project.js";
+// const projectApiRouter = require('./routes/api/project')
+import starApiRouter from "./routes/api/star.js";
+// const starApiRouter = require('./routes/api/star')
+import userApiRouter from "./routes/api/user.js";
+// const userApiRouter = require('./routes/api/user')
 
-const config = require('./config/config.json')
-
-const session = require('express-session')
-const fileUpload = require('express-fileupload')
+// import config from "./config/config.json";
+// const config = require('./config/config.json')
+import session from "express-session";
+// const session = require('express-session')
+import fileUpload from "express-fileupload";
+// const fileUpload = require('express-fileupload')
 // session用のpostgresql storeの実行用
-const { Pool } = require('pg')
-const pgSession = require('connect-pg-simple')(session)
+// import {Pool} from 'pg'
+// const { Pool } = require('pg')
+import sessionForPg from "connect-pg-simple";
+const pgSession = sessionForPg(session)
 
 const app = express()
+
+// __dirnameと__filenameのシミュレーション
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))
@@ -53,16 +83,16 @@ app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
 
 // sequelizeの設定ファイルと共有する
-const pool = new Pool({
-  host: config.development.host,
-  user: config.development.username,
-  password: config.development.password,
-  database: config.development.database,
-  port: config.development.port,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000
-})
+// const pool = new Pool({
+//   host: config.development.host,
+//   user: config.development.username,
+//   password: config.development.password,
+//   database: config.development.database,
+//   port: config.development.port,
+//   max: 20,
+//   idleTimeoutMillis: 30000,
+//   connectionTimeoutMillis: 2000
+// })
 
 // ------------------------------------------
 // ログイン情報の保持にセッションを利用する
@@ -70,7 +100,7 @@ const pool = new Pool({
 app.use(
   session({
     store: new pgSession({
-      pool: pool, // Connection pool
+      // pool: pool, // Connection pool
       tableName: 'session' // Use another table-name than the default "session" one
     }),
     secret: '暗号化ソルト',
@@ -242,4 +272,5 @@ app.use(function (err, req, res, next) {
   res.render('error')
 })
 
-module.exports = app
+export default app
+// module.exports = app

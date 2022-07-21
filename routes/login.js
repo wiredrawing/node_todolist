@@ -1,7 +1,11 @@
-const models = require('../models/index.js')
-const bcrypt = require('bcrypt')
-const validationRules = require('../config/validationRules.js')
-const express = require('express')
+import models from '../models/index.js'
+// const models = require('../models/index.js')
+import bcrypt from 'bcrypt'
+// const bcrypt = require('bcrypt')
+import validationRules from '../config/validationRules.js'
+// const validationRules = require('../config/validationRules.js')
+import express from 'express'
+// const express = require('express')
 const router = express.Router()
 
 // ログインページの表示
@@ -18,12 +22,12 @@ router.post('/authenticate', validationRules['login.index'], function (req, res,
       email: email
     }
   }).then(function (user) {
-    if (user === null) {
+    if ( user === null ) {
       throw new Error('ユーザー認証に失敗しました｡')
     }
     // emailからユーザーの存在確認後,パスワードの認証をする
     return bcrypt.compare(password, user.password).then(function (authenticate) {
-      if (authenticate !== true) {
+      if ( authenticate !== true ) {
         throw new Error('ユーザー認証に失敗しました｡')
       }
       // ログイン情報をセッションに保持
@@ -41,4 +45,5 @@ router.post('/authenticate', validationRules['login.index'], function (req, res,
   })
 })
 
-module.exports = router
+export default router
+// module.exports = router

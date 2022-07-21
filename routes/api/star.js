@@ -1,14 +1,17 @@
-const express = require('express')
-const validationRules = require('../../config/validationRules')
+import express from 'express'
+// const express = require('express')
+import validationRules from '../../config/validationRules.js'
+// const validationRules = require('../../config/validationRules')
 const router = express.Router()
-const models = require('../../models/index.js')
+import models from '../../models/index.js'
+// const models = require('../../models/index.js')
 
 router.post('/:taskId', validationRules['star.create'], function (req, res, next) {
   console.log('star api')
   // バリデーションの実行
 
   return new Promise(function (resolve, reject) {
-    if (req.executeValidationCheck(req)) {
+    if ( req.executeValidationCheck(req) ) {
       return resolve(true)
     }
     return reject(new Error('バリデーションに失敗しました'))
@@ -20,7 +23,7 @@ router.post('/:taskId', validationRules['star.create'], function (req, res, next
       user_id: userId,
       task_id: taskId
     }).then(function (star) {
-      if (star !== null && parseInt(star.user_id) === userId) {
+      if ( star !== null && parseInt(star.user_id) === userId ) {
         // json レスポンスを返却
         // 正常系 response
         const jsonResponse = {
@@ -56,4 +59,5 @@ router.post('/:taskId', validationRules['star.create'], function (req, res, next
   })
 })
 
-module.exports = router
+export default router
+// module.exports = router

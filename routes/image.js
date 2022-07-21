@@ -1,8 +1,12 @@
-const express = require('express')
+import express from 'express'
+// const express = require('express')
 const router = express.Router()
 // モデルロード
-const models = require('../models/index.js')
-const { check, validationResult } = require('express-validator')
+import models from '../models/index.js'
+// const models = require('../models/index.js')
+import { check, validationResult } from 'express-validator'
+
+// const { check, validationResult } = require('express-validator')
 
 // 画像一覧を取得
 router.get('/list', function (req, res, next) {
@@ -33,7 +37,7 @@ router.post(
       const imageID = value
       return models.Image.findByPk(imageID)
         .then((image) => {
-          if (image.id !== imageID) {
+          if ( image.id !== imageID ) {
             return Promise.reject('削除対象の画像が見つかりません')
           }
           return true
@@ -48,7 +52,7 @@ router.post(
     const postData = req.body
 
     const errors = validationResult(req)
-    if (errors.isEmpty() !== true) {
+    if ( errors.isEmpty() !== true ) {
       req.session.sessionErrors = errors.errors
       return res.redirect('back')
     }
@@ -66,5 +70,5 @@ router.post(
       })
   }
 )
-
-module.exports = router
+export default router
+// module.exports = router

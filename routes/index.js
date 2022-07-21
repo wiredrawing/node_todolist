@@ -1,9 +1,13 @@
-const express = require('express')
+import express from 'express'
+// const express = require('express')
 const router = express.Router()
 // モデルロード
-const models = require('../models/index.js')
-const applicationConfig = require('../config/application-config.js')
-const { Op } = require('Sequelize')
+import models from '../models/index.js'
+// const models = require('../models/index.js')
+import applicationConfig from '../config/application-config.js'
+// const applicationConfig = require('../config/application-config.js')
+import { Op } from 'sequelize'
+// const { Op } = require('Sequelize')
 
 const priorityStatusNameList = {}
 applicationConfig.priorityStatusList.forEach((data, index) => {
@@ -19,7 +23,7 @@ router.get('/', function (req, res, next) {
   const user = req.session.user
 
   // 担当中タスク
-  const taskPromise = models.task.findAll({
+  const taskPromise = models.Task.findAll({
     include: [
       {
         model: models.Project
@@ -42,7 +46,7 @@ router.get('/', function (req, res, next) {
   })
 
   // ログインユーザーが担当する完了したタスク一覧 最新10件を取得
-  const completedTasks = models.task.findAll({
+  const completedTasks = models.Task.findAll({
     where: {
       user_id: req.session.user.id,
       status: applicationConfig.status.finish
@@ -56,7 +60,7 @@ router.get('/', function (req, res, next) {
       created_by: req.session.user.id
     },
     include: {
-      model: models.task
+      model: models.Task
     }
   })
 
@@ -82,4 +86,5 @@ router.get('/', function (req, res, next) {
     })
 })
 
-module.exports = router
+export default router
+// module.exports = router
