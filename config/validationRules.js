@@ -1,9 +1,9 @@
-const models = require('../models/index.js')
-const { check } = require('express-validator')
-const { Op } = require('sequelize')
-const bcrypt = require('bcrypt')
-const applicationConfig = require('../config/application-config.js')
-const moment = require('moment')
+import models from "../models/index.js"
+import {check} from "express-validator"
+import {Op} from "sequelize";
+import bcrypt from "bcrypt"
+import applicationConfig from '../config/application-config.js'
+import moment from "moment";
 
 const taskStatusList = []
 const taskStatusNameList = []
@@ -372,7 +372,7 @@ const validationRules = {
     // バリデーションチェック
     check('task_id').custom(function (value, obj) {
       const taskId = parseInt(value)
-      return models.task.findByPk(taskId).then(function (task) {
+      return models.Task.findByPk(taskId).then(function (task) {
         if (task !== null && parseInt(task.id) === taskId) {
           return true
         }
@@ -418,7 +418,7 @@ const validationRules = {
       // updateしようとしているユーザーが担当者orタスク作成者である必要がある
       const user = obj.req.session.user
       const taskId = obj.req.body.task_id
-      return models.task.findOne({
+      return models.Task.findOne({
         where: {
           id: taskId,
           [Op.or]: {
@@ -442,7 +442,7 @@ const validationRules = {
   'star.create': [
     check('task_id').custom(function (value, obj) {
       const taskId = parseInt(value)
-      return models.task.findByPk(taskId).then(function (task) {
+      return models.Task.findByPk(taskId).then(function (task) {
         if (task !== null && parseInt(task.id) === taskId) {
           return true
         }
@@ -476,4 +476,4 @@ const validationRules = {
   ]
 }
 
-module.exports = validationRules
+export default validationRules

@@ -1,37 +1,82 @@
-import fs from 'fs';
-import path from 'path';
-import Sequelize from 'sequelize';
-import dbConfig from '..\config\config.json';
+// DBへの接続情報
+// npm install sequelize-cli-esm モジュールを事前にインストールする
+import fs from 'fs'
 
-const basename = path.basename(__filename);
-const env = process.env.NODE_ENV || 'development';
-const config = dbConfig[env];
-const db = {};
-let sequelize;
+process.env.DB_URL = "postgres://en:en_password@localhost:15432/todo-list";
+import {Sequelize, DataTypes} from 'sequelize'
+import user from "./user.js";
+import star from "./star.js";
+import image from "./image.js";
+import task from "./task.js";
+import commentimage from './commentimage.js'
+import taskcomment from './taskcomment.js'
+import taskimage  from './taskimage.js'
+import taskthread from './taskthread.js'
+import project from './project.js'
+import projectimage from './projectimage.js'
+import crypto from 'crypto'
 
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
+const config = {
+  "logging": function (str) {
+    if ( fs.existsSync("./sql.logs") !== true ) {
+      console.log(str);
+      console.log("SQL保存用ディレクトリが存在しません");
+      return false
+    }
+    // 実行したsqlのhash値を取得し,これをファイル名とする
+    let sqlHash = "./sql.logs/" + crypto.createHash("sha256").update(str).digest("hex") + ".sql.log";
+    // console.log(sqlHash);
+    if ( fs.existsSync(sqlHash) !== true ) {
+      let file = fs.createWriteStream(sqlHash, "utf8");
+      file.on("end", function() {
+        console.log("End Event");
+      });
+      file.on("finish", function() {
+        console.log("Finish Event");
+      });
+      // 実行したSQLを1byteずつファイルへ書き込んでいく
+      for ( let i = 0; i < str.length; i++ ) {
+        if (str[i] === " ") {
+          // スペースは改行させる
+          file.write("\r\n");
+        } else {
+          file.write(str[i]);
+        }
+
+      }
+      file.end();
+    }
+    return true;
+  }
+}
+const sequelize = new Sequelize(process.env.DB_URL, config)
+const models = {
+  // モデルを静的定義していく
+  user: user(sequelize, DataTypes),
+  Task: task(sequelize, DataTypes),
+  Star: star(sequelize, DataTypes),
+  Image: image(sequelize, DataTypes),
+  CommentImage: commentimage(sequelize, DataTypes),
+  TaskComment: taskcomment(sequelize, DataTypes),
+  TaskImage: taskimage(sequelize, DataTypes),
+  TaskThread: taskthread(sequelize, DataTypes),
+  Project: project(sequelize, DataTypes),
+  ProjectImage: projectimage(sequelize, DataTypes),
+
+  // administrator: administrator(sequelize, DataTypes),
+  // article: article(sequelize, DataTypes),
+  // subPage: subPage(sequelize, DataTypes),
+  // articleHashTag: articleHashTag(sequelize, DataTypes),
+  // hashTag: hashTag(sequelize, DataTypes),
+  // image: image(sequelize, DataTypes),
+  // pageArticle: pageArticle(sequelize, DataTypes),
 }
 
-fs
-  .readdirSync(__dirname)
-  .filter(file => {
-    return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
-  })
-  .forEach(file => {
-    const model = sequelize.import(path.join(__dirname, file));
-    db[model.name] = model;
-  });
-
-Object.keys(db).forEach(modelName => {
-  if (db[modelName].associate) {
-    db[modelName].associate(db);
+Object.keys(models).forEach(key => {
+  if (models[key].associate) {
+    models[key].associate(models)
   }
-});
-
-db.sequelize = sequelize;
-db.Sequelize = Sequelize;
-
-export default db;
+})
+models.Sequelize = sequelize
+models.sequelize = sequelize
+export default models

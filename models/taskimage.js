@@ -1,6 +1,9 @@
 'use strict'
-const { Model } = require('sequelize')
-module.exports = (sequelize, DataTypes) => {
+// import {Model} from 'sequelize'
+import moment from "moment";
+import pkg from 'sequelize';
+const {Model} = pkg;
+export default (sequelize, DataTypes) => {
   class TaskImage extends Model {
     /**
      * Helper method for defining associations.
@@ -13,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'id',
         sourceKey: 'image_id'
       })
-      TaskImage.hasOne(models.task, {
+      TaskImage.hasOne(models.Task, {
         foreignKey: 'id',
         sourceKey: 'task_id'
       })

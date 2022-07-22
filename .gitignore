@@ -6,4 +6,5 @@ uploaded_images
 .idea/*
 /tmp/*
 tmp
+sql.logs/*
 

@@ -1,8 +1,9 @@
 'use strict'
-const {
-  Model
-} = require('sequelize')
-module.exports = (sequelize, DataTypes) => {
+// import {Model} from 'sequelize'
+import moment from "moment";
+import pkg from 'sequelize';
+const {Model} = pkg;
+export default (sequelize, DataTypes) => {
   class TaskThread extends Model {
     /**
      * Helper method for defining associations.
@@ -15,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
       // ------------------------------------
       // TaskThreadはtaskモデルに属する.
       // ------------------------------------
-      TaskThread.belongsTo(models.task, {
+      TaskThread.belongsTo(models.Task, {
         foreignKey: 'task_id',
         sourceKey: 'id'
       })

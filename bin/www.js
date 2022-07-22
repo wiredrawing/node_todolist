@@ -4,9 +4,10 @@
  * Module dependencies.
  */
 
-var app = require('../app');
-var debug = require('debug')('todo-list:server');
-var http = require('http');
+import app from "../app.js";
+import debugObject from "debug";
+let debug = debugObject("todo-list:server");
+import http from 'http'
 
 /**
  * Get port from environment and store in Express.

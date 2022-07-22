@@ -1,11 +1,9 @@
 'use strict'
-const {
-  Model
-} = require('sequelize')
-
-const moment = require('moment')
-
-module.exports = (sequelize, DataTypes) => {
+// import {Model} from 'sequelize'
+import moment from "moment";
+import pkg from 'sequelize';
+const {Model} = pkg;
+export default (sequelize, DataTypes) => {
   class Project extends Model {
     /**
      * Helper method for defining associations.
@@ -13,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate (models) {
-      Project.hasMany(models.task, {
+      Project.hasMany(models.Task, {
         // tasksテーブルのproject_idに紐付ける
         foreignKey: 'project_id',
         sourceKey: 'id'

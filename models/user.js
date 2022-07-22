@@ -1,7 +1,10 @@
 'use strict'
-const { Model } = require('sequelize')
-const moment = require('moment')
-module.exports = (sequelize, DataTypes) => {
+// import {Model} from 'sequelize'
+import moment from "moment";
+import pkg from 'sequelize';
+const {Model} = pkg;
+
+export default (sequelize, DataTypes) => {
   class user extends Model {
     /**
      * Helper method for defining associations.
@@ -10,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate (models) {
       // define association here
-      user.hasMany(models.task, {
+      user.hasMany(models.Task, {
         foreignKey: 'user_id'
       })
     }

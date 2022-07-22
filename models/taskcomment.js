@@ -1,10 +1,9 @@
 'use strict'
-const {
-  Model
-} = require('sequelize')
-const moment = require('moment')
-
-module.exports = (sequelize, DataTypes) => {
+// import {Model} from 'sequelize'
+import moment from "moment";
+import pkg from 'sequelize';
+const {Model} = pkg;
+export default (sequelize, DataTypes) => {
   class TaskComment extends Model {
     /**
      * Helper method for defining associations.

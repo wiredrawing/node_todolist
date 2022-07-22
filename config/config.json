@@ -1,10 +1,15 @@
 {
   "development": {
-    "username": "root",
-    "password": null,
-    "database": "database_development",
-    "host": "127.0.0.1",
-    "dialect": "mysql"
+    "username": "en",
+    "password": "en_password",
+    "database": "todo-list",
+    "host": "localhost",
+    "dialect": "postgres",
+    "port": 15432,
+    "define": {
+      "timestamps": true
+    },
+    "logging": false
   },
   "test": {
     "username": "root",

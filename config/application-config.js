@@ -1,6 +1,6 @@
 // アプリケーション内設定
 
-const applicationConfig = {
+export default  {
 
   sectionType: [
     {
@@ -70,4 +70,3 @@ const applicationConfig = {
   }
 }
 
-module.exports = applicationConfig

@@ -1,7 +1,9 @@
 'use strict'
-const { Model } = require('sequelize')
-const moment = require('moment')
-module.exports = (sequelize, DataTypes) => {
+// import {Model} from 'sequelize'
+import moment from "moment";
+import pkg from 'sequelize';
+const {Model} = pkg;
+export default (sequelize, DataTypes) => {
   class task extends Model {
     /**
      * Helper method for defining associations.
@@ -69,6 +71,7 @@ module.exports = (sequelize, DataTypes) => {
   task.init({
     task_name: DataTypes.STRING,
     user_id: DataTypes.BIGINT,
+    project_id: DataTypes.BIGINT,
     task_description: DataTypes.STRING,
     status: DataTypes.INTEGER,
     priority: DataTypes.INTEGER,

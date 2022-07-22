@@ -1,6 +1,6 @@
 
 // ランダムな文字列で,タスクコードを作成する
-module.exports = function (length = 7) {
+export default function (length = 7) {
   let originalArray = []
   let original = ''
   const numberStrings = '0123456789'
