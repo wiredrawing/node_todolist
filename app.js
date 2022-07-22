@@ -206,11 +206,14 @@ app.use((req, res, next) => {
     let isAllowed = false
     for ( let index = 0; index < notRequiredList.length; index++ ) {
       // URLリストから正規表現を作成
-      if ( pathname === notRequiredList[index] ) {
+      const pathRegex = new RegExp(notRequiredList[index])
+      if (pathRegex.test(pathname) === true) {
+        console.log('pathRegex.test(pathname) ==> ', pathRegex.test(pathname), pathname)
         isAllowed = true
         break
       }
     }
+    console.log(isAllowed);
     // console.log(isAllowed);
     if ( isAllowed !== true ) {
       if ( req.session.user === null || req.session.user === undefined ) {

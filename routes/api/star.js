@@ -1,61 +1,90 @@
 import express from 'express'
-// const express = require('express')
 import validationRules from '../../config/validationRules.js'
-// const validationRules = require('../../config/validationRules')
+
 const router = express.Router()
 import models from '../../models/index.js'
-// const models = require('../../models/index.js')
+import { validationResult } from 'express-validator'
 
 router.post('/:taskId', validationRules['star.create'], function (req, res, next) {
-  console.log('star api')
-  // バリデーションの実行
+  console.log('Start creating \'create star api\' --------------------------')
+  const errors = validationResult(req)
+  const postData = req.body
+  const taskId = req.body.task_id
+  console.log(req.body)
+  // バリデーションチェックを実行
+  if ( errors.isEmpty() !== true ) {
+    const sessionErrors = {}
+    console.log(errors.array())
+    errors.errors.forEach((error, index) => {
+      sessionErrors[error.param] = error.msg
+    })
+    // エラーをsessionに確保
+    req.session.sessionErrors = sessionErrors
+    return res.redirect('back')
+  }
 
-  return new Promise(function (resolve, reject) {
-    if ( req.executeValidationCheck(req) ) {
-      return resolve(true)
-    }
-    return reject(new Error('バリデーションに失敗しました'))
-  }).then(function (data) {
-    // 各種IDをNumber型へキャスト
-    const userId = parseInt(req.body.user_id)
-    const taskId = parseInt(req.body.task_id)
-    return models.Star.create({
-      user_id: userId,
-      task_id: taskId
-    }).then(function (star) {
-      if ( star !== null && parseInt(star.user_id) === userId ) {
-        // json レスポンスを返却
-        // 正常系 response
-        const jsonResponse = {
-          status: true,
-          code: 200,
-          response: star
-        }
-        return res.json(jsonResponse)
+  (async function () {
+    let tx = await models.sequelize.transaction()
+    try {
+      // Fetch the transaction object.
+      // スターを送られたタスクレコードも更新のみ実行する
+      let newStar = {
+        task_id: postData.task_id,
+        user_id: postData.user_id,
       }
-      throw new Error('スターリングに失敗しました')
-    }).catch(function (error) {
-      // json レスポンスを返却
+      let star = await models.Star.create(newStar,
+        {
+          transaction: tx
+        })
+      if ( star === null ) {
+        throw new Error('Failed creating new star record')
+      }
+      let task = await models.Task.findByPk(taskId, {
+        transaction: tx
+      })
+      let result = await task.update(taskId, {
+          updated_at: new Date()
+        },
+        {
+          transaction: tx
+        })
+      console.log(result)
+      // If the database was updated with a specified query correctly, do commit.
+      await tx.commit()
+      let totalStar = await models.Star.findOne({
+        raw: true,
+        where: {
+          task_id: postData.task_id,
+        },
+        attributes: [
+          [models.sequelize.fn("count", models.sequelize.col("id")), "stars"],
+        ]
+      });
+      console.log(totalStar);
+      console.log('Finished creating \'create star api\' --------------------------')
+      // Return the json response.
+      const jsonResponse = {
+        status: true,
+        code: 200,
+        response: totalStar,
+      }
+      return res.json(jsonResponse)
+    } catch ( error ) {
+      await tx.rollback()
+      console.log('Finished creating \'create star api\' --------------------------')
       const jsonResponse = {
         status: false,
         code: 400,
-        response: null,
+        response: error,
         error: error
       }
       // エラー系 response
       return res.json(jsonResponse)
-    })
-  }).catch(function (error) {
-    const validationErrors = req.session.validationErrors
-    // json レスポンスを返却
-    const jsonResponse = {
-      status: false,
-      code: 400,
-      response: validationErrors,
-      error: error
     }
-    // エラー系 response
-    return res.json(jsonResponse)
+  })().then((result) => {
+
+  }).catch((error) => {
+
   })
 })
 
