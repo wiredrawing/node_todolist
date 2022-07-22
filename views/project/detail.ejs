@@ -64,7 +64,7 @@
             <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
               <p>開始日時</p>
               <p>
-                <input value="<%= old("start_time", project.start_time) %>" type="text" id="start_time" name="start_time" class="flat-picker form-control">
+                <input value="<%= old("start_time", project.formattedStartTime()) %>" type="text" id="start_time" name="start_time" class="flat-picker form-control">
               </p>
 
               <% if (errors("start_time").length > 0) {%>
@@ -79,7 +79,7 @@
             <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
               <p>終了日時</p>
               <p>
-                <input value="<%= old("end_time", project.end_time) %>" type="text" id="end_time" name="end_time" class="flat-picker form-control">
+                <input value="<%= old("end_time", project.formattedEndTime()) %>" type="text" id="end_time" name="end_time" class="flat-picker form-control">
               </p>
 
               <% if (errors("end_time").length > 0) {%>

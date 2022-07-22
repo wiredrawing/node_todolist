@@ -4,13 +4,12 @@ const router = express.Router()
 import models from '../../models/index.js'
 // const models = require('../../models/index.js')
 import { check, validationResult } from 'express-validator'
-// const { check, validationResult } = require('express-validator')
 
 // 指定したprojectIDに関連するレコード人まとまりを取得する
 router.get(
-  '/detail/:projectID',
+  '/detail/:projectId',
   [
-    check('projectID')
+    check('projectId')
       .isNumeric()
       .custom(function (value, obj) {
         // projectIDのバリデーションチェック
@@ -27,7 +26,7 @@ router.get(
     if ( errors.isEmpty() !== true ) {
       return res.redirect('back')
     }
-    const projectID = parseInt(req.params.projectID)
+    const projectID = parseInt(req.params.projectId)
     return models.Project.findByPk(projectID, {
       include: [
         {

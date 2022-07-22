@@ -39,7 +39,9 @@ router.get('/', function (req, res, next) {
       ]
     },
     include: [{ model: models.Task }, { model: models.user }],
-    order: [['id', 'desc']]
+    order: [
+      ['id', 'desc']
+    ]
   })
     .then((projects) => {
       return res.render('project/index', {
