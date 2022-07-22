@@ -1,23 +1,15 @@
 import express from 'express'
-// const express = require('express')
-const router = express.Router()
 
+const router = express.Router()
 // モデルロード
 import models from '../models/index.js'
-// const models = require('../models/index.js')
 // バリデーション用のモジュールを読み込み
 import { check, validationResult } from 'express-validator'
-// const { check, validationResult } = require('express-validator')
 import applicationConfig from '../config/application-config.js'
-// const applicationConfig = require('../config/application-config')
 import validationRules from '../config/validationRules.js'
-// const validationRules = require('../config/validationRules.js')
 import { Op } from 'sequelize'
-// const { Op } = require('sequelize')
 // 識別使用コード生成関数
 import makeCodeNumber from '../config/makeCodeNumber.js'
-import projectuser from '../models/projectuser.js'
-// const makeCodeNumber = require('../config/makeCodeNumber.js')
 // 表示フラグのバリデーション用
 const displayStatusList = []
 applicationConfig.displayStatusList.forEach((status, index) => {
@@ -125,7 +117,7 @@ router.post('/create', validationRules['project.create'], (req, res, next) => {
         {
           transaction: tx
         })
-      console.log(project);
+      console.log(project)
       // projectの登録が成功した場合
       if ( project === null ) {
         throw new Error('Failed registering a project record.')
@@ -145,9 +137,9 @@ router.post('/create', validationRules['project.create'], (req, res, next) => {
       let projectImages = await models.ProjectImage.bulkCreate(projectImagesForBulk, {
         transaction: tx,
       })
-      console.log("projectImagesForBulk.length ==> ", projectImagesForBulk.length);
-      console.log("projectImages.length ==> ", projectImages.length);
-      if (projectImages.length !== projectImagesForBulk.length) {
+      console.log('projectImagesForBulk.length ==> ', projectImagesForBulk.length)
+      console.log('projectImages.length ==> ', projectImages.length)
+      if ( projectImages.length !== projectImagesForBulk.length ) {
         throw new Error('Failed registering a project images record.')
       }
 
@@ -157,12 +149,12 @@ router.post('/create', validationRules['project.create'], (req, res, next) => {
       const projectUsersForBulk = []
       if ( req.body.users && req.body.users.length > 0 ) {
         // userIdの重複を削除する
-        let blushedUsers = [];
+        let blushedUsers = []
         req.body.users.filter((element, index, self) => {
-          if (blushedUsers.indexOf(element) !== -1) {
-            blushedUsers.push(element);
+          if ( blushedUsers.indexOf(element) !== -1 ) {
+            blushedUsers.push(element)
           }
-        });
+        })
         blushedUsers.forEach((userId) => {
           projectUsersForBulk.push({
             user_id: userId,
@@ -173,115 +165,95 @@ router.post('/create', validationRules['project.create'], (req, res, next) => {
       let projectUsers = await models.ProjectUser.bulkCreate(projectUsersForBulk, {
         transaction: tx,
       })
-      console.log(projectUsers);
-      console.log("projectUsersForBulk.length ==> ", projectUsersForBulk.length);
-      console.log("projectUsers.length ==> ", projectUsers.length);
-      if ( projectUsers === null ) {
+      console.log(projectUsers)
+      console.log('projectUsersForBulk.length ==> ', projectUsersForBulk.length)
+      console.log('projectUsers.length ==> ', projectUsers.length)
+      if (projectUsersForBulk.length !== projectUsers.length) {
         throw new Error('Failed registering a project users record.')
       }
       let result = await tx.commit()
       // 作成済みのプロジェクト詳細ページへ遷移
       return res.redirect('/project/detail/' + projectId)
     } catch ( error ) {
-      console.log("例外発生中 ---->");
+      console.log('例外発生中 ---->')
       console.log(error)
       await tx.rollback()
       return next(new Error(error))
     }
 
     //   return models.sequelize.transaction(null, null).then(transaction => {
-  //
-  //     let projectId = null
-  //     // バリデーションチェックを通過した場合
-  //     return models.Project.create(
-  //       {
-  //         project_name: postData.project_name,
-  //         project_description: postData.project_description,
-  //         // user_idは当該プロジェクトのリーダーになるID
-  //         user_id: postData.user_id,
-  //         is_displayed: postData.is_displayed,
-  //         code_number: codeNumber,
-  //         start_time: postData.start_time,
-  //         end_time: postData.end_time,
-  //         created_by: req.session.user.id
-  //       },
-  //       {
-  //         transaction: transaction
-  //       }
-  //     ).then((data) => {
-  //       // lastInsertIDを取得
-  //       projectId = data.id
-  //       const projectImagesForBulk = []
-  //       req.body.image_id.forEach((id, index) => {
-  //         projectImagesForBulk.push({
-  //           image_id: id,
-  //           project_id: projectId
-  //         })
-  //       })
-  //
-  //       return models.ProjectImage.bulkCreate(projectImagesForBulk, {
-  //         transaction: transaction
-  //       }).then((projectImages) => {
-  //         // ---------------------------------------------------
-  //         // プロジェクトに参加するユーザーをテーブルにinsert
-  //         // ---------------------------------------------------
-  //         const projectUsers = []
-  //         if (req.users && req.users.length > 0) {
-  //           req.body.users.forEach((userId) => {
-  //             projectUsers.push({
-  //               user_id: userId,
-  //               project_id: projectId
-  //             })
-  //           })
-  //         }
-  //
-  //         return models.ProjectUser.bulkCreate(projectUsers, {
-  //           transaction: transaction
-  //         }).then(function (projectUsers) {
-  //           transaction.commit()
-  //           // 作成済みのプロジェクト詳細ページへ遷移
-  //           return res.redirect('/project/detail/' + projectId);
-  //         })
-  //       }).catch((error) => {
-  //         console.log(error)
-  //         throw new Error(error)
-  //       })
-  //     }).catch((error) => {
-  //       // return
-  //       return transaction.rollback().then((rollback) => {
-  //         console.log(rollback);
-  //         return next(new Error(error))
-  //       })
-  //     })
-  //   })
-  })();
+    //
+    //     let projectId = null
+    //     // バリデーションチェックを通過した場合
+    //     return models.Project.create(
+    //       {
+    //         project_name: postData.project_name,
+    //         project_description: postData.project_description,
+    //         // user_idは当該プロジェクトのリーダーになるID
+    //         user_id: postData.user_id,
+    //         is_displayed: postData.is_displayed,
+    //         code_number: codeNumber,
+    //         start_time: postData.start_time,
+    //         end_time: postData.end_time,
+    //         created_by: req.session.user.id
+    //       },
+    //       {
+    //         transaction: transaction
+    //       }
+    //     ).then((data) => {
+    //       // lastInsertIDを取得
+    //       projectId = data.id
+    //       const projectImagesForBulk = []
+    //       req.body.image_id.forEach((id, index) => {
+    //         projectImagesForBulk.push({
+    //           image_id: id,
+    //           project_id: projectId
+    //         })
+    //       })
+    //
+    //       return models.ProjectImage.bulkCreate(projectImagesForBulk, {
+    //         transaction: transaction
+    //       }).then((projectImages) => {
+    //         // ---------------------------------------------------
+    //         // プロジェクトに参加するユーザーをテーブルにinsert
+    //         // ---------------------------------------------------
+    //         const projectUsers = []
+    //         if (req.users && req.users.length > 0) {
+    //           req.body.users.forEach((userId) => {
+    //             projectUsers.push({
+    //               user_id: userId,
+    //               project_id: projectId
+    //             })
+    //           })
+    //         }
+    //
+    //         return models.ProjectUser.bulkCreate(projectUsers, {
+    //           transaction: transaction
+    //         }).then(function (projectUsers) {
+    //           transaction.commit()
+    //           // 作成済みのプロジェクト詳細ページへ遷移
+    //           return res.redirect('/project/detail/' + projectId);
+    //         })
+    //       }).catch((error) => {
+    //         console.log(error)
+    //         throw new Error(error)
+    //       })
+    //     }).catch((error) => {
+    //       // return
+    //       return transaction.rollback().then((rollback) => {
+    //         console.log(rollback);
+    //         return next(new Error(error))
+    //       })
+    //     })
+    //   })
+  })()
 })
 
 /**
  * プロジェクトの編集および更新入力画面
  *
  */
-router.get(
-  '/detail/:projectId',
-  [
-    check('projectId')
-      .isNumeric()
-      .custom((value, { req }) => {
-        const projectId = parseInt(value)
-        return models.Project.findByPk(projectId)
-          .then(function (project) {
-            if ( parseInt(project.id) === projectId ) {
-              return true
-            }
-            throw new Error('指定したプロジェクトデータが見つかりません')
-          })
-          .catch((error) => {
-            throw new Error(error)
-          })
-      })
-      .withMessage('指定したプロジェクトデータが見つかりません｡')
-  ],
-  function (req, res, next) {
+router.get('/detail/:projectId', validationRules['detail.project'], function (req, res, next) {
     // URLパラメータの取得
     const projectId = req.params.projectId
     const errors = validationResult(req)
@@ -327,7 +299,7 @@ router.get(
         return next(new Error(error))
       })
   }
-)
+);
 
 router.post('/detail/:projectId', validationRules['project.update'], (req, res, next) => {
   // バリデーションチェック開始

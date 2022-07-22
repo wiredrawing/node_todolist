@@ -77,8 +77,7 @@
             </td>
             <td>
               <form action="<%- actionUrlToStar %>" method="POST">
-                <input type="hidden" name="task_id" value="<%- data.id %>">
-                <input class="btn btn-outline-primary" type="submit" value="★/<%- data.Stars.length %>個">
+                <input class="send-star btn btn-outline-primary" data-task-id="<%- data.id %>" type="button" value="★/<%- data.Stars.length %>個">
               </form>
             </td>
             <td>
@@ -104,4 +103,26 @@
   </div>
 </div>
 
+<script>
+  $(function() {
+    $(".send-star").each(function(index) {
+      $(this).on("click", function (e) {
+        let taskId = $(this).data("task-id");
+        let post = {
+          task_id: taskId,
+          user_id: 1,
+        }
+        let self = $(this);
+        axios.post("/api/star/" + taskId, post).then(function(data) {
+          console.log(data);
+          if (data.data.status) {
+            self.val("★/" + data.data.response.stars + "個")
+          }
+        }).catch(function(error) {
+
+        });
+      })
+    })
+  })
+</script>
 <%- include("../common/footer") %>
