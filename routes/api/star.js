@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { json } from 'express'
 import validationRules from '../../config/validationRules.js'
 
 const router = express.Router()
@@ -68,23 +68,23 @@ router.post('/:taskId', validationRules['star.create'], function (req, res, next
         code: 200,
         response: totalStar,
       }
-      return res.json(jsonResponse)
+      return Promise.resolve(jsonResponse);
     } catch ( error ) {
       await tx.rollback()
       console.log('Finished creating \'create star api\' --------------------------')
-      const jsonResponse = {
-        status: false,
-        code: 400,
-        response: error,
-        error: error
-      }
-      // エラー系 response
-      return res.json(jsonResponse)
+      return Promise.reject(error);
     }
-  })().then((result) => {
-
+  })().then((jsonResponse) => {
+    return res.json(jsonResponse)
   }).catch((error) => {
-
+    const jsonResponse = {
+      status: false,
+      code: 400,
+      response: error,
+      error: error
+    }
+    // エラー系 response
+    return Promise.reject(jsonResponse)
   })
 })
 
