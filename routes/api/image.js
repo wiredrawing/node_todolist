@@ -3,7 +3,7 @@ import express from 'express'
 const router = express.Router()
 import models from '../../models/index.js'
 // const models = require('../../models/index.js')
-import { v4 as uuid } from 'uuid';
+import { v4 as uuid } from 'uuid'
 // const { v4: uuid } = require('uuid')
 import applicationConfig from '../../config/application-config.js'
 // const applicationConfig = require('../../config/application-config.js')
@@ -33,7 +33,7 @@ router.post('/upload', function (req, res, next) {
     .then((image) => {
       // console.log(image);
       // DBへの挿入が確定後､アップロードされたファイルを確定ディレクトリへ移動させる
-      const destinationFilePath = 'uploaded_images/' + moment(this.updated_at).format('Y/M/D/H') + '/' + fileName
+      const destinationFilePath = 'uploaded_images/' + moment(image.updated_at).format('Y/M/D/H') + '/' + fileName
       return uploadFile
         .mv(destinationFilePath)
         .then((result) => {

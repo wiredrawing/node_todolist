@@ -1,12 +1,8 @@
 import express from 'express'
-// const express = require('express')
 const router = express.Router()
 import bcrypt from 'bcrypt'
-// const bcrypt = require('bcrypt')
 import models from '../models/index.js'
-// const models = require('../models/index.js')
 import validationRules from '../config/validationRules.js'
-// const validationRules = require('../config/validationRules.js')
 
 // ------------------------------------------------
 // 新規アカウント作成フォーム

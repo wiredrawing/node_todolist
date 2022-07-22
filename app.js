@@ -1,67 +1,42 @@
 import createError from 'http-errors'
-// const createError = require('http-errors')
 import express from 'express'
-// const express = require('express')
-import path from 'path'
-// const path = require('path')
+import path, { dirname } from 'path'
 import cookieParser from 'cookie-parser'
-// const cookieParser = require('cookie-parser')
 import logger from 'morgan'
-// const logger = require('morgan')
 import bodyParser from 'body-parser'
-// const bodyParser = require('body-parser')
 import parseUrl from 'parse-url'
-// const parseUrl = require('parseUrl')
-import { check, validationResult } from 'express-validator'
-// const { validationResult } = require('express-validator')
-// テンプレート用ルーティング
+import { query, validationResult } from 'express-validator'
+// ----------------------------------------------------------
+// テンプレート用ルーティング(コントローラ)
+// ----------------------------------------------------------
 import indexRouter from './routes/index.js'
-// const indexRouter = require('./routes/index')
 import userRouter from './routes/user.js'
-// const userRouter = require('./routes/user')
 import todoRouter from './routes/todo.js'
-// const todoRouter = require('./routes/todo')
 import projectRouter from './routes/project.js'
-// const projectRouter = require('./routes/project')
 import imageRouter from './routes/image.js'
-// const imageRouter = require('./routes/image.js')
 import loginRouter from './routes/login.js'
-// const loginRouter = require('./routes/login')
 import logoutRouter from './routes/logout.js'
-// const logoutRouter = require('./routes/logout')
 import registerRouter from './routes/register.js'
-// const registerRouter = require('./routes/register')
-
-// API向けルーティング
+// ----------------------------------------------------------
+// API向けルーティング(API用コントローラ)
+// ----------------------------------------------------------
 import imageApiRouter from './routes/api/image.js'
-// const imageApiRouter = require('./routes/api/image')
 import projectApiRouter from './routes/api/project.js'
-// const projectApiRouter = require('./routes/api/project')
 import starApiRouter from './routes/api/star.js'
-// const starApiRouter = require('./routes/api/star')
 import userApiRouter from './routes/api/user.js'
-// const userApiRouter = require('./routes/api/user')
-
-// import config from "./config/config.json";
-// const config = require('./config/config.json')
 import session from 'express-session'
-// const session = require('express-session')
 import fileUpload from 'express-fileupload'
-// const fileUpload = require('express-fileupload')
 // session用のpostgresql storeの実行用
 import pkg from 'pg'
-
 const { Pool } = pkg
-// const { Pool } = require('pg')
 import sessionForPg from 'connect-pg-simple'
+// __dirnameと__filenameのシミュレーション
+import { fileURLToPath } from 'url'
+
 
 const pgSession = sessionForPg(session)
 
 const app = express()
-
-// __dirnameと__filenameのシミュレーション
-import { fileURLToPath } from 'url'
-import { dirname } from 'path'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -182,7 +157,7 @@ app.use((req, res, next) => {
     // applicationPath
     req.applicationPath = __dirname
 
-    const executeValidationCheck = function (request) {
+    req.executeValidationCheck = function (request) {
       // バリデーション検証
       const errors = validationResult(request)
       // バリデーションエラー無し
@@ -190,11 +165,10 @@ app.use((req, res, next) => {
         request.session.validationErrors = null
         return true
       }
-      console.log(errors.errors)
+      // // console.log(errors.errors)
       request.session.validationErrors = errors.errors
       return false
     }
-    req.executeValidationCheck = executeValidationCheck
 
     const checkValidationErrors = function (request) {
       const validationErrors = []
@@ -204,7 +178,7 @@ app.use((req, res, next) => {
           validationErrors[error.param] = error.msg
         })
       }
-      console.log('validationErrors => ', validationErrors)
+      // // console.log('validationErrors => ', validationErrors)
       request.session.validationErrors = null
       return function (param) {
         if ( validationErrors[param] ) {
@@ -222,23 +196,22 @@ app.use((req, res, next) => {
       '/login/',
       '/login/authenticate/',
       '/register/create/',
-      '/api/'
+      '/api/',
     ]
-    let pathname = parseUrl(req).pathname
-    if ( pathname.substr(-1) !== '/' ) {
+    let pathname = req.path
+    if ( pathname === '' || pathname.substring(-1) !== '/' ) {
       pathname += '/'
     }
 
     let isAllowed = false
     for ( let index = 0; index < notRequiredList.length; index++ ) {
       // URLリストから正規表現を作成
-      const pathRegex = new RegExp(notRequiredList[index])
-      if ( pathRegex.test(pathname) === true ) {
-        console.log('pathRegex.test(pathname) ==> ', pathRegex.test(pathname), pathname)
+      if ( pathname === notRequiredList[index] ) {
         isAllowed = true
         break
       }
     }
+    // console.log(isAllowed);
     if ( isAllowed !== true ) {
       if ( req.session.user === null || req.session.user === undefined ) {
         return res.redirect('/login')
@@ -247,9 +220,9 @@ app.use((req, res, next) => {
     res.locals.req = req
     return next()
   } catch ( error ) {
-    console.log(error)
+    // console.log(error.message)
     res.locals.req = req
-    return next();
+    return next()
   }
 })
 app.use('/', indexRouter)

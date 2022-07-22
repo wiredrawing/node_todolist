@@ -143,18 +143,23 @@ router.post('/create', validationRules['project.create'], (req, res, next) => {
         // プロジェクトに参加するユーザーをテーブルにinsert
         // ---------------------------------------------------
         const projectUsers = []
-        req.body.users.forEach((userId) => {
-          projectUsers.push({
-            user_id: userId,
-            project_id: projectId
+        if (req.users && req.users.length > 0) {
+          req.body.users.forEach((userId) => {
+            projectUsers.push({
+              user_id: userId,
+              project_id: projectId
+            })
           })
-        })
+        }
+
         return models.ProjectUser.bulkCreate(projectUsers, {
           transaction: transaction
         }).then(function (projectUsers) {
+          console.log("Successed registering a task.");
           console.log('projectUsers --->', projectUsers)
           transaction.commit()
-          return res.redirect('back')
+          // 作成済みのプロジェクト詳細ページへ遷移
+          return res.redirect('/project/detail/' + projectId);
         })
       }).catch((error) => {
         console.log(error)
