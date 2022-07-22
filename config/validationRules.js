@@ -504,7 +504,7 @@ const validationRules = {
               task_id: obj.req.body.task_id
             }
           }).then(function (star) {
-            if (star.length > 0) {
+            if ( star.length > 0 ) {
               // throw new Error('既にスターリング済みです')
             }
             return true
@@ -548,6 +548,42 @@ const validationRules = {
       })
     })
   ],
+  'taskComment.create': [
+    check('task_id', '不正なタスク情報です').isInt().custom(async(value) => {
+      let task = await models.Task.findByPk(value);
+      if (task !== null) {
+        return true;
+      }
+      return Promise.reject("指定したタスクIDが存在しません");
+    }),
+    check('user_id', '不正なユーザーです').isInt().custom(async (value) => {
+      let user = await models.user.findByPk(value);
+      if (user !== null) {
+        return true;
+      }
+      return Promise.reject("指定したユーザーIDが存在しません");
+    }),
+    check('comment', 'コメントは必ず入力して下さい').isString().isLength({
+      min: 1,
+      max: 65553
+    }),
+    check('image_id_list').optional({ nullable: true }).isArray().custom(async (value, { req }) => {
+      // If you want to allow null data, add next condition.
+      // optional({nullable: true});
+      // Is all of images is correct?
+      let images = await models.Image.findAll({
+        where: {
+          id: { [Op.in]: value }
+        }
+      })
+      console.log(value)
+      console.log(images)
+      if ( images.length === value.length ) {
+        return true
+      }
+      return Promise.reject('不正な画像IDが含まれています')
+    }),
+  ]
 }
 
 export default validationRules
