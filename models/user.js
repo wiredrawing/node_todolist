@@ -57,7 +57,7 @@ export default (sequelize, DataTypes) => {
     },
     {
       sequelize,
-      modelName: 'user',
+      modelName: 'User',
       underscored: true,
       paranoid: true
     }

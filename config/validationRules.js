@@ -161,22 +161,13 @@ const validationRules = {
   // --------------------------------------------------
   'project.create': [
     // カスタムバリデーター
-    check('user_id')
-      .isNumeric()
-      .custom(function (value, request) {
-        // user_idがDBレコードに存在するかバリデーションする
-        return models.user
-          .findByPk(value)
-          .then((data) => {
-            if ( data.id === value ) {
-              return true
-            }
-            throw new Error('DBレコードに一致しません｡')
-          })
-          .catch((error) => {
-            throw new Error(error)
-          })
-      }),
+    check('user_id').isNumeric().custom(async function (value, request) {
+      let user = await models.user.findByPk(value)
+      if ( user !== null ) {
+        return true
+      }
+      return Promise.reject(new Error('DBレコードに一致しません｡'))
+    }),
     check('project_name').isLength({
       min: 1,
       max: 256
@@ -185,27 +176,19 @@ const validationRules = {
       min: 1,
       max: 4096
     }).withMessage('プロジェクトの概要を4000文字以内で入力して下さい｡'),
-    check('image_id', '指定した画像がアップロードされていません｡')
-      .isArray()
-      .custom(function (value) {
-        return models.Image.findAll({
-          where: {
-            id: {
-              [Op.in]: value
-            }
+    check('image_id', '指定した画像がアップロードされていません｡').isArray().custom(async function (value) {
+      let images = await models.Image.findAll({
+        where: {
+          id: {
+            [Op.in]: value,
           }
-        })
-          .then((images) => {
-            // console.log("images => ", images);
-            if ( images.length !== value.length ) {
-              return Promise.reject(new Error('指定した画像がアップロードされていません｡'))
-            }
-            return true
-          })
-          .catch((error) => {
-            throw new Error(error)
-          })
-      }),
+        }
+      })
+      if ( images.length === value.length ) {
+        return true
+      }
+      return Promise.reject(new Error('指定した画像がアップロードされていません｡'))
+    }),
     check('is_displayed').isIn(displayStatusList).withMessage('規定の選択肢から設定して下さい'),
     check('start_time')
       .not()
@@ -270,14 +253,8 @@ const validationRules = {
               throw new Error(error)
             })
         }),
-      check('project_name').isLength({
-        min: 1,
-        max: 256
-      }).withMessage('プロジェクト名を入力して下さい'),
-      check('project_description').isLength({
-        min: 1,
-        max: 4096
-      }).withMessage('プロジェクトの概要を4000文字以内で入力して下さい｡'),
+      check('project_name').isLength({ min: 1, max: 256 }).withMessage('プロジェクト名を入力して下さい'),
+      check('project_description').isLength({ min: 1, max: 4096 }).withMessage('プロジェクトの概要を4000文字以内で入力して下さい｡'),
       check('project_id')
         .isNumeric()
         .custom((value, { req }) => {
@@ -549,19 +526,19 @@ const validationRules = {
     })
   ],
   'taskComment.create': [
-    check('task_id', '不正なタスク情報です').isInt().custom(async(value) => {
-      let task = await models.Task.findByPk(value);
-      if (task !== null) {
-        return true;
+    check('task_id', '不正なタスク情報です').isInt().custom(async (value) => {
+      let task = await models.Task.findByPk(value, null)
+      if ( task !== null ) {
+        return true
       }
-      return Promise.reject("指定したタスクIDが存在しません");
+      return Promise.reject('指定したタスクIDが存在しません')
     }),
     check('user_id', '不正なユーザーです').isInt().custom(async (value) => {
-      let user = await models.user.findByPk(value);
-      if (user !== null) {
-        return true;
+      let user = await models.user.findByPk(value, null)
+      if ( user !== null ) {
+        return true
       }
-      return Promise.reject("指定したユーザーIDが存在しません");
+      return Promise.reject('指定したユーザーIDが存在しません')
     }),
     check('comment', 'コメントは必ず入力して下さい').isString().isLength({
       min: 1,
@@ -582,6 +559,16 @@ const validationRules = {
         return true
       }
       return Promise.reject('不正な画像IDが含まれています')
+    }),
+  ],
+  'taskComment.get': [
+    // Fetch the comment data list which is assciated
+    check('taskId').isInt().not().isEmpty().custom(async (value) => {
+      let task = await models.Task.findByPk(value)
+      if ( task !== null ) {
+        return true
+      }
+      return Promise.reject('The task id was not been able to find on DB.')
     }),
   ]
 }

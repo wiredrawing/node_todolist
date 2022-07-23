@@ -10,6 +10,7 @@ import validationRules from '../config/validationRules.js'
 import { Op } from 'sequelize'
 // 識別使用コード生成関数
 import makeCodeNumber from '../config/makeCodeNumber.js'
+import arrayUnique from '../config/array-unique.js'
 // 表示フラグのバリデーション用
 const displayStatusList = []
 applicationConfig.displayStatusList.forEach((status, index) => {
@@ -44,6 +45,7 @@ router.get('/', function (req, res, next) {
     ]
   })
     .then((projects) => {
+      console.log(projects);
       return res.render('project/index', {
         projects: projects
       })
@@ -151,12 +153,12 @@ router.post('/create', validationRules['project.create'], (req, res, next) => {
       const projectUsersForBulk = []
       if ( req.body.users && req.body.users.length > 0 ) {
         // userIdの重複を削除する
-        let blushedUsers = []
-        req.body.users.filter((element, index, self) => {
-          if ( blushedUsers.indexOf(element) !== -1 ) {
-            blushedUsers.push(element)
-          }
-        })
+        let blushedUsers = arrayUnique(req.body.users);
+        // req.body.users.filter((element, index, self) => {
+        //   if ( blushedUsers.indexOf(element) !== -1 ) {
+        //     blushedUsers.push(element)
+        //   }
+        // })
         blushedUsers.forEach((userId) => {
           projectUsersForBulk.push({
             user_id: userId,

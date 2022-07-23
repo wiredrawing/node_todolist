@@ -1,20 +1,23 @@
-import express from 'express'
+import express, { json } from 'express'
 
 let router = express.Router()
 import validationRules from '../../config/validationRules.js'
 import { check, validationResult } from 'express-validator'
 import models from '../../models/index.js'
+import { Op } from 'sequelize'
+import arrayUnique from '../../config/array-unique.js'
 
 /**
  * 指定したプロジェクトIDにタスクコメントを追加するAPI
  *
  */
-router.post('/create/:projectId', validationRules['taskComment.create'], (req, res, next) => {
+router.post('/create', validationRules['taskComment.create'], (req, res, next) => {
   const errors = validationResult(req)
-  // console.log(errors.array())
+  if ( errors.isEmpty() !== true ) {
+    return next()
+  }
   let postData = req.body
   let imageIdList = req.body.image_id_list
-  // console.log(postData)
   const init = async function () {
 
     /**
@@ -31,13 +34,11 @@ router.post('/create/:projectId', validationRules['taskComment.create'], (req, r
     // Fetch the last insert id.
     let taskCommentId = taskComment.id
     let uniqueImageIdList = []
-    console.log(imageIdList);
-    imageIdList.filter((value, index) => {
-      if ( uniqueImageIdList.indexOf(value) === -1 ) {
-        uniqueImageIdList.push(value)
-      }
-    })
-    console.log(uniqueImageIdList);
+    console.log(imageIdList)
+    // Exclude duplicate value.
+    uniqueImageIdList = arrayUnique(imageIdList)
+
+    console.log(uniqueImageIdList)
     let commentImagesForBulk = []
     uniqueImageIdList.forEach((value) => {
       commentImagesForBulk.push({
@@ -46,20 +47,20 @@ router.post('/create/:projectId', validationRules['taskComment.create'], (req, r
       })
     })
     console.log(commentImagesForBulk)
-    let commentImages = await models.CommentImage.bulkCreate(commentImagesForBulk, {transaction: tx});
-    console.log(commentImages);
-    if (commentImages.length !== commentImagesForBulk.length) {
-      throw new Error("Failed inserting comment images.");
+    let commentImages = await models.CommentImage.bulkCreate(commentImagesForBulk, { transaction: tx })
+    console.log(commentImages)
+    if ( commentImages.length !== commentImagesForBulk.length ) {
+      throw new Error('Failed inserting comment images.')
     }
     // commit.
-    await tx.commit();
+    await tx.commit()
     return models.TaskComment.findByPk(taskCommentId, {
       include: [
         {
           model: models.CommentImage,
         }
       ]
-    });
+    })
   }
   // Return the API response.
   init().then((result) => {
@@ -67,14 +68,59 @@ router.post('/create/:projectId', validationRules['taskComment.create'], (req, r
       status: true,
       code: 200,
       response: result,
-    });
+    })
   }).catch((error) => {
     console.log(error)
     return res.send({
       status: false,
       code: 400,
       response: error,
-    });
+    })
+  })
+}).post('/create', (req, res, next) => {
+  // When validation check failed, below process will be executed.
+  const errors = validationResult(req).array()
+  return res.send({
+    status: false,
+    code: 400,
+    response: errors,
+  })
+})
+
+/**
+ * 指定したTaskIdに紐づくコメント一覧を取得する
+ */
+router.get('/:taskId', validationRules['taskComment.get'], (req, res, next) => {
+  let taskId = req.params.taskId
+  return models.TaskComment.findAll({
+    where: {
+      task_id: {
+        [Op.eq]: taskId,
+      }
+    },
+    include: [
+      {
+        model: models.CommentImage,
+      },
+      {
+        model: models.Task,
+      }
+    ]
+  }).then((taskComments) => {
+    let jsonResponse = {
+      status: true,
+      code: 200,
+      response: taskComments
+    }
+    return res.send(jsonResponse)
+  }).catch((error) => {
+    console.log(error)
+    let jsonResponse = {
+      status: false,
+      code: 400,
+      response: error
+    }
+    return res.send(jsonResponse)
   })
 })
 

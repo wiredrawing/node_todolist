@@ -19,6 +19,10 @@ export default (sequelize, DataTypes) => {
       TaskComment.hasMany(models.CommentImage, {
         foreignKey: 'comment_id',
         sourceKey: 'id'
+      });
+      TaskComment.belongsTo(models.Task, {
+        foreignKey: "task_id",
+        targetKey: "id",
       })
     }
 

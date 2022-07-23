@@ -43,7 +43,7 @@
               <%- data.id %>
             </td>
             <td>
-              <%- data.project_name %>(<%- data.tasks.length %>件)
+              <%- data.project_name %>(<%- data.Tasks.length %>件)
             </td>
             <td><%- data.project_description %></td>
             <td>
@@ -58,8 +58,8 @@
               <p>
               <!-- プロジェクト責任者 -->
               <!-- userデータがnull出ない場合 -->
-              <% if (data.user !== null) { %>
-              (<%- data.user.id %>)<%- data.user.user_name %>
+              <% if (data.User !== null) { %>
+              (<%- data.User.id %>)<%- data.User.user_name %>
               <% } else { %>
               ー
               <% } %>

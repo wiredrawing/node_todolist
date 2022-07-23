@@ -102,7 +102,7 @@ export default (sequelize, DataTypes) => {
     }
   }, {
     sequelize,
-    modelName: 'task',
+    modelName: 'Task',
     // underscored: trueがあるとスネークケースが許可される
     underscored: true,
     paranoid: true

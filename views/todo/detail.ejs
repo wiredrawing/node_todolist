@@ -32,7 +32,7 @@
 
       <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
         <p>作業者IDおよび作業者名</p>
-        <p>(<%= task.user_id %>) <%= task.user.user_name %></p>
+        <p>(<%= task.user_id %>) <%= task.User.user_name %></p>
       </div>
 
       <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 ">
@@ -64,9 +64,9 @@
   <div class="content-box-large">
     <div class="row">
       <form method="POST" action="/todo/comment/<%= task.id %>" accept-charset="UTF-8" class="form-group">
-        <input type="hidden" name="task_id" value="<%= task.id %>">
+        <input type="hidden" id="task-id" name="task_id" value="<%= task.id %>">
         <!-- ログイン中ユーザのID -->
-        <input type="hidden" name="user_id" value="<%= user.id %>">
+        <input type="hidden" id="user-id" name="user_id" value="<%= user.id %>">
         <div class="row ">
           <div class="col-sm-12 col-md-12 col-lg-12 col-xl-12">
             <p>添付ファイルを付与</p>
@@ -90,18 +90,20 @@
             </p>
           </div>
           <% if (sessionErrors.comment) { %>
-          <!-- エラーメッセージ -->
-          <div class="col-md-12 col-lg-12 col-xl-12 ">
-            <p class="alert alert-danger "><%= sessionErrors.comment %></p>
-          </div>
-          <!-- エラーメッセージ -->
+            <!-- エラーメッセージ -->
+            <div class="col-md-12 col-lg-12 col-xl-12 ">
+              <p class="alert alert-danger "><%= sessionErrors.comment %></p>
+            </div>
+            <!-- エラーメッセージ -->
           <% } %>
         </div>
 
         <div class="row">
           <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
             <p>上記内容で店舗更新をする</p>
-            <p><button class="btn btn-outline-primary" type="submit">コメントする</button></p>
+            <p>
+              <button id="post-task-comment" class="btn btn-outline-primary" type="button">コメントする</button>
+            </p>
           </div>
         </div>
       </form>
@@ -110,39 +112,60 @@
     <!-- 投稿されたコメント群 -->
     <div class="row">
       <% task.TaskComments.forEach((taskComment, index) => { %>
-      <div class="col-md-3 col-lg-3 col-xl-3">
-        <p>コメントID:<%= taskComment.id %></p>
-        <p><%= taskComment.user.user_name %></p>
-        <p>
-          <%= taskComment.formattedCreatedAt() %><br>
-          <%= taskComment.formattedUpdatedAt() %>
-        </p>
-      </div>
-      <div class="col-md-9 col-lg-9 col-xl-9">
-        <p><%= taskComment.getNewLineComment() %></p>
-      </div>
-      <div class="row mb-3">
-        <% taskComment.CommentImages.forEach((image, index) => { %>
         <div class="col-md-3 col-lg-3 col-xl-3">
-          <img class="mb-3 img-fluid img-thumbnail" src="<%= image.Image.getShowImageUrl() %>">
+          <p>コメントID:<%= taskComment.id %></p>
+          <p><%= taskComment.User.user_name %></p>
+          <p>
+            <%= taskComment.formattedCreatedAt() %><br>
+            <%= taskComment.formattedUpdatedAt() %>
+          </p>
         </div>
-        <% }); %>
-      </div>
-      <hr>
+        <div class="col-md-9 col-lg-9 col-xl-9">
+          <p><%= taskComment.getNewLineComment() %></p>
+        </div>
+        <div class="row mb-3">
+          <% taskComment.CommentImages.forEach((image, index) => { %>
+            <div class="col-md-3 col-lg-3 col-xl-3">
+              <img class="mb-3 img-fluid img-thumbnail" src="<%= image.Image.getShowImageUrl() %>">
+            </div>
+          <% }) %>
+        </div>
+        <hr>
       <% }) %>
     </div>
   </div>
 </div>
 
 <script>
-  $(function(e) {
+  $(function (e) {
 
     let uploadInput = $("input[name='upload_file']");
-    let uploadedFileUrlList = [];
-    let uploadedFileIDList = [];
+
+    /**
+     * 入力した内容をタスク用コメントとして登録
+     */
     let uploadedFileObjectList = [];
+    let imageIdList = [];
+    $("#post-task-comment").on("click", function (e) {
+      // 新規コメント
+      let comment = $("#task_description").val();
+      // 投稿者
+      let userId = $("#user-id").val();
+      // タスクID
+      let taskId = $("#task-id").val();
+      let postData = {
+        task_id: taskId,
+        comment: comment,
+        user_id: userId,
+        image_id_list: imageIdList,
+      }
+      axios.post("/api/taskcomment/create", postData).then(function (taskComment) {
+        console.log(taskComment);
+      })
+    })
+
     // 画像選択時のイベントを付与
-    uploadInput.on("change", function(e) {
+    uploadInput.on("change", function (e) {
       let targetObject = e.target;
       let fileList = targetObject.files;
 
@@ -155,7 +178,10 @@
 
         // 画像ファイルをPOSTする
         axios.post("/api/image/upload", formData).then((result) => {
-          if (result.data.status) {
+          if ( result.data.status ) {
+            console.log(result);
+            imageIdList.push(result.data.response.image.id);
+            console.log(imageIdList);
             uploadedFileObjectList.push(result.data.response.image);
           } else {
             return Promise.reject(new Error("画像アップロードに失敗しました｡"));
@@ -172,7 +198,7 @@
           $("#uploaded-file-block").empty();
           console.log(divBlock);
 
-          divBlock.forEach(function(div, index) {
+          divBlock.forEach(function (div, index) {
             console.log(div);
             $("#uploaded-file-block").append(div);
           });
