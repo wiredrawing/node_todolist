@@ -152,11 +152,11 @@
               <p>登録中タスク一覧</p>
               <p>
                 <select class="form-control form-select">
-                  <% project.tasks.forEach((task, index) => { %>
+                  <% project.Tasks.forEach((task, index) => { %>
                   <option value="<%- project.id %>">
                     [<%- task.id %>]<%- task.task_name %>
-                    <% if (task.user !== null) { %>
-                    ([<%- task.user.id %>]<%- task.user.user_name %>)
+                    <% if (task.User !== null) { %>
+                    ([<%- task.User.id %>]<%- task.User.user_name %>)
                     <% } %>
                   </option>
                   <% }) %>

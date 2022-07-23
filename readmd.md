@@ -1,10 +1,9 @@
-## Migrationを実行する
+# How to run this appliction
+
+## Exectute migration files.
 **sequelize db:migrate**
 
-## 実行したMigrationをすべて初期化
-**sequelize db:migrate:undo:all**
-
-## 作成したすべてのSeederファイルを実行する
+## Execute seeder files.
 **sequelize db:seed:all**
 
 ```ini
@@ -18,3 +17,8 @@ Sequelizeによるマイグレーション管理はCommonJSモードで管理す
 そのためpackage.jsonの "type"属性は "module" とする
 ```
 
+
+
+# Option commands.
+## The command to initialize DB records.
+**sequelize db:migrate:undo:all**

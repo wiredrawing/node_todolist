@@ -105,7 +105,7 @@
                 <select class="form-control form-select" name="project_id">
                   <% projects.forEach((project, index) => { %>
                     <option <% if (parseInt(task.project_id) === parseInt(project.id)) { %> selected="selected" <% } %> value="<%- project.id %>">
-                      <%- project.project_name %>　(<%- project.tasks.length %>件)
+                      <%- project.project_name %>　(<%- project.Tasks.length %>件)
                     </option>
                   <% }) %>
                 </select>

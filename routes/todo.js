@@ -1,18 +1,12 @@
 import express from 'express'
-// const express = require('express')
+
 const router = express.Router()
 import models from '../models/index.js'
-// const models = require('../models/index.js')
 import { check, validationResult } from 'express-validator'
-// const { check, validationResult } = require('express-validator')
 import applicationConfig from '../config/application-config.js'
-// const applicationConfig = require('../config/application-config.js')
 import { Op } from 'sequelize'
-// const { Op } = require('sequelize')
 import makeCodeNumber from '../config/makeCodeNumber.js'
-// const makeCodeNumber = require('../config/makeCodeNumber.js')
 import validationRules from '../config/validationRules.js'
-// const validationRules = require('../config/validationRules.js')
 
 const userIDList = []
 models.user
@@ -477,137 +471,141 @@ router.post('/edit/:taskId', validationRules['task.update'], (req, res, next) =>
   console.log('errors.errors ===> ', errors.errors)
 
   const postData = req.body
-  // 指定したtaskレコードをアップデートする
-  return models.Task
-    .findByPk(req.params.taskId)
-    .then((task) => {
-      return task
-        .update({
-          // primaryKeyで取得したレコードを更新する
-          task_name: postData.task_name,
-          task_description: postData.task_description,
-          user_id: postData.user_id,
-          status: postData.status,
-          project_id: postData.project_id,
-          priority: postData.priority,
-          is_displayed: postData.is_displayed
-        })
-        .then((result) => {
-          return result
-        })
-        .catch((error) => {
-          return next(new Error(error))
-        })
-    })
-    .then((result) => {
-      res.redirect(301, '/todo/edit/' + req.params.taskId)
-    })
-    .catch((error) => {
-      return next(new Error(error))
-    })
+  console.log(postData)
+  let updateTask = {
+    task_name: postData.task_name,
+    task_description: postData.task_description,
+    user_id: postData.user_id,
+    status: postData.status,
+    project_id: postData.project_id,
+    priority: postData.priority,
+    is_displayed: postData.is_displayed
+  }
+
+  const init = async function () {
+    try {
+      // 指定したtaskレコードをアップデートする
+      let task = await models.Task.findByPk(postData.task_id)
+      if ( task !== null ) {
+        let result = await task.update(updateTask)
+        console.log(result)
+        return result
+      }
+      return Promise.reject('Taskレコードのアップデートに失敗しました')
+    } catch ( error ) {
+      return Promise.reject(error)
+    }
+  }
+  init().then((result) => {
+    console.log(result)
+    res.redirect(301, '/todo/edit/' + req.params.taskId)
+  }).catch((error) => {
+    console.log('The exception happened.')
+    console.log(error)
+  })
 })
 
 // 指定したタスクにスターを送る
 router.post('/star', validationRules['create.star'], (req, res, next) => {
-    const errors = validationResult(req)
-    const postData = req.body
-    const taskId = req.body.task_id
-    // バリデーションチェックを実行
-    if ( errors.isEmpty() !== true ) {
-      const sessionErrors = {}
-      errors.errors.forEach((error, index) => {
-        sessionErrors[error.param] = error.msg
-      })
-      // エラーをsessionに確保
-      req.session.sessionErrors = sessionErrors
-      return res.redirect('back')
-    }
+  const errors = validationResult(req)
+  const postData = req.body
+  const taskId = req.body.task_id
+  // バリデーションチェックを実行
+  if ( errors.isEmpty() !== true ) {
+    const sessionErrors = {}
+    errors.errors.forEach((error, index) => {
+      sessionErrors[error.param] = error.msg
+    })
+    // エラーをsessionに確保
+    req.session.sessionErrors = sessionErrors
+    return res.redirect('back')
+  }
 
-    (async function () {
-      let tx = await models.sequelize.transaction()
-      try {
-        // Fetch the transaction object.
-        // スターを送られたタスクレコードも更新のみ実行する
-        let star = await models.Star.create({
-            task_id: postData.task_id,
-            user_id: 1
-          },
-          {
-            transaction: tx
-          })
-        if ( star === null ) {
-          throw new Error('Failed creating new star record')
-        }
-        let task = await models.Task.findByPk(taskId, {
+  (async function () {
+    let tx = await models.sequelize.transaction()
+    try {
+      // Fetch the transaction object.
+      // スターを送られたタスクレコードも更新のみ実行する
+      let star = await models.Star.create({
+          task_id: postData.task_id,
+          user_id: 1
+        },
+        {
           transaction: tx
         })
-        let result = await task.update({
-            updated_at: new Date()
-          },
-          {
-            transaction: tx
-          })
-        console.log(result)
-        // If the database was updated with a specified query correctly, do commit.
-        await tx.commit()
-        return res.redirect(301, '/todo/')
-      } catch ( error ) {
-        await tx.rollback()
-        return next(new Error(error))
+      if ( star === null ) {
+        throw new Error('Failed creating new star record')
       }
+      let task = await models.Task.findByPk(taskId, {
+        transaction: tx
+      })
+      let result = await task.update({
+          updated_at: new Date()
+        },
+        {
+          transaction: tx
+        })
+      console.log(result)
+      // If the database was updated with a specified query correctly, do commit.
+      await tx.commit()
+      return res.redirect(301, '/todo/')
+    } catch ( error ) {
+      await tx.rollback()
+      return next(new Error(error))
+    }
 
-    })();
-    // return models.sequelize
-    //   .transaction()
-    //   .then((tx) => {
-    //     // スコープ内にトランザクション変数を明示
-    //     const transaction = tx
-    //
-    //     return models.Star.create(
-    //       {
-    //         task_id: taskId,
-    //         user_id: 1
-    //       },
-    //       {
-    //         transaction: transaction
-    //       }
-    //     )
-    //       .then((star) => {
-    //         // 新規作成レコード
-    //         // スターテーブルの更新完了後tasksレコードも更新させる
-    //         return models.Task
-    //           .findByPk(postData.task_id)
-    //           .then((task) => {
-    //             return task
-    //               .update(
-    //                 {
-    //                   updated_at: new Date()
-    //                 },
-    //                 {
-    //                   transaction: transaction
-    //                 }
-    //               )
-    //               .then((task) => {
-    //                 // 更新成功の場合
-    //                 transaction.commit()
-    //                 // req.__.e.emit('get_star', postData.task_id);
-    //                 // スター追加後はもとページへリダイレクト
-    //                 return res.redirect(301, '/todo/')
-    //               })
-    //           })
-    //           .catch((error) => {
-    //             return Promise.reject(new Error(error))
-    //           })
-    //       })
-    //       .catch((error) => {
-    //         transaction.rollback()
-    //         return Promise.reject(new Error(error))
-    //       })
-    //   })
-    //   .catch((error) => {
-    //     return next(new Error(error))
-    //   })
-  })
+  })()
+  // return models.sequelize
+  //   .transaction()
+  //   .then((tx) => {
+  //     // スコープ内にトランザクション変数を明示
+  //     const transaction = tx
+  //
+  //     return models.Star.create(
+  //       {
+  //         task_id: taskId,
+  //         user_id: 1
+  //       },
+  //       {
+  //         transaction: transaction
+  //       }
+  //     )
+  //       .then((star) => {
+  //         // 新規作成レコード
+  //         // スターテーブルの更新完了後tasksレコードも更新させる
+  //         return models.Task
+  //           .findByPk(postData.task_id)
+  //           .then((task) => {
+  //             return task
+  //               .update(
+  //                 {
+  //                   updated_at: new Date()
+  //                 },
+  //                 {
+  //                   transaction: transaction
+  //                 }
+  //               )
+  //               .then((task) => {
+  //                 // 更新成功の場合
+  //                 transaction.commit()
+  //                 // req.__.e.emit('get_star', postData.task_id);
+  //                 // スター追加後はもとページへリダイレクト
+  //                 return res.redirect(301, '/todo/')
+  //               })
+  //           })
+  //           .catch((error) => {
+  //             return Promise.reject(new Error(error))
+  //           })
+  //       })
+  //       .catch((error) => {
+  //         transaction.rollback()
+  //         return Promise.reject(new Error(error))
+  //       })
+  //   })
+  //   .catch((error) => {
+  //     return next(new Error(error))
+  //   })
+})
 
 // 指定したタスクを削除する
 router.post(
