@@ -27,25 +27,56 @@ router.get('/', function (req, res, next) {
   return models.Project.findAll({
     where: {
       [Op.or]: [
+        // 主テーブルのカラムを対象に検索
         {
           project_name: {
             [Op.like]: '%' + keyword + '%'
           }
+        }, {
+          project_description: {
+            [Op.like]: '%' + keyword + '%'
+          }
+        }, {
+          // リレーション先のカラムでも検索対象とする
+          '$Tasks.task_name$': {
+            [Op.like]: '%' + keyword + '%',
+          }
+        }, {
+          '$Tasks.task_description$': {
+            [Op.like]: '%' + keyword + '%',
+          }
         },
         {
-          project_description: {
+          '$Tasks.code_number$': {
+            [Op.like]: '%' + keyword + '%',
+          },
+        },
+        {
+          '$Tasks.TaskComments.comment$': {
             [Op.like]: '%' + keyword + '%'
           }
         }
       ]
     },
-    include: [{ model: models.Task }, { model: models.user }],
+    include: [
+      // Tasksテーブル
+      {
+        model: models.Task,
+        include: [
+          {
+            model: models.TaskComment,
+          }
+        ]
+      },
+      // Usersテーブル
+      { model: models.user }
+    ],
     order: [
       ['id', 'desc']
     ]
   })
     .then((projects) => {
-      console.log(projects);
+      console.log(projects)
       return res.render('project/index', {
         projects: projects
       })
@@ -108,19 +139,17 @@ router.post('/create', validationRules['project.create'], (req, res, next) => {
     let tx = await models.sequelize.transaction()
     try {
       let project = await models.Project.create({
-          project_name: postData.project_name,
-          project_description: postData.project_description,
-          // user_idは当該プロジェクトのリーダーになるID
-          user_id: postData.user_id,
-          is_displayed: postData.is_displayed,
-          code_number: codeNumber,
-          start_time: postData.start_time,
-          end_time: postData.end_time,
-          created_by: req.session.user.id
-        },
-        {
-          transaction: tx
-        })
+        project_name: postData.project_name,
+        project_description: postData.project_description, // user_idは当該プロジェクトのリーダーになるID
+        user_id: postData.user_id,
+        is_displayed: postData.is_displayed,
+        code_number: codeNumber,
+        start_time: postData.start_time,
+        end_time: postData.end_time,
+        created_by: req.session.user.id
+      }, {
+        transaction: tx
+      })
       console.log(project)
       // projectの登録が成功した場合
       if ( project === null ) {
@@ -153,7 +182,7 @@ router.post('/create', validationRules['project.create'], (req, res, next) => {
       const projectUsersForBulk = []
       if ( req.body.users && req.body.users.length > 0 ) {
         // userIdの重複を削除する
-        let blushedUsers = arrayUnique(req.body.users);
+        let blushedUsers = arrayUnique(req.body.users)
         // req.body.users.filter((element, index, self) => {
         //   if ( blushedUsers.indexOf(element) !== -1 ) {
         //     blushedUsers.push(element)
@@ -172,7 +201,7 @@ router.post('/create', validationRules['project.create'], (req, res, next) => {
       console.log(projectUsers)
       console.log('projectUsersForBulk.length ==> ', projectUsersForBulk.length)
       console.log('projectUsers.length ==> ', projectUsers.length)
-      if (projectUsersForBulk.length !== projectUsers.length) {
+      if ( projectUsersForBulk.length !== projectUsers.length ) {
         throw new Error('Failed registering a project users record.')
       }
       let result = await tx.commit()
@@ -258,52 +287,50 @@ router.post('/create', validationRules['project.create'], (req, res, next) => {
  *
  */
 router.get('/detail/:projectId', validationRules['detail.project'], function (req, res, next) {
-    // URLパラメータの取得
-    const projectId = req.params.projectId
-    const errors = validationResult(req)
-    if ( errors.isEmpty() !== true ) {
-      return next(new Error(errors.errors))
-    }
-
-    let sessionErrors = {}
-    if ( req.session.sessionErrors ) {
-      sessionErrors = req.session.sessionErrors
-      delete req.session.sessionErrors
-    }
-
-    const users = models.user.findAll()
-
-    const project = models.Project.findByPk(projectId, {
-      include: [
-        {
-          model: models.Task,
-          include: [{ model: models.user }]
-        },
-        {
-          model: models.ProjectImage,
-          include: [{ model: models.Image }]
-        }
-      ],
-      order: [[models.Task, 'id', 'desc']]
-    })
-
-    Promise.all([users, project])
-      .then((data) => {
-        const users = data[0]
-        const project = data[1]
-        return res.render('project/detail', {
-          users: users,
-          project: project,
-          sessionErrors: sessionErrors,
-          displayStatusList: applicationConfig.displayStatusList
-        })
-      })
-      .catch((error) => {
-        // 例外 ※次のイベントキューへ回す
-        return next(new Error(error))
-      })
+  // URLパラメータの取得
+  const projectId = req.params.projectId
+  const errors = validationResult(req)
+  if ( errors.isEmpty() !== true ) {
+    return next(new Error(errors.errors))
   }
-);
+
+  let sessionErrors = {}
+  if ( req.session.sessionErrors ) {
+    sessionErrors = req.session.sessionErrors
+    delete req.session.sessionErrors
+  }
+
+  const users = models.user.findAll()
+
+  const project = models.Project.findByPk(projectId, {
+    include: [
+      {
+        model: models.Task,
+        include: [{ model: models.user }]
+      }, {
+        model: models.ProjectImage,
+        include: [{ model: models.Image }]
+      }
+    ],
+    order: [[models.Task, 'id', 'desc']]
+  })
+
+  Promise.all([users, project])
+    .then((data) => {
+      const users = data[0]
+      const project = data[1]
+      return res.render('project/detail', {
+        users: users,
+        project: project,
+        sessionErrors: sessionErrors,
+        displayStatusList: applicationConfig.displayStatusList
+      })
+    })
+    .catch((error) => {
+      // 例外 ※次のイベントキューへ回す
+      return next(new Error(error))
+    })
+})
 
 router.post('/detail/:projectId', validationRules['project.update'], (req, res, next) => {
   // バリデーションチェック開始
@@ -334,19 +361,16 @@ router.post('/detail/:projectId', validationRules['project.update'], (req, res, 
           }
 
           return project
-            .update(
-              {
-                project_name: postData.project_name,
-                project_description: postData.project_description,
-                user_id: postData.user_id,
-                is_displayed: postData.is_displayed,
-                start_time: postData.start_time,
-                end_time: postData.end_time
-              },
-              {
-                transaction: transaction
-              }
-            )
+            .update({
+              project_name: postData.project_name,
+              project_description: postData.project_description,
+              user_id: postData.user_id,
+              is_displayed: postData.is_displayed,
+              start_time: postData.start_time,
+              end_time: postData.end_time
+            }, {
+              transaction: transaction
+            })
             .then((project) => {
               if ( parseInt(project.id) !== projectId ) {
                 // 詳細画面に戻る
@@ -355,16 +379,13 @@ router.post('/detail/:projectId', validationRules['project.update'], (req, res, 
               // -------------------------------------------
               // 既存登録済み画像を削除した後再度アップデートさせる
               // -------------------------------------------
-              return models.ProjectImage.destroy(
-                {
-                  where: {
-                    project_id: project.id
-                  }
-                },
-                {
-                  transaction: transaction
+              return models.ProjectImage.destroy({
+                where: {
+                  project_id: project.id
                 }
-              ).then((projectImages) => {
+              }, {
+                transaction: transaction
+              }).then((projectImages) => {
                 const updateImageList = []
                 postData.image_id.forEach(function (image, index) {
                   updateImageList.push({
@@ -401,77 +422,69 @@ router.post('/detail/:projectId', validationRules['project.update'], (req, res, 
 // --------------------------------------------------
 // 指定したプロジェクトに紐づくタスク一覧を取得する
 // --------------------------------------------------
-router.get(
-  '/task/:projectId',
-  [
-    check('projectId')
-      .custom((value, { req }) => {
-        value = parseInt(value)
-        return models.Project.findByPk(value)
-          .then((project) => {
-          })
-          .catch((error) => {
-            return Promise.reject(error)
-          })
-      })
-      .withMessage('指定したプロジェクトが見つかりません｡')
-  ],
-  function (req, res, next) {
-    const projectId = req.params.projectId
-
-    return models.Project.findByPk(projectId, {
-      include: [
-        {
-          model: models.Task,
-          include: [{ model: models.user }, { model: models.Star }]
-        }
-      ],
-      order: [[models.Task, 'id', 'desc']]
+router.get('/task/:projectId', [
+  check('projectId')
+    .custom((value, { req }) => {
+      value = parseInt(value)
+      return models.Project.findByPk(value)
+        .then((project) => {
+        })
+        .catch((error) => {
+          return Promise.reject(error)
+        })
     })
-      .then((project) => {
-        // ビューを返却
-        return res.render('project/task', {
-          project: project
-        })
-      })
-      .catch((error) => {
-        return next(new Error(error))
-      })
-  }
-)
+    .withMessage('指定したプロジェクトが見つかりません｡')
+], function (req, res, next) {
+  const projectId = req.params.projectId
 
-router.post(
-  '/delete/:project_id',
-  [
-    check('project_id')
-      .isNumeric()
-      .custom(function (value, obj) {
-        const projectId = parseInt(value)
-        return models.Project.findByPk(projectId).then(function (project) {
-        })
+  return models.Project.findByPk(projectId, {
+    include: [
+      {
+        model: models.Task,
+        include: [{ model: models.user }, { model: models.Star }]
+      }
+    ],
+    order: [[models.Task, 'id', 'desc']]
+  })
+    .then((project) => {
+      // ビューを返却
+      return res.render('project/task', {
+        project: project
       })
-  ],
-  function (req, res, next) {
-    const errors = validationResult(req)
-    if ( errors.isEmpty() !== true ) {
-      return req.res.redirect('back')
-    }
-    const body = req.body
-    return models.Project.findByPk(parseInt(body.project_id))
-      .then((project) => {
-        return project
-          .destroy()
-          .then((project) => {
-            return res.redirect('back')
-          })
-          .catch((error) => {
-            throw new Error(error)
-          })
+    })
+    .catch((error) => {
+      return next(new Error(error))
+    })
+})
+
+router.post('/delete/:project_id', [
+  check('project_id')
+    .isNumeric()
+    .custom(function (value, obj) {
+      const projectId = parseInt(value)
+      return models.Project.findByPk(projectId).then(function (project) {
       })
-      .catch((error) => {
-        return next(new Error(error))
-      })
+    })
+], function (req, res, next) {
+  const errors = validationResult(req)
+  if ( errors.isEmpty() !== true ) {
+    return req.res.redirect('back')
   }
-)
+  const body = req.body
+  return models.Project.findByPk(parseInt(body.project_id))
+    .then((project) => {
+      return project
+        .destroy()
+        .then((project) => {
+          return res.redirect('back')
+        })
+        .catch((error) => {
+          throw new Error(error)
+        })
+    })
+    .catch((error) => {
+      return next(new Error(error))
+    })
+})
 export default router
 // module.exports = router
