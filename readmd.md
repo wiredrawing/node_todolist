@@ -1,6 +1,9 @@
 # How to run this appliction
 
-## Exectute migration files.
+## Execute installing npm modules.
+**npm install**
+
+## Execute migration files.
 **sequelize db:migrate**
 
 ## Execute seeder files.

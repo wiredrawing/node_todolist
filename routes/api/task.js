@@ -5,13 +5,61 @@ import { validationResult } from 'express-validator'
 import applicationConfig from '../../config/application-config.js'
 import makeCodeNumber from '../../config/makeCodeNumber.js'
 import arrayUnique from '../../config/array-unique'
+import pkg from 'sequelize'
+
+const { Op } = pkg
 
 let router = express.Router()
 
 /**
- * 全タスクを取得する
+ * 指定したprojectIdに紐づく全タスクを取得する
  */
-router.get('/', (req, res, next) => {
+router.get('/:projectId', (req, res, next) => {
+
+  const db = () => {
+    return new Promise((resolve, reject) => {
+      return models.Task.findAll({
+        where: {
+          project_id: {
+            [Op.eq]: req.params.projectId
+          },
+        },
+        include: [
+          {
+            model: models.Project,
+            required: true,
+          },
+          {
+            model: models.TaskComment,
+          }
+        ]
+      }).then((result) => {
+        resolve(result)
+      }).catch((error) => {
+        console.log(error)
+        reject(error)
+      })
+    })
+  }
+
+  const init = async () => {
+    try {
+      let task = await db()
+      return task
+    } catch ( error ) {
+      console.log(error)
+      return null
+    }
+  }
+
+  // Return the json response.
+  return init().then((result) => {
+
+  }).catch((error) => {
+
+  })
+
+}).get('/:projectId', (req, res, next) => {
 
 })
 
@@ -89,7 +137,7 @@ router.post('/create/', ...validationRules['task.create'], (req, res, next) => {
     return new Promise(async (resolve, reject) => {
       try {
         // Make an object to do transaction.
-        const tx = await models.sequelize.transaction();
+        const tx = await models.sequelize.transaction()
         // Execute the query to tasks table.
         let task = await models.Task.create(
           {
@@ -108,13 +156,13 @@ router.post('/create/', ...validationRules['task.create'], (req, res, next) => {
           {
             transaction: tx
           }
-        );
-        let lastInsertId = null;
-        if (task === null) {
-          throw new Error("Failed creating new task record on DB.")
+        )
+        let lastInsertId = null
+        if ( task === null ) {
+          throw new Error('Failed creating new task record on DB.')
         }
-        lastInsertId = task.id;
-        const imageIDList = arrayUnique(req.body.image_id);
+        lastInsertId = task.id
+        const imageIDList = arrayUnique(req.body.image_id)
         const imagePromiseList = []
         // タスクの登録が完了したあと､画像とタスクを紐付ける
         imageIDList.forEach((imageId, index) => {
@@ -129,28 +177,27 @@ router.post('/create/', ...validationRules['task.create'], (req, res, next) => {
           )
           imagePromiseList.push(pro)
         })
-        let images = await Promise.all(imagePromiseList);
-        if (images.length !== imagePromiseList.length) {
-          throw new Error("Failed creating image record associated with task record.");
+        let images = await Promise.all(imagePromiseList)
+        if ( images.length !== imagePromiseList.length ) {
+          throw new Error('Failed creating image record associated with task record.')
         }
         // トランザクションコミットを実行
         const promiseTransaction = await tx.commit()
-        console.log(promiseTransaction);
-        // Return the new last insert id.
-        return resolve(lastInsertId);
-      } catch (error) {
-        return reject(error);
+        console.log(promiseTransaction)
+        task = await models.Task.findByPk(lastInsertId, {
+          include: [
+            { model: models.TaskImage }
+          ]
+        })
+        return resolve(task)
+      } catch ( error ) {
+        return reject(error)
       }
     })
   }
 
   const init = async () => {
-    let lastInsertId = await db();
-    let task = await models.Task.findByPk({
-      include: [
-        {model: models.TaskImage}
-      ]
-    })
+    let task = await db()
     return task;
   }
   return init().then((result) => {
@@ -159,14 +206,14 @@ router.post('/create/', ...validationRules['task.create'], (req, res, next) => {
       code: 200,
       response: result,
     }
-    return res.send(jsonResponse);
-  }).catch ((error) => {
+    return res.send(jsonResponse)
+  }).catch((error) => {
     let jsonResponse = {
       status: false,
       code: 400,
       response: error,
     }
-    return res.send(jsonResponse);
+    return res.send(jsonResponse)
   })
 }).post('/create', (req, res, next) => {
   const errors = validationResult(req).array()
@@ -179,4 +226,10 @@ router.post('/create/', ...validationRules['task.create'], (req, res, next) => {
   return res.send(jsonResponse)
 })
 
+/**
+ * 指定したタスクIDの情報を更新する
+ */
+router.post("/update/:taskId", (req, res, next) => {
+
+})
 export default router
