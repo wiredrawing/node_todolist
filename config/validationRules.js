@@ -311,9 +311,14 @@ const validationRules = {
       min: 1,
       max: 2048
     }),
-    check('user_id', '作業者を設定して下さい').isNumeric().withMessage('ユーザーIDは数値で入力して下さい').custom(async function (value, obj) {
+    check('user_id', '作業者を設定して下さい').isInt().withMessage('ユーザーIDは数値で入力して下さい').custom(async  (value, obj) => {
       try {
+        // POSTされたuser_idがただし整数型に変換できるかどうかを検証
         const userId = parseInt(value)
+        if (Number.isNaN(userId)) {
+          // Not a Numberだったら例外
+          return Promise.reject(new Error("This is Not a Number."));
+        }
         let user = await models.user.findByPk(userId)
         if ( user !== null && parseInt(user.id) === userId ) {
           return true

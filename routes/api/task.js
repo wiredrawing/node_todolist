@@ -4,7 +4,7 @@ import validationRules from '../../config/validationRules.js'
 import { validationResult } from 'express-validator'
 import applicationConfig from '../../config/application-config.js'
 import makeCodeNumber from '../../config/makeCodeNumber.js'
-import arrayUnique from '../../config/array-unique'
+import arrayUnique from '../../config/array-unique.js'
 import pkg from 'sequelize'
 
 const { Op } = pkg
@@ -124,13 +124,13 @@ router.get('/:id', ...validationRules['task.get'], (req, res, next) => {
 /**
  * 新規タスク情報を登録する
  */
-router.post('/create/', ...validationRules['task.create'], (req, res, next) => {
+router.post('/create', ...validationRules['task.create'], (req, res, next) => {
   let postData = req.body
   const errors = validationResult(req)
   if ( errors.isEmpty() !== true ) {
     return next()
   }
-  console.log(postData)
+  console.log("Pass validation check.");
   // Add new task record.
   const codeNumber = makeCodeNumber(12)
   const db = async function () {
@@ -151,13 +151,15 @@ router.post('/create/', ...validationRules['task.create'], (req, res, next) => {
             code_number: codeNumber,
             start_time: postData.start_time,
             end_time: postData.end_time,
-            created_by: user.id
+            // created_by: user.id
+            created_by: 1,
           },
           {
             transaction: tx
           }
         )
         let lastInsertId = null
+        console.log(task.id);
         if ( task === null ) {
           throw new Error('Failed creating new task record on DB.')
         }
@@ -191,6 +193,7 @@ router.post('/create/', ...validationRules['task.create'], (req, res, next) => {
         })
         return resolve(task)
       } catch ( error ) {
+        console.log(error);
         return reject(error)
       }
     })
