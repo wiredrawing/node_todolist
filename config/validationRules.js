@@ -4,6 +4,7 @@ import { Op } from 'sequelize'
 import bcrypt from 'bcrypt'
 import applicationConfig from '../config/application-config.js'
 import moment from 'moment'
+import isNumber from './is-number.js'
 
 const taskStatusList = []
 const taskStatusNameList = []
@@ -168,14 +169,17 @@ const validationRules = {
       }
       return Promise.reject(new Error('DBレコードに一致しません｡'))
     }),
+    // プロジェクト名
     check('project_name').isLength({
       min: 1,
       max: 256
     }).withMessage('プロジェクト名を入力して下さい'),
+    // プロジェクト概要
     check('project_description').isLength({
       min: 1,
       max: 4096
     }).withMessage('プロジェクトの概要を4000文字以内で入力して下さい｡'),
+    // 画像ID
     check('image_id', '指定した画像がアップロードされていません｡').custom(async function (value) {
       console.log(value)
       let images = await models.Image.findAll({
@@ -191,6 +195,7 @@ const validationRules = {
       return Promise.reject(new Error('指定した画像がアップロードされていません｡'))
     }),
     check('is_displayed').isIn(displayStatusList).withMessage('規定の選択肢から設定して下さい'),
+    // タスク開始時間
     check('start_time')
       .not()
       .isEmpty()
@@ -205,6 +210,7 @@ const validationRules = {
         }
         throw new Error('不正な開始時間です')
       }),
+    // タスク終了時間
     check('end_time')
       .not()
       .isEmpty()
@@ -238,7 +244,8 @@ const validationRules = {
         .isNumeric()
         .withMessage('正しいフォーマットで指定して下さい')
         .custom(function (value, request) {
-          if ( isNaN(value) === true ) {
+          const userId = isNumber(value)
+          if ( userId === false ) {
             throw new Error('正しいフォーマットで指定して下さい')
           }
           // user_idがDBレコードに存在するかバリデーションする
@@ -314,16 +321,17 @@ const validationRules = {
     check('user_id', '作業者を設定して下さい').isInt().withMessage('ユーザーIDは数値で入力して下さい').custom(async (value, obj) => {
       try {
         // POSTされたuser_idがただし整数型に変換できるかどうかを検証
-        const userId = parseInt(value)
-        if ( Number.isNaN(userId) ) {
+        const userId = isNumber(value);
+        if (userId === false) {
           // Not a Numberだったら例外
-          return Promise.reject(new Error('This is Not a Number.'))
+          return Promise.reject(new Error('user_idが正しい数値型ではありません.'))
         }
         let user = await models.user.findByPk(userId)
         if ( user !== null && parseInt(user.id) === userId ) {
+          // userIdの存在を確定.
           return true
         }
-        return Promise.reject(new Error('正しい作業者を設定して下さい'))
+        return Promise.reject(new Error('正しいuserIdを設定して下さい'))
       } catch ( error ) {
         console.log(error)
         return Promise.reject(error)
@@ -382,16 +390,18 @@ const validationRules = {
         throw new Error('不正な終了時間です')
       })
   ],
+  // ------------------------------------------------------------------
+  // task.update
+  // ------------------------------------------------------------------
   'task.update': [
     // バリデーションチェック
     check('task_id').custom(async (value, obj) => {
       // NaNでないことを検証する
-      const taskId = parseInt(value)
-      if ( Number.isNaN(taskId) ) {
+      const taskId = isNumber(value)
+      if ( taskId === false ) {
         return Promise.reject('This is Not a Number.')
       }
       let task = await models.Task.findByPk(taskId)
-      console.log(task);
       if ( task !== null && parseInt(task.id) === taskId ) {
         return true
       }
@@ -405,24 +415,12 @@ const validationRules = {
       min: 1,
       max: 2048
     }).withMessage('1文字以上2000文字以内で入力して下さい｡'),
-    check('user_id').custom(async (value, { req }) => {
-      return true;
-      // const userId = parseInt(value)
-      // if ( Number.isNaN(userId) ) {
-      //   return Promise.reject(new Error('ユーザー情報が不正です'))
-      // }
-      // let user = await models.user.findByPk(userId, null)
-      // if ( user !== null && user.id === userId ) {
-      //   return true
-      // }
-      // return Promise.reject(new Error('ユーザー情報が不正です'))
-    }),
     check('status').isNumeric().isIn(taskStatusList).withMessage('タスクステータスは有効な値を設定して下さい｡'),
     check('priority').isNumeric().isIn(priorityStatusList).withMessage('優先度は正しい値で設定して下さい'),
     check('is_displayed', '正しい表示状態を選択して下さい').isIn(displayStatusList),
     check('user_id').custom(async (value, obj) => {
-      let userId = parseInt(value)
-      if ( Number.isNaN(userId) ) {
+      let userId = isNumber(value)
+      if ( userId === false ) {
         return Promise.reject(new Error('タスク作成者IDが不正です.'))
       }
       // updateしようとしているユーザーが担当者orタスク作成者である必要がある
@@ -446,8 +444,11 @@ const validationRules = {
   // タスクに対してスターを送る
   // ---------------------------------
   'star.create': [
-    check('task_id').custom(function (value, obj) {
-      const taskId = parseInt(value)
+    check('task_id').custom(async (value, obj) => {
+      const taskId = isNumber(value)
+      if ( taskId === false ) {
+        throw new Error('タスクIDが不正です')
+      }
       return models.Task.findByPk(taskId).then(function (task) {
         if ( task !== null && parseInt(task.id) === taskId ) {
           return true
@@ -458,7 +459,10 @@ const validationRules = {
       })
     }),
     check('user_id').custom(function (value, obj) {
-      const userId = parseInt(value)
+      const userId = isNumber(value)
+      if ( userId === false ) {
+        return Promise.reject(new Error('ユーザーIDが不正です'))
+      }
       return models.user.findByPk(userId).then(function (user) {
         if ( user !== null && parseInt(user.id) === userId ) {
           // user_idとtask_idの組み合わせはユニークであること
@@ -474,32 +478,37 @@ const validationRules = {
             return true
           })
         }
-        throw new Error('ユーザーIDが不正です')
+        return Promise.reject(new Error('ユーザーIDが不正です'))
       }).catch(function (error) {
         return Promise.reject(new Error(error))
       })
     })
   ],
   'detail.project': [
-    check('projectId')
-      .isNumeric()
-      .custom((value, { req }) => {
-        const projectId = parseInt(value)
-        return models.Project.findByPk(projectId)
-          .then(function (project) {
-            if ( parseInt(project.id) === projectId ) {
-              return true
-            }
-            throw new Error('指定したプロジェクトデータが見つかりません')
-          })
-          .catch((error) => {
-            throw new Error(error)
-          })
-      })
+    check('projectId').isNumeric().custom((value, { req }) => {
+      const projectId = isNumber(value)
+      if ( projectId === false ) {
+        throw new Error('指定したプロジェクトデータが見つかりません')
+      }
+      return models.Project.findByPk(projectId)
+        .then(function (project) {
+          if ( parseInt(project.id) === projectId ) {
+            return true
+          }
+          throw new Error('指定したプロジェクトデータが見つかりません')
+        })
+        .catch((error) => {
+          throw new Error(error)
+        })
+    })
       .withMessage('指定したプロジェクトデータが見つかりません｡')
   ],
   'create.star': [
     check('task_id', '指定したタスクIDが存在しませんでした｡').isInt().custom(function (value, obj) {
+      const taskId = isNumber(value)
+      if ( taskId === false ) {
+        return Promise.reject(new Error('指定したタスク情報が見つかりませんでした｡'))
+      }
       // カスタムバリデーション
       // この中でDBのtasksテーブルにPOSTされたtask_idとマッチするものがあるかを検証
       return models.Task.findByPk(value).then((data) => {
@@ -560,8 +569,10 @@ const validationRules = {
   ],
   'task.get': [
     check('id').isInt().custom(async (value, { req }) => {
-      console.log(value)
-      let taskId = parseInt(value)
+      const taskId = isNumber(value)
+      if ( taskId === false ) {
+        return Promise.reject('Could not find the task record which you selected.')
+      }
       let task = await models.Task.findByPk(taskId)
       if ( task !== null ) {
         return true
