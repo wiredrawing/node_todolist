@@ -5,7 +5,7 @@
     <div class="panel-title ">登録中タスク内容</div>
     <div class="row " id="app ">
       <div class="col-xl-12 ">
-        <form method="POST" action="/todo/create" class="form-group">
+        <form method="POST" action="/todo/create" class="form-group" id="create-new-task-form">
           <input type="hidden" name="project_id" value="<%- projectID %>">
           <div class="row ">
             <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
@@ -13,11 +13,11 @@
               <p><input type="text" class="form-control" name="task_name" value="<%- old("task_name") %>"></p>
 
               <% if(errors("task_name").length > 0) { %>
-              <!-- エラーメッセージ -->
-              <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- errors("task_name") %></p>
-              </div>
-              <!-- エラーメッセージ -->
+                <!-- エラーメッセージ -->
+                <div class="col-md-12 col-lg-12 col-xl-12 ">
+                  <p class="alert alert-danger "><%- errors("task_name") %></p>
+                </div>
+                <!-- エラーメッセージ -->
               <% } %>
 
             </div>
@@ -30,27 +30,27 @@
                 <input value="<%= old("start_time") %>" type="text" id="start_time" name="start_time" class="flat-picker form-control">
               </p>
 
-              <% if (errors("start_time").length > 0) {%>
-              <!-- エラーメッセージ -->
-              <div v-for="data in errors.delivery " class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- errors("start_time") %></p>
-              </div>
-              <!-- エラーメッセージ -->
+              <% if (errors("start_time").length > 0) { %>
+                <!-- エラーメッセージ -->
+                <div v-for="data in errors.delivery " class="col-md-12 col-lg-12 col-xl-12 ">
+                  <p class="alert alert-danger "><%- errors("start_time") %></p>
+                </div>
+                <!-- エラーメッセージ -->
               <% } %>
             </div>
 
             <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
               <p>終了日時</p>
               <p>
-                <input value="<%= old("end_time") %>" type="text" id="end_time" name="end_time"  class="flat-picker form-control">
+                <input value="<%= old("end_time") %>" type="text" id="end_time" name="end_time" class="flat-picker form-control">
               </p>
 
-              <% if (errors("end_time").length > 0) {%>
-              <!-- エラーメッセージ -->
-              <div v-for="data in errors.is_displayed " class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- errors("end_time") %></p>
-              </div>
-              <!-- エラーメッセージ -->
+              <% if (errors("end_time").length > 0) { %>
+                <!-- エラーメッセージ -->
+                <div v-for="data in errors.is_displayed " class="col-md-12 col-lg-12 col-xl-12 ">
+                  <p class="alert alert-danger "><%- errors("end_time") %></p>
+                </div>
+                <!-- エラーメッセージ -->
               <% } %>
             </div>
           </div>
@@ -62,11 +62,11 @@
               <p><input type="file" class="form-control form-select" name="upload_file" id="upload_file"></p>
 
               <% if(errors("upload_file").length > 0) { %>
-              <!-- エラーメッセージ -->
-              <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- errors("upload_file") %></p>
-              </div>
-              <!-- エラーメッセージ -->
+                <!-- エラーメッセージ -->
+                <div class="col-md-12 col-lg-12 col-xl-12 ">
+                  <p class="alert alert-danger "><%- errors("upload_file") %></p>
+                </div>
+                <!-- エラーメッセージ -->
               <% } %>
 
             </div>
@@ -75,21 +75,21 @@
           <!-- アップロード済み画像をpushしていく-->
           <div id="uploaded-file-block" class="row">
             <% if (old("image_id").length > 0) { %>
-            <% old("image_id").forEach((image, index) => { %>
-            <div class="uploaded-file-block-unit col-sm-3 col-md-3 col-lg-3 col-xl-3">
-              <p>
-                <a href="/api/image/show/<%- image %>" target="_blank" class="btn btn-outline-primary uploaded-file-url">アップロード済み画像</a>
-              </p>
-              <input type="hidden" name="image_id[]" value="<%- image %>">
-            </div>
-            <% }) %>
+              <% old("image_id").forEach((image, index) => { %>
+                <div class="uploaded-file-block-unit col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                  <p>
+                    <a href="/api/image/show/<%- image %>" target="_blank" class="btn btn-outline-primary uploaded-file-url">アップロード済み画像</a>
+                  </p>
+                  <input type="hidden" name="image_id[]" value="<%- image %>">
+                </div>
+              <% }) %>
             <% } else { %>
-            <div class="uploaded-file-block-unit col-sm-3 col-md-3 col-lg-3 col-xl-3">
-              <p>
-                <a href="" target="_blank" class="btn btn-outline-primary uploaded-file-url">アップロード済み画像</a>
-              </p>
-              <input type="hidden" name="image_id[]" value="">
-            </div>
+              <div class="uploaded-file-block-unit col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                <p>
+                  <a href="" target="_blank" class="btn btn-outline-primary uploaded-file-url">アップロード済み画像</a>
+                </p>
+                <input type="hidden" name="image_id[]" value="">
+              </div>
             <% } %>
           </div>
 
@@ -100,17 +100,19 @@
               <p>
                 <select class="form-control form-select" name="user_id" id="user_id">
                   <% users.forEach((user, index) => { %>
-                  <option <% if (Number(user.id) === old("user_id")) {%> selected="selected" <% } %> value="<%- user.id %>"><%- user.user_name %></option>
+                    <option
+                    <% if (Number(user.id) === old("user_id")) { %> selected="selected"
+                      <% } %> value="<%- user.id %>"><%- user.user_name %></option>
                   <% }) %>
                 </select>
               </p>
 
               <% if(errors("user_id").length > 0) { %>
-              <!-- エラーメッセージ -->
-              <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- errors("user_id") %></p>
-              </div>
-              <!-- エラーメッセージ -->
+                <!-- エラーメッセージ -->
+                <div class="col-md-12 col-lg-12 col-xl-12 ">
+                  <p class="alert alert-danger "><%- errors("user_id") %></p>
+                </div>
+                <!-- エラーメッセージ -->
               <% } %>
 
             </div>
@@ -120,19 +122,21 @@
               <p>
                 <select class="form-control form-select " name="status">
                   <% taskStatusList.forEach((status, index) => { %>
-                  <option <% if (Number(status.id) === old("status")) {%> selected="selected" <% } %> value="<%- status.id%>">
-                    <%- status.value %>
-                  </option>
+                    <option
+                    <% if (Number(status.id) === old("status")) { %> selected="selected"
+                      <% } %> value="<%- status.id %>">
+                      <%- status.value %>
+                    </option>
                   <% }) %>
                 </select>
               </p>
 
               <% if(errors("status").length > 0) { %>
-              <!-- エラーメッセージ -->
-              <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- errors("status") %></p>
-              </div>
-              <!-- エラーメッセージ -->
+                <!-- エラーメッセージ -->
+                <div class="col-md-12 col-lg-12 col-xl-12 ">
+                  <p class="alert alert-danger "><%- errors("status") %></p>
+                </div>
+                <!-- エラーメッセージ -->
               <% } %>
 
             </div>
@@ -144,19 +148,21 @@
               <p>
                 <select class="form-control form-select" name="priority">
                   <% priorityStatusList.forEach((data, index) => { %>
-                  <option <% if (Number(data.id) === old("priority")) {%> selected="selected" <% } %> value="<%- data.id %>">
-                    <%- data.value %>
-                  </option>
+                    <option
+                    <% if (Number(data.id) === old("priority")) { %> selected="selected"
+                      <% } %> value="<%- data.id %>">
+                      <%- data.value %>
+                    </option>
                   <% }) %>
                 </select>
               </p>
 
               <% if(errors("priority").length > 0) { %>
-              <!-- エラーメッセージ -->
-              <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- errors("priority") %></p>
-              </div>
-              <!-- エラーメッセージ -->
+                <!-- エラーメッセージ -->
+                <div class="col-md-12 col-lg-12 col-xl-12 ">
+                  <p class="alert alert-danger "><%- errors("priority") %></p>
+                </div>
+                <!-- エラーメッセージ -->
               <% } %>
 
             </div>
@@ -170,11 +176,11 @@
               </p>
 
               <% if(errors("task_description").length > 0) { %>
-              <!-- エラーメッセージ -->
-              <div class="col-md-12 col-lg-12 col-xl-12 ">
-                <p class="alert alert-danger "><%- errors("task_description") %></p>
-              </div>
-              <!-- エラーメッセージ -->
+                <!-- エラーメッセージ -->
+                <div class="col-md-12 col-lg-12 col-xl-12 ">
+                  <p class="alert alert-danger "><%- errors("task_description") %></p>
+                </div>
+                <!-- エラーメッセージ -->
               <% } %>
 
             </div>
@@ -184,7 +190,7 @@
             <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6 ">
               <p>上記内容でタスクを作成する</p>
               <p>
-                <button class="btn btn-outline-primary" type="submit">上記内容でタスクを作成する</button>
+                <button id="create-new-task" class="btn btn-outline-primary" type="submit">上記内容でタスクを作成する</button>
               </p>
             </div>
           </div>
@@ -195,55 +201,83 @@
 </div>
 
 <script>
-  $(function(e) {
+  $(function (e) {
 
-    let uploadInput = $("input[name='upload_file']");
-    let uploadedFileUrlList = [];
-    let uploadedFileIDList = [];
-    let uploadedFileObjectList = [];
+    let uploadInput = $('input[name=\'upload_file\']')
+    let uploadedFileObjectList = []
     // 画像選択時のイベントを付与
-    uploadInput.on("change", function(e) {
-      let targetObject = e.target;
-      let fileList = targetObject.files;
+    uploadInput.on('change', function (e) {
+      let targetObject = e.target
+      let fileList = targetObject.files
 
       // filesオブジェクトをループ
       Object.keys(fileList).forEach((index) => {
 
         // ファイル用フォームオブジェクト
-        let formData = new FormData();
-        formData.append("upload_file", fileList[index])
+        let formData = new FormData()
+        formData.append('upload_file', fileList[index])
 
         // 画像ファイルをPOSTする
-        axios.post("/api/image/upload", formData).then((result) => {
-          if (result.data.status) {
-            uploadedFileObjectList.push(result.data.response.image);
+        axios.post('/api/image/upload', formData).then((result) => {
+          if ( result.data.status ) {
+            uploadedFileObjectList.push(result.data.response.image)
           } else {
-            return Promise.reject(new Error("画像アップロードに失敗しました｡"));
+            return Promise.reject(new Error('画像アップロードに失敗しました｡'))
           }
         }).then((response) => {
-          let divBlock = [];
-          let div = $(".uploaded-file-block-unit").eq(0).clone();
+          let divBlock = []
+          let div = $('.uploaded-file-block-unit').eq(0).clone()
           uploadedFileObjectList.forEach((image, index) => {
-            let clone = div.clone();
-            clone.find("a").attr("href", image.show_image_url);
-            clone.find("input").val(image.id);
-            divBlock.push(clone);
-          });
-          $("#uploaded-file-block").empty();
-          console.log(divBlock);
+            let clone = div.clone()
+            clone.find('a').attr('href', image.show_image_url)
+            clone.find('input').val(image.id)
+            divBlock.push(clone)
+          })
+          $('#uploaded-file-block').empty()
+          console.log(divBlock)
 
-          divBlock.forEach(function(div, index) {
-            console.log(div);
-            $("#uploaded-file-block").append(div);
-          });
+          divBlock.forEach(function (div, index) {
+            console.log(div)
+            $('#uploaded-file-block').append(div)
+          })
         }).catch((error) => {
-          console.log(error);
-          alert(error.message);
-        });
+          console.log(error)
+          alert(error.message)
+        })
 
+      })
+    })
+    /**
+     * タスク作成ボタンをクリック時
+     */
+    $("form").on("submit", function (e) {
+      let postData = {};
+      e.preventDefault()
+      console.log(e.target);
+      let formData = new FormData(e.target);
+      console.log(formData);
+      console.log(formData.get("task_description"))
+      formData.forEach(function(value, index) {
+        postData[index] = value;
       });
-    });
-
-  });
+      // 画像IDをpostDataに追加する
+      uploadedFileObjectList.forEach(function(value, index) {
+        if(postData["image_id"]) {
+          postData["image_id"].push(value.id);
+        } else {
+          postData["image_id"] = [];
+          postData["image_id"].push(value.id);
+        }
+      });
+      console.log(postData);
+      console.log(formData.entries());
+      console.log(uploadedFileObjectList);
+      axios.post("/api/task/create", postData).then(function(result) {
+        console.log(result);
+      }).catch(function (error) {
+        console.log(error);
+      })
+    })
+  })
 </script>
 <%- include("../common/footer") %>

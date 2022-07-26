@@ -208,6 +208,30 @@
 
 
 
+<script>
+  $(function (e) {
+
+    $('form').on('submit', function (e) {
+      e.preventDefault()
+      let updateData = {}
+      let formData = new FormData(e.target)
+      formData.forEach(function (value, index) {
+        updateData[index] = value
+      })
+      // APIエンドポイントの構築
+      const url = "/api/task/update/" + updateData["task_id"];
+      axios.post(url, updateData).then(function(result) {
+        console.log(result);
+        if (result.data.status) {
+          alert("アップデート完了");
+        }
+      }).catch(function(error) {
+        alert("アップデート失敗");
+        console.log(error);
+      })
+    })
+  })
+</script>
 
 
 

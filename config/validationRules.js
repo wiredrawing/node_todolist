@@ -311,13 +311,13 @@ const validationRules = {
       min: 1,
       max: 2048
     }),
-    check('user_id', '作業者を設定して下さい').isInt().withMessage('ユーザーIDは数値で入力して下さい').custom(async  (value, obj) => {
+    check('user_id', '作業者を設定して下さい').isInt().withMessage('ユーザーIDは数値で入力して下さい').custom(async (value, obj) => {
       try {
         // POSTされたuser_idがただし整数型に変換できるかどうかを検証
         const userId = parseInt(value)
-        if (Number.isNaN(userId)) {
+        if ( Number.isNaN(userId) ) {
           // Not a Numberだったら例外
-          return Promise.reject(new Error("This is Not a Number."));
+          return Promise.reject(new Error('This is Not a Number.'))
         }
         let user = await models.user.findByPk(userId)
         if ( user !== null && parseInt(user.id) === userId ) {
@@ -345,8 +345,8 @@ const validationRules = {
           return true
         }
         return Promise.reject(new Error('指定した画像がアップロードされていません｡'))
-      } catch (error) {
-        return Promise.reject(error);
+      } catch ( error ) {
+        return Promise.reject(error)
       }
     }).withMessage('指定した画像がアップロードされていません｡'),
     check('start_time')
@@ -384,14 +384,18 @@ const validationRules = {
   ],
   'task.update': [
     // バリデーションチェック
-    check('task_id').custom(function (value, obj) {
+    check('task_id').custom(async (value, obj) => {
+      // NaNでないことを検証する
       const taskId = parseInt(value)
-      return models.Task.findByPk(taskId).then(function (task) {
-        if ( task !== null && parseInt(task.id) === taskId ) {
-          return true
-        }
-        throw new Error('タスクが見つかりません')
-      })
+      if ( Number.isNaN(taskId) ) {
+        return Promise.reject('This is Not a Number.')
+      }
+      let task = await models.Task.findByPk(taskId)
+      console.log(task);
+      if ( task !== null && parseInt(task.id) === taskId ) {
+        return true
+      }
+      return Promise.reject(new Error('タスクが見つかりません'))
     }),
     check('task_name').isLength({
       min: 1,
@@ -401,59 +405,41 @@ const validationRules = {
       min: 1,
       max: 2048
     }).withMessage('1文字以上2000文字以内で入力して下さい｡'),
-    check('user_id').custom((value, { req }) => {
-      return models.user
-        .findByPk(value)
-        .then((user) => {
-          if ( user !== null ) {
-            if ( parseInt(user.id) === parseInt(value) ) {
-              return true
-            }
-          }
-          throw new Error('ユーザー情報が不正です')
-        })
-        .catch((error) => {
-          throw new Error(error)
-        })
+    check('user_id').custom(async (value, { req }) => {
+      return true;
+      // const userId = parseInt(value)
+      // if ( Number.isNaN(userId) ) {
+      //   return Promise.reject(new Error('ユーザー情報が不正です'))
+      // }
+      // let user = await models.user.findByPk(userId, null)
+      // if ( user !== null && user.id === userId ) {
+      //   return true
+      // }
+      // return Promise.reject(new Error('ユーザー情報が不正です'))
     }),
-    check('project_id', '正しいプロジェクトIDを選択して下さい')
-      .isNumeric()
-      .custom((value, { req }) => {
-        return models.Project.findAll({
-          where: {
-            id: value
-          }
-        })
-          .then((project) => {
-            // console.log("validation in project => ", project);
-          })
-          .catch((error) => {
-            throw new Error(error)
-          })
-      }),
     check('status').isNumeric().isIn(taskStatusList).withMessage('タスクステータスは有効な値を設定して下さい｡'),
     check('priority').isNumeric().isIn(priorityStatusList).withMessage('優先度は正しい値で設定して下さい'),
     check('is_displayed', '正しい表示状態を選択して下さい').isIn(displayStatusList),
-    check('created_by').custom(function (value, obj) {
+    check('user_id').custom(async (value, obj) => {
+      let userId = parseInt(value)
+      if ( Number.isNaN(userId) ) {
+        return Promise.reject(new Error('タスク作成者IDが不正です.'))
+      }
       // updateしようとしているユーザーが担当者orタスク作成者である必要がある
       const user = obj.req.session.user
       const taskId = obj.req.body.task_id
-      return models.Task.findOne({
+      let task = await models.Task.findByPk(taskId, {
         where: {
-          id: taskId,
           [Op.or]: {
-            user_id: user.id,
-            created_by: user.id
+            user_id: userId,
+            created_by: userId
           }
         }
-      }).then(function (task) {
-        if ( task === null ) {
-          throw new Error('タスク作成者のみ編集可能です')
-        }
-        return true
-      }).catch(function (error) {
-        return Promise.reject(new Error(error))
       })
+      if ( task !== null ) {
+        return true
+      }
+      return Promise.reject(new Error('タスク作成者のみ編集可能です'))
     })
   ],
   // ---------------------------------

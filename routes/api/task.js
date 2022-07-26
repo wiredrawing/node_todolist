@@ -12,6 +12,13 @@ const { Op } = pkg
 let router = express.Router()
 
 /**
+ * projectIdに問わずに全タスク一覧を取得する
+ */
+router.get('/', (req, res, next) => {
+
+})
+
+/**
  * 指定したprojectIdに紐づく全タスクを取得する
  */
 router.get('/:projectId', (req, res, next) => {
@@ -130,7 +137,7 @@ router.post('/create', ...validationRules['task.create'], (req, res, next) => {
   if ( errors.isEmpty() !== true ) {
     return next()
   }
-  console.log("Pass validation check.");
+  console.log('Pass validation check.')
   // Add new task record.
   const codeNumber = makeCodeNumber(12)
   const db = async function () {
@@ -159,7 +166,7 @@ router.post('/create', ...validationRules['task.create'], (req, res, next) => {
           }
         )
         let lastInsertId = null
-        console.log(task.id);
+        console.log(task.id)
         if ( task === null ) {
           throw new Error('Failed creating new task record on DB.')
         }
@@ -193,7 +200,7 @@ router.post('/create', ...validationRules['task.create'], (req, res, next) => {
         })
         return resolve(task)
       } catch ( error ) {
-        console.log(error);
+        console.log(error)
         return reject(error)
       }
     })
@@ -201,7 +208,7 @@ router.post('/create', ...validationRules['task.create'], (req, res, next) => {
 
   const init = async () => {
     let task = await db()
-    return task;
+    return task
   }
   return init().then((result) => {
     let jsonResponse = {
@@ -232,7 +239,57 @@ router.post('/create', ...validationRules['task.create'], (req, res, next) => {
 /**
  * 指定したタスクIDの情報を更新する
  */
-router.post("/update/:taskId", (req, res, next) => {
+router.post('/update/:taskId', ...validationRules['task.update'], async (req, res, next) => {
+  const errors = validationResult(req)
 
+  if ( errors.isEmpty() !== true ) {
+    return next()
+  }
+  try {
+    let postData = req.body
+    // 更新用オブジェクト
+    let updateTask = {
+      task_name: postData.task_name,
+      task_description: postData.task_description,
+      user_id: postData.user_id,
+      status: postData.status,
+      project_id: postData.project_id,
+      priority: postData.priority,
+      is_displayed: postData.is_displayed
+    }
+    let task = await models.Task.findByPk(postData.task_id, {
+      include: [
+        {
+          model: models.Project
+        }
+      ]
+    })
+    if ( task === null ) {
+      throw new Error('指定したタスク情報が見つかりません')
+    }
+    let result = await task.update(updateTask)
+
+    let jsonResponse = {
+      status: true,
+      code: 200,
+      response: result,
+    }
+    return res.send(jsonResponse)
+  } catch ( error ) {
+    let jsonResponse = {
+      status: false,
+      code: 400,
+      response: error,
+    }
+    return res.send(jsonResponse)
+  }
+}).post('/update/:taskId', (req, res, next) => {
+  let jsonResponse = {
+    status: false,
+    code: 400,
+    response: validationResult(req).array(),
+  }
+  return res.send(jsonResponse)
 })
+
 export default router
