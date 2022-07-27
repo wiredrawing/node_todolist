@@ -6,7 +6,6 @@ import applicationConfig from '../../config/application-config.js'
 import makeCodeNumber from '../../config/makeCodeNumber.js'
 import arrayUnique from '../../config/array-unique.js'
 import pkg from 'sequelize'
-
 const { Op } = pkg
 
 let router = express.Router()
@@ -15,9 +14,9 @@ let router = express.Router()
  * projectIdに問わずに全タスク一覧を取得する
  * keywordクエリで文字検索を行う
  */
-router.get('/', ...validationRules["task.search"], (req, res, next) => {
+router.get('/', ...validationRules['task.search'], (req, res, next) => {
   // リクエストされたqueryパラメータ
-  let queries = req.query;
+  let queries = req.query
   /**
    * 全タスクを取得する
    * @returns {Promise<void>}
@@ -48,23 +47,23 @@ router.get('/', ...validationRules["task.search"], (req, res, next) => {
         ]
       }
       // 検索用のフリーワードが設定されている場合
-      if (queries.keyword) {
-        condition["where"] = {
+      if ( queries.keyword ) {
+        condition['where'] = {
           [Op.or]: {
             task_name: {
-              [Op.like]: "%" + queries.keyword + "%",
+              [Op.like]: '%' + queries.keyword + '%',
             },
             task_description: {
-              [Op.like]: "%" + queries.keyword + "%",
+              [Op.like]: '%' + queries.keyword + '%',
             },
-            "$Project.project_name$": {
-              [Op.like]: "%" + queries.keyword + "%",
+            '$Project.project_name$': {
+              [Op.like]: '%' + queries.keyword + '%',
             },
-            "$Project.project_description$": {
-              [Op.like]: "%" + queries.keyword + "%",
+            '$Project.project_description$': {
+              [Op.like]: '%' + queries.keyword + '%',
             },
-            "$TaskComments.comment$": {
-              [Op.like]: "%" + queries.keyword + "%",
+            '$TaskComments.comment$': {
+              [Op.like]: '%' + queries.keyword + '%',
             }
           }
         }
@@ -81,7 +80,6 @@ router.get('/', ...validationRules["task.search"], (req, res, next) => {
 
   const init = async () => {
     let tasks = await db()
-
     return tasks
   }
 
@@ -104,12 +102,13 @@ router.get('/', ...validationRules["task.search"], (req, res, next) => {
 
 /**
  * 指定したprojectIdに紐づく全タスクを取得する
+ * /?keyword=something でフリワード検索を行う
  */
-router.get('/:projectId', (req, res, next) => {
-
-  const db = () => {
+router.get('/:projectId', ...validationRules["task.project.get"], (req, res, next) => {
+  let queries = req.query;
+  const db = (queries) => {
     return new Promise((resolve, reject) => {
-      return models.Task.findAll({
+      let condition = {
         where: {
           project_id: {
             [Op.eq]: req.params.projectId
@@ -124,7 +123,22 @@ router.get('/:projectId', (req, res, next) => {
             model: models.TaskComment,
           }
         ]
-      }).then((result) => {
+      }
+      if (queries.keyword) {
+        condition["where"][Op.or] = {
+          task_name: {
+            [Op.like]: "%" + queries.keyword + "%",
+          },
+          task_description: {
+            [Op.like]: "%" + queries.keyword + "%",
+          },
+          "$TaskComments.comment$": {
+            [Op.like]: "%" + queries.keyword + "%",
+          }
+        }
+      }
+      console.log(condition);
+      return models.Task.findAll(condition).then((result) => {
         resolve(result)
       }).catch((error) => {
         console.log(error)
@@ -135,8 +149,8 @@ router.get('/:projectId', (req, res, next) => {
 
   const init = async () => {
     try {
-      let task = await db()
-      return task
+      let tasks = await db(queries)
+      return tasks
     } catch ( error ) {
       console.log(error)
       return null
@@ -145,9 +159,20 @@ router.get('/:projectId', (req, res, next) => {
 
   // Return the json response.
   return init().then((result) => {
-
+    console.log(result);
+    let json = {
+      status: true,
+      code: 200,
+      response: result,
+    }
+    return res.send(json);
   }).catch((error) => {
-
+    let json = {
+      status: false,
+      code: 400,
+      response: error,
+    }
+    return res.send(json);
   })
 
 }).get('/:projectId', (req, res, next) => {

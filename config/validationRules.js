@@ -583,6 +583,16 @@ const validationRules = {
   "task.search": [
     check("keyword").isLength({min: 0, max: 256}).custom((value, obj) => {
       console.log(value);
+      return true;
+    })
+  ],
+  "task.project.get": [
+    check("keyword").isLength({min: 0, max: 256}).custom((value, obj) => {
+      console.log(value);
+      return true;
+    }),
+    check("projectId").isInt().custom((value, obj) => {
+      return true;
     })
   ]
 }
