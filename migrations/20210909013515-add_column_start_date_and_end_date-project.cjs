@@ -12,12 +12,12 @@ module.exports = {
 
     // 追加のMigrationで複数カラムを追加する場合
     return Promise.all([
-      queryInterface.addColumn("projects", "start_time", {
+      queryInterface.addColumn("projects", "start_date", {
         allowNull: true,
         type: Sequelize.DATE,
         defaultValue: null,
       }),
-      queryInterface.addColumn("projects", "end_time", {
+      queryInterface.addColumn("projects", "end_date", {
         allowNull: true,
         type: Sequelize.DATE,
         defaultValue: null,
