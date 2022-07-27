@@ -12,13 +12,13 @@ import { Op } from 'sequelize'
  * 新規プロジェクトを作成するAPI
  */
 router.post('/create', ...validationRules['project.create'], (req, res, next) => {
-  console.log(req.body);
+  console.log(req.body)
   const errors = validationResult(req)
   if ( errors.isEmpty() !== true ) {
     return next()
   }
   let postData = req.body
-  let codeNumber = makeCodeNumber();
+  let codeNumber = makeCodeNumber()
 
   const init = async function () {
     try {
@@ -28,9 +28,9 @@ router.post('/create', ...validationRules['project.create'], (req, res, next) =>
           code_number: codeNumber,
         }
       })
-      if (checkCodeNumber !== null) {
+      if ( checkCodeNumber !== null ) {
 
-        throw new Error("現在,サーバーが混み合っているようです.もう一度試して見て下さい");
+        throw new Error('現在,サーバーが混み合っているようです.もう一度試して見て下さい')
       }
 
       // Constract a object data to want to toregister afresh.
@@ -76,61 +76,53 @@ router.post('/create', ...validationRules['project.create'], (req, res, next) =>
   })
 })
 
-// 指定したprojectIDに関連するレコード人まとまりを取得する
-router.get(
-  '/detail/:projectId',
-  [
-    check('projectId')
-      .isNumeric()
-      .custom(function (value, obj) {
-        // projectIDのバリデーションチェック
-        return models.Project.findByPk(value).then(function (project) {
-          if ( project !== null ) {
-            return true
-          }
-          throw new Error('projectレコードが見つかりません')
-        })
-      })
-  ],
-  function (req, res, next) {
-    const errors = validationResult(req)
-    if ( errors.isEmpty() !== true ) {
-      return res.redirect('back')
-    }
-    const projectID = parseInt(req.params.projectId)
-    return models.Project.findByPk(projectID, {
+// ----------------------------------------------------
+// 指定したprojectIDに関連するレコードひとまとまりを取得する
+// ----------------------------------------------------
+router.get('/detail/:projectId', ...validationRules['project.detail.get'], async (req, res, next) => {
+  const errors = validationResult(req)
+  if ( errors.isEmpty() !== true ) {
+    return next()
+  }
+  const projectId = parseInt(req.params.projectId)
+  const db = async () => {
+    let project = await models.Project.findByPk(projectId, {
       include: [
         {
           model: models.ProjectImage,
           include: [{ model: models.Image }]
         },
         { model: models.user },
-        { model: models.Task }
+        {
+          model: models.Task,
+          include: [{ model: models.TaskComment }]
+        }
       ]
     })
-      .then(function (project) {
-        const result = {
-          status: true,
-          code: 200,
-          response: {
-            project: project
-          }
-        }
-        return res.json(result)
-      })
-      .catch(function (error) {
-        const result = {
-          status: false,
-          code: 400,
-          response: {
-            project: null
-          },
-          error: error
-        }
-        return res.json(result)
-      })
+    if ( project === null ) {
+      return Promise.reject('指定したproject idのデータが見つかりません')
+    }
+    return project
   }
-)
+
+  return db().then((result) => {
+    const json = {
+      status: true,
+      code: 200,
+      response: {
+        project: result
+      }
+    }
+    return res.json(json)
+  })
+}).get('/detail/:projectId', (req, res, next) => {
+  const json = {
+    status: false,
+    code: 400,
+    response: validationResult(req).array(),
+  }
+  return res.send(json);
+})
 
 /**
  * 指定したキーワードでプロジェクトを検索する

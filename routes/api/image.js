@@ -1,16 +1,10 @@
 import express from 'express'
-// const express = require('express')
 const router = express.Router()
 import models from '../../models/index.js'
-// const models = require('../../models/index.js')
 import { v4 as uuid } from 'uuid'
-// const { v4: uuid } = require('uuid')
 import applicationConfig from '../../config/application-config.js'
-// const applicationConfig = require('../../config/application-config.js')
 import moment from 'moment'
-// const moment = require('moment')
 import fs from 'fs'
-// const fs = require('fs')
 
 // ファイルのアップロード処理
 router.post('/upload', function (req, res, next) {

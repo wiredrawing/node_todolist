@@ -321,8 +321,8 @@ const validationRules = {
     check('user_id', '作業者を設定して下さい').isInt().withMessage('ユーザーIDは数値で入力して下さい').custom(async (value, obj) => {
       try {
         // POSTされたuser_idがただし整数型に変換できるかどうかを検証
-        const userId = isNumber(value);
-        if (userId === false) {
+        const userId = isNumber(value)
+        if ( userId === false ) {
           // Not a Numberだったら例外
           return Promise.reject(new Error('user_idが正しい数値型ではありません.'))
         }
@@ -580,20 +580,54 @@ const validationRules = {
       return Promise.reject('Could not find the task record which you selected.')
     }),
   ],
-  "task.search": [
-    check("keyword").isLength({min: 0, max: 256}).custom((value, obj) => {
-      console.log(value);
-      return true;
+  'task.search': [
+    check('keyword').isLength({
+      min: 0,
+      max: 256
+    }).custom((value, obj) => {
+      console.log(value)
+      return true
     })
   ],
-  "task.project.get": [
-    check("keyword").isLength({min: 0, max: 256}).custom((value, obj) => {
-      console.log(value);
-      return true;
+  'task.project.get': [
+    check('keyword').isLength({
+      min: 0,
+      max: 256
+    }).custom((value, obj) => {
+      console.log(value)
+      return true
     }),
-    check("projectId").isInt().custom((value, obj) => {
-      return true;
+    check('projectId').isInt().custom(async (value, obj) => {
+      // The asynchronouse function always raturn a promise object.
+      const projectId = isNumber(value)
+      if ( projectId === false ) {
+        return Promise.reject('不正なprojectIdです')
+      }
+      let project = await models.Project.findByPk(projectId, null)
+      if ( projectId !== null ) {
+        return true
+      }
+      return Promise.reject('不正なprojectIdです')
     })
+  ],
+  // ---------------------------------------------
+  // 指定したprojectIdの情報を返却する
+  // ---------------------------------------------
+  'project.detail.get': [
+    check('projectId')
+      .isNumeric()
+      .custom(async function (value, obj) {
+        const proejctId = isNumber(value)
+        if ( proejctId === false ) {
+          return Promise.reject(new Error('projectレコードが見つかりません'))
+        }
+        // projectIDのバリデーションチェック
+        let project = await models.Project.findByPk(proejctId)
+        if ( project !== null ) {
+          return true
+        }
+        return Promise.reject(new Error('projectレコードが見つかりません'))
+      })
   ]
 }
 

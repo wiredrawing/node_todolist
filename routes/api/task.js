@@ -6,6 +6,7 @@ import applicationConfig from '../../config/application-config.js'
 import makeCodeNumber from '../../config/makeCodeNumber.js'
 import arrayUnique from '../../config/array-unique.js'
 import pkg from 'sequelize'
+
 const { Op } = pkg
 
 let router = express.Router()
@@ -104,8 +105,12 @@ router.get('/', ...validationRules['task.search'], (req, res, next) => {
  * 指定したprojectIdに紐づく全タスクを取得する
  * /?keyword=something でフリワード検索を行う
  */
-router.get('/:projectId', ...validationRules["task.project.get"], (req, res, next) => {
-  let queries = req.query;
+router.get('/:projectId', ...validationRules['task.project.get'], (req, res, next) => {
+  let queries = req.query
+  const errors = validationResult(req)
+  if ( errors.isEmpty() !== true ) {
+    return next()
+  }
   const db = (queries) => {
     return new Promise((resolve, reject) => {
       let condition = {
@@ -124,20 +129,20 @@ router.get('/:projectId', ...validationRules["task.project.get"], (req, res, nex
           }
         ]
       }
-      if (queries.keyword) {
-        condition["where"][Op.or] = {
+      if ( queries.keyword ) {
+        condition['where'][Op.or] = {
           task_name: {
-            [Op.like]: "%" + queries.keyword + "%",
+            [Op.like]: '%' + queries.keyword + '%',
           },
           task_description: {
-            [Op.like]: "%" + queries.keyword + "%",
+            [Op.like]: '%' + queries.keyword + '%',
           },
-          "$TaskComments.comment$": {
-            [Op.like]: "%" + queries.keyword + "%",
+          '$TaskComments.comment$': {
+            [Op.like]: '%' + queries.keyword + '%',
           }
         }
       }
-      console.log(condition);
+      console.log(condition)
       return models.Task.findAll(condition).then((result) => {
         resolve(result)
       }).catch((error) => {
@@ -159,24 +164,30 @@ router.get('/:projectId', ...validationRules["task.project.get"], (req, res, nex
 
   // Return the json response.
   return init().then((result) => {
-    console.log(result);
+    console.log(result)
     let json = {
       status: true,
       code: 200,
       response: result,
     }
-    return res.send(json);
+    return res.send(json)
   }).catch((error) => {
     let json = {
       status: false,
       code: 400,
       response: error,
     }
-    return res.send(json);
+    return res.send(json)
   })
 
 }).get('/:projectId', (req, res, next) => {
-
+  const errors = validationResult(req)
+  let json = {
+    status: false,
+    code: 400,
+    response: errors,
+  }
+  return res.send(json)
 })
 
 /**

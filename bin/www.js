@@ -20,8 +20,8 @@ if ( cluster.isMaster ) {
     cluster.fork()
   }
 } else {
-  console.log('Execute forking.')
-  console.log('Process ID (cluster.worker.process.pid) ===> ', cluster.worker.process.pid)
+  // console.log('Execute forking.')
+  // console.log('Process ID (cluster.worker.process.pid) ===> ', cluster.worker.process.pid)
   /**
    * Get port from environment and store in Express.
    */
