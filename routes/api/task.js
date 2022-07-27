@@ -13,9 +13,93 @@ let router = express.Router()
 
 /**
  * projectIdに問わずに全タスク一覧を取得する
+ * keywordクエリで文字検索を行う
  */
-router.get('/', (req, res, next) => {
+router.get('/', ...validationRules["task.search"], (req, res, next) => {
+  // リクエストされたqueryパラメータ
+  let queries = req.query;
+  /**
+   * 全タスクを取得する
+   * @returns {Promise<void>}
+   */
+  const db = async () => {
+    return new Promise((resolve, reject) => {
+      let condition = {
+        include: [
+          {
+            model: models.Star,
+          },
+          {
+            model: models.Project,
+            required: true,
+          },
+          {
+            model: models.TaskComment,
+            include: [
+              {
+                model: models.CommentImage,
+              }
+            ]
+          }
+        ],
+        order: [
+          ['end_time', 'desc'],
+          ['id', 'desc']
+        ]
+      }
+      // 検索用のフリーワードが設定されている場合
+      if (queries.keyword) {
+        condition["where"] = {
+          [Op.or]: {
+            task_name: {
+              [Op.like]: "%" + queries.keyword + "%",
+            },
+            task_description: {
+              [Op.like]: "%" + queries.keyword + "%",
+            },
+            "$Project.project_name$": {
+              [Op.like]: "%" + queries.keyword + "%",
+            },
+            "$Project.project_description$": {
+              [Op.like]: "%" + queries.keyword + "%",
+            },
+            "$TaskComments.comment$": {
+              [Op.like]: "%" + queries.keyword + "%",
+            }
+          }
+        }
+      }
 
+      models.Task.findAll(condition).then((result) => {
+        // console.log(result)
+        resolve(result)
+      }).catch((error) => {
+        return Promise.reject(error)
+      })
+    })
+  }
+
+  const init = async () => {
+    let tasks = await db()
+
+    return tasks
+  }
+
+  return init().then((result) => {
+    let json = {
+      status: true,
+      code: 200,
+      response: result,
+    }
+    return res.send(json)
+  }).catch((error) => {
+    let json = {
+      status: false,
+      code: 400,
+      response: error,
+    }
+    return res.send(json)
+  })
 })
 
 /**

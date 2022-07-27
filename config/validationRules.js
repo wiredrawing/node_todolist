@@ -579,6 +579,11 @@ const validationRules = {
       }
       return Promise.reject('Could not find the task record which you selected.')
     }),
+  ],
+  "task.search": [
+    check("keyword").isLength({min: 0, max: 256}).custom((value, obj) => {
+      console.log(value);
+    })
   ]
 }
 
