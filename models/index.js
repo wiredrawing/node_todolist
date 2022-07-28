@@ -1,3 +1,7 @@
+// マイグレーションのリセット時
+// npx sequelize db:migrate:undo
+// マイグレーション実行時
+// npx sequelize db:migrate
 // DBへの接続情報
 // npm install sequelize-cli-esm モジュールを事前にインストールする
 import fs from 'fs'

@@ -8,9 +8,19 @@ import validationRules from '../../config/validationRules.js'
 import makeCodeNumber from '../../config/makeCodeNumber.js'
 import { Op } from 'sequelize'
 
-/**
- * 新規プロジェクトを作成するAPI
- */
+// 新規プロジェクト作成用API
+// The data required when requesting with post method to make new project data.
+// {
+//   "project_name": "新規作成用プロジェクト名",
+//   "project_description": "新規作成用プロジェクト概要",
+//   "is_displayed": 1,
+//   "start_date": "2022-05-05",
+//   "end_date": "2022-09-09",
+//   "user_id": 1,
+//   "image_id": []
+// }
+// End point.
+// http://localhost:3000/api/project/create/
 router.post('/create', ...validationRules['project.create'], (req, res, next) => {
   console.log(req.body)
   const errors = validationResult(req)
@@ -19,6 +29,7 @@ router.post('/create', ...validationRules['project.create'], (req, res, next) =>
   }
   let postData = req.body
   let codeNumber = makeCodeNumber()
+  console.log(codeNumber)
 
   const init = async function () {
     try {
@@ -41,8 +52,8 @@ router.post('/create', ...validationRules['project.create'], (req, res, next) =>
         user_id: postData.user_id,
         is_displayed: postData.is_displayed,
         code_number: makeCodeNumber(),
-        start_time: postData.start_time,
-        end_time: postData.end_time,
+        start_date: postData.start_date,
+        end_date: postData.end_date,
         // created_by: req.session.user.id
       }
       let project = await models.Project.create(insertProject)
@@ -121,7 +132,7 @@ router.get('/detail/:projectId', ...validationRules['project.detail.get'], async
     code: 400,
     response: validationResult(req).array(),
   }
-  return res.send(json);
+  return res.send(json)
 })
 
 /**
@@ -210,5 +221,51 @@ router.get('/search/:keyword?', (req, res, next) => {
     return res.send(jsonResponse)
   })
 })
+
+/**
+ * 指定したプロジェクトデータの更新処理
+ */
+router.post('/update/:projectId', ...validationRules['project.update'], async (req, res, next) => {
+  try {
+    console.log(validationResult(req).array());
+    let postData = req.body
+    console.log(postData)
+    let project = await models.Project.findByPk(postData.project_id)
+    console.log(project);
+    if ( project === null ) {
+      throw new Error('Cound not find specified project id.')
+    }
+    let updateProject = {
+      project_name: "新規作成用プロジェクト名aaa",
+      project_description: "新規作成用プロジェクト概要",
+      is_displayed: 1,
+      start_date: "2022-10-05",
+      end_date: "2022-12-09",
+      user_id: 1,
+      image_id: []
+    }
+    // Update.
+    let result = await project.update(updateProject)
+    console.log(result);
+    // if (result === null) {
+    //   throw new Error("Failed updating existing record.");
+    // }
+    let json = {
+      status: true,
+      code: 200,
+      response: result,
+    }
+    console.log(json);
+    return res.send(json)
+  } catch (error) {
+    console.log(error);
+    let json = {
+      status: false,
+      code: 400,
+      response: error,
+    }
+    return res.send(json)
+  }
+})
 export default router
-// module.exports = router
+

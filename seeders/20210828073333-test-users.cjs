@@ -1,7 +1,7 @@
 // シーダーファイルを生成する
-// sequelize seed:generate --name test-users
+// npx sequelize seed:generate --name test-users
 // 作成したシーダーファイルを実行する
-// sequelize db:seed:all
+// npx sequelize db:seed:all
 'use strict'
 
 const bc = require('bcrypt')

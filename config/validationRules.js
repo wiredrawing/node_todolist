@@ -162,7 +162,7 @@ const validationRules = {
   // --------------------------------------------------
   'project.create': [
     // カスタムバリデーター
-    check('user_id', '登録者IDは必須項目です').isNumeric().custom(async function (value, request) {
+    check('user_id', '登録者IDは必須項目です').isNumeric().custom(async (value, request) => {
       let user = await models.user.findByPk(value)
       if ( user !== null ) {
         return true
@@ -170,10 +170,24 @@ const validationRules = {
       return Promise.reject(new Error('DBレコードに一致しません｡'))
     }),
     // プロジェクト名
-    check('project_name').isLength({
+    check('project_name', 'プロジェクト名を入力して下さい').isLength({
       min: 1,
       max: 256
-    }).withMessage('プロジェクト名を入力して下さい'),
+    }).custom(async (value) => {
+      // Deny registering project having same name.
+      if ( !value ) {
+        return Promise.reject('プロジェクト名を必ず入力して下さい')
+      }
+      let project = await models.Project.findOne({
+        where: {
+          project_name: value,
+        }
+      })
+      if ( project !== null ) {
+        return Promise.reject('既に同名のプロジェクトが存在します')
+      }
+      return true
+    }),
     // プロジェクト概要
     check('project_description').isLength({
       min: 1,
@@ -181,7 +195,9 @@ const validationRules = {
     }).withMessage('プロジェクトの概要を4000文字以内で入力して下さい｡'),
     // 画像ID
     check('image_id', '指定した画像がアップロードされていません｡').custom(async function (value) {
-      console.log(value)
+      if ( Array.isArray(value) !== true ) {
+        return Promise.reject(new Error('アップロード画像パラメータが配列ではありません.'))
+      }
       let images = await models.Image.findAll({
         where: {
           id: {
@@ -196,7 +212,7 @@ const validationRules = {
     }),
     check('is_displayed').isIn(displayStatusList).withMessage('規定の選択肢から設定して下さい'),
     // タスク開始時間
-    check('start_time')
+    check('start_date')
       .not()
       .isEmpty()
       .withMessage('開始時間は必須項目です')
@@ -211,7 +227,7 @@ const validationRules = {
         throw new Error('不正な開始時間です')
       }),
     // タスク終了時間
-    check('end_time')
+    check('end_date')
       .not()
       .isEmpty()
       .withMessage('終了時間は必須項目です')
@@ -219,7 +235,7 @@ const validationRules = {
         if ( value === null || value === undefined ) {
           throw new Error('終了時間は正しく入力して下さい')
         }
-        const startTime = moment(obj.req.body.start_time)
+        const startTime = moment(obj.req.body.start_date)
         const endTime = moment(value)
         const endTimeFormat = endTime.format('YYYY-MM-DD')
         if ( endTimeFormat === value ) {
@@ -240,9 +256,7 @@ const validationRules = {
   'project.update':
     [
       // カスタムバリデーター
-      check('user_id')
-        .isNumeric()
-        .withMessage('正しいフォーマットで指定して下さい')
+      check('user_id').isNumeric()
         .custom(function (value, request) {
           const userId = isNumber(value)
           if ( userId === false ) {
@@ -269,23 +283,18 @@ const validationRules = {
         min: 1,
         max: 4096
       }).withMessage('プロジェクトの概要を4000文字以内で入力して下さい｡'),
-      check('project_id')
-        .isNumeric()
-        .custom((value, { req }) => {
-          // DBに存在するproject_idかどうかをチェックする
-          return models.Project.findByPk(parseInt(value))
-            .then((project) => {
-              // 正しいproject_id
-              if ( parseInt(project.id) === parseInt(value) ) {
-                return true
-              }
-              throw new Error('プロジェクトが見つかりませんでした')
-            })
-            .catch((error) => {
-              throw new Error(error)
-            })
-        })
-        .withMessage('正しいフォーマットで入力して下さい'),
+      check('project_id').isNumeric().custom(async (value, { req }) => {
+        // DBに存在するproject_idかどうかをチェックする
+        const projectId = isNumber(value)
+        if ( projectId === false ) {
+          return Promise.reject('正しいフォーマットで入力して下さい')
+        }
+        let project = await models.Project.findByPk(parseInt(value))
+        if ( project !== null ) {
+          return true
+        }
+        return Promise.reject('指定したプロジェクトデータが見つかりません')
+      }),
       check('is_displayed', '表示状態を正しく選択して下さい').isIn(displayStatusList),
       check('created_by').custom(function (value, obj) {
         // ログインユーザー
