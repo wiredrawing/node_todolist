@@ -32,8 +32,8 @@ module.exports = {
      * await queryInterface.dropTable('users');
      */
     return Promise.all([
-      queryInterface.removeColumn("tasks", "start_time"),
-      queryInterface.removeColumn("tasks", "end_time"),
+      queryInterface.removeColumn("tasks", "start_date"),
+      queryInterface.removeColumn("tasks", "end_date"),
     ])
   }
 };

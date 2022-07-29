@@ -43,7 +43,7 @@ router.get('/', ...validationRules['task.search'], (req, res, next) => {
           }
         ],
         order: [
-          ['end_time', 'desc'],
+          ['end_date', 'desc'],
           ['id', 'desc']
         ]
       }
@@ -276,8 +276,8 @@ router.post('/create', ...validationRules['task.create'], (req, res, next) => {
             priority: postData.priority,
             is_displayed: applicationConfig.binaryType.on,
             code_number: codeNumber,
-            start_time: postData.start_time,
-            end_time: postData.end_time,
+            start_date: postData.start_date,
+            end_date: postData.end_date,
             // created_by: user.id
             created_by: 1,
           },
@@ -286,10 +286,10 @@ router.post('/create', ...validationRules['task.create'], (req, res, next) => {
           }
         )
         let lastInsertId = null
-        console.log(task.id)
         if ( task === null ) {
           throw new Error('Failed creating new task record on DB.')
         }
+        console.log(task.id)
         lastInsertId = task.id
         const imageIDList = arrayUnique(req.body.image_id)
         const imagePromiseList = []

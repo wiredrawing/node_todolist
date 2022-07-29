@@ -144,8 +144,8 @@ router.post('/create', validationRules['project.create'], (req, res, next) => {
         user_id: postData.user_id,
         is_displayed: postData.is_displayed,
         code_number: codeNumber,
-        start_time: postData.start_time,
-        end_time: postData.end_time,
+        start_date: postData.start_date,
+        end_date: postData.end_date,
         created_by: req.session.user.id
       }, {
         transaction: tx
@@ -226,8 +226,8 @@ router.post('/create', validationRules['project.create'], (req, res, next) => {
     //         user_id: postData.user_id,
     //         is_displayed: postData.is_displayed,
     //         code_number: codeNumber,
-    //         start_time: postData.start_time,
-    //         end_time: postData.end_time,
+    //         start_date: postData.start_date,
+    //         end_date: postData.end_date,
     //         created_by: req.session.user.id
     //       },
     //       {
@@ -366,8 +366,8 @@ router.post('/detail/:projectId', validationRules['project.update'], (req, res, 
               project_description: postData.project_description,
               user_id: postData.user_id,
               is_displayed: postData.is_displayed,
-              start_time: postData.start_time,
-              end_time: postData.end_time
+              start_date: postData.start_date,
+              end_date: postData.end_date
             }, {
               transaction: transaction
             })

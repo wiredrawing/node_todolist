@@ -27,13 +27,13 @@
             <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
               <p>開始日時</p>
               <p>
-                <input value="<%= old("start_time") %>" type="text" id="start_time" name="start_time" class="flat-picker form-control">
+                <input value="<%= old("start_date") %>" type="text" id="start_date" name="start_date" class="flat-picker form-control">
               </p>
 
-              <% if (errors("start_time").length > 0) { %>
+              <% if (errors("start_date").length > 0) { %>
                 <!-- エラーメッセージ -->
                 <div v-for="data in errors.delivery " class="col-md-12 col-lg-12 col-xl-12 ">
-                  <p class="alert alert-danger "><%- errors("start_time") %></p>
+                  <p class="alert alert-danger "><%- errors("start_date") %></p>
                 </div>
                 <!-- エラーメッセージ -->
               <% } %>
@@ -42,13 +42,13 @@
             <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
               <p>終了日時</p>
               <p>
-                <input value="<%= old("end_time") %>" type="text" id="end_time" name="end_time" class="flat-picker form-control">
+                <input value="<%= old("end_date") %>" type="text" id="end_date" name="end_date" class="flat-picker form-control">
               </p>
 
-              <% if (errors("end_time").length > 0) { %>
+              <% if (errors("end_date").length > 0) { %>
                 <!-- エラーメッセージ -->
                 <div v-for="data in errors.is_displayed " class="col-md-12 col-lg-12 col-xl-12 ">
-                  <p class="alert alert-danger "><%- errors("end_time") %></p>
+                  <p class="alert alert-danger "><%- errors("end_date") %></p>
                 </div>
                 <!-- エラーメッセージ -->
               <% } %>

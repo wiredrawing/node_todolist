@@ -40,7 +40,7 @@ router.get('/', function (req, res, next) {
     },
     // 締切が早い順
     order: [
-      ['end_time', 'asc'],
+      ['end_date', 'asc'],
       ['priority', 'desc']
     ]
   })

@@ -60,12 +60,12 @@ export default (sequelize, DataTypes) => {
     }
 
     formattedStartTime () {
-      console.log('=============>', moment(this.start_time).format('Y年M月D日'))
-      return moment(this.start_time).format('Y年M月D日')
+      console.log('=============>', moment(this.start_date).format('Y年M月D日'))
+      return moment(this.start_date).format('Y年M月D日')
     }
 
     formattedEndTime () {
-      return moment(this.end_time).format('Y年M月D日')
+      return moment(this.end_date).format('Y年M月D日')
     }
   };
   task.init({
@@ -94,10 +94,10 @@ export default (sequelize, DataTypes) => {
       // underscored: true,
     },
 
-    start_time: {
+    start_date: {
       type: DataTypes.DATE
     },
-    end_time: {
+    end_date: {
       type: DataTypes.DATE
     }
   }, {

@@ -227,29 +227,30 @@ router.get('/search/:keyword?', (req, res, next) => {
  */
 router.post('/update/:projectId', ...validationRules['project.update'], async (req, res, next) => {
   try {
-    console.log(validationResult(req).array());
+    const errors = validationResult(req);
+    if (errors.isEmpty() !== true) {
+      return next();
+    }
     let postData = req.body
-    console.log(postData)
     let project = await models.Project.findByPk(postData.project_id)
-    console.log(project);
     if ( project === null ) {
       throw new Error('Cound not find specified project id.')
     }
     let updateProject = {
-      project_name: "新規作成用プロジェクト名aaa",
-      project_description: "新規作成用プロジェクト概要",
-      is_displayed: 1,
-      start_date: "2022-10-05",
-      end_date: "2022-12-09",
-      user_id: 1,
+      project_name: postData.project_name,
+      project_description: postData.project_description,
+      is_displayed: postData.is_displayed,
+      start_date: postData.start_date,
+      end_date: postData.end_date,
+      user_id: postData.user_id,
       image_id: []
     }
     // Update.
     let result = await project.update(updateProject)
     console.log(result);
-    // if (result === null) {
-    //   throw new Error("Failed updating existing record.");
-    // }
+    if (result === null) {
+      throw new Error("Failed updating existing record.");
+    }
     let json = {
       status: true,
       code: 200,
@@ -266,6 +267,15 @@ router.post('/update/:projectId', ...validationRules['project.update'], async (r
     }
     return res.send(json)
   }
+}).post("/update/:projectId", (req, res, next) => {
+  const errors = validationResult(req).array();
+  let json = {
+    status: false,
+    code: 400,
+    response: errors,
+  }
+  res.status(400);
+  return res.send(json);
 })
 export default router
 

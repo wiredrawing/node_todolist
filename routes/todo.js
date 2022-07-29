@@ -212,8 +212,8 @@ router.post('/create', validationRules['task.create'], (req, res, next) => {
           priority: postData.priority,
           is_displayed: applicationConfig.binaryType.on,
           code_number: codeNumber,
-          start_time: postData.start_time,
-          end_time: postData.end_time,
+          start_date: postData.start_date,
+          end_date: postData.end_date,
           created_by: user.id
         },
         {

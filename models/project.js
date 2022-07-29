@@ -43,11 +43,11 @@ export default (sequelize, DataTypes) => {
     }
 
     formattedStartTime () {
-      return moment(this.start_time).format('Y年M月D日 H時m分s秒')
+      return moment(this.start_date).format('Y年M月D日 H時m分s秒')
     }
 
     formattedEndTime () {
-      return moment(this.end_time).format('Y年M月D日 H時m分s秒')
+      return moment(this.end_date).format('Y年M月D日 H時m分s秒')
     }
   };
   Project.init({

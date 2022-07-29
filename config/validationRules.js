@@ -257,23 +257,21 @@ const validationRules = {
     [
       // カスタムバリデーター
       check('user_id').isNumeric()
-        .custom(function (value, request) {
-          const userId = isNumber(value)
-          if ( userId === false ) {
-            throw new Error('正しいフォーマットで指定して下さい')
-          }
-          // user_idがDBレコードに存在するかバリデーションする
-          return models.user
-            .findByPk(value)
-            .then((data) => {
-              if ( data.id === value ) {
-                return true
-              }
+        .custom(async (value, request) => {
+          try {
+            const userId = isNumber(value)
+            if ( userId === false ) {
+              throw new Error('正しいフォーマットで指定して下さい')
+            }
+            // user_idがDBレコードに存在するかバリデーションする
+            let user = await models.user.findByPk(value)
+            if ( user === null ) {
               throw new Error('DBレコードに一致しません｡')
-            })
-            .catch((error) => {
-              throw new Error(error)
-            })
+            }
+            return true
+          } catch ( error ) {
+            return Promise.reject(error)
+          }
         }),
       check('project_name').isLength({
         min: 1,
@@ -296,22 +294,30 @@ const validationRules = {
         return Promise.reject('指定したプロジェクトデータが見つかりません')
       }),
       check('is_displayed', '表示状態を正しく選択して下さい').isIn(displayStatusList),
-      check('created_by').custom(function (value, obj) {
-        // ログインユーザー
-        const userId = parseInt(obj.req.session.user.id)
-        // プロジェクトID
-        const projectId = parseInt(obj.req.body.project_id)
-        return models.Project.findByPk(projectId).then(function (project) {
-          if ( !project ) {
+      check('created_by').custom(async (value, obj) => {
+        try {
+          // ログインユーザー
+          const userId = isNumber(value)
+          if ( userId === false ) {
+            throw new Error('プロジェクトの作成者IDが不正です')
+          }
+          // プロジェクトID
+          const projectId = isNumber(obj.req.body.project_id)
+          if ( projectId === false ) {
+            throw new Error('プロジェクトIDが不正です')
+          }
+          let project = await models.Project.findByPk(projectId, {
+            where: {
+              created_by: userId,
+            }
+          })
+          if ( project === null ) {
             throw new Error('プロジェクトが見つかりませんでした')
           }
-          const byUserId = parseInt(project.created_by)
-          if ( userId === byUserId ) {
-            console.log('プロジェクト更新者と作成者が一致しました')
-            return true
-          }
-          throw new Error('プロジェクト作成者のみ更新できます')
-        })
+          return true
+        } catch ( error ) {
+          return Promise.reject(error)
+        }
       })
     ],
   // --------------------------------------------------
@@ -366,7 +372,7 @@ const validationRules = {
         return Promise.reject(error)
       }
     }).withMessage('指定した画像がアップロードされていません｡'),
-    check('start_time')
+    check('start_date')
       .not()
       .isEmpty()
       .withMessage('開始日時は必須項目です')
@@ -380,7 +386,7 @@ const validationRules = {
         }
         throw new Error('不正な開始時間です')
       }),
-    check('end_time')
+    check('end_date')
       .not()
       .isEmpty()
       .withMessage('開始日時は必須項目です')
@@ -388,7 +394,7 @@ const validationRules = {
         if ( value === null || value === undefined ) {
           throw new Error('終了時間は正しく入力して下さい')
         }
-        const startTime = moment(obj.req.body.start_time)
+        const startTime = moment(obj.req.body.start_date)
         const endTime = moment(value)
         const endTimeFormat = endTime.format('YYYY-MM-DD')
         if ( endTimeFormat === value ) {
