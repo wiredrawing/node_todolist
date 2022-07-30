@@ -210,6 +210,7 @@ app.use((req, res, next) => {
       // URLリストから正規表現を作成
       const pathRegex = new RegExp(notRequiredList[index])
       if (pathRegex.test(pathname) === true) {
+        console.log(pathname);
         console.log('pathRegex.test(pathname) ==> ', pathRegex.test(pathname), pathname)
         isAllowed = true
         break
@@ -219,6 +220,7 @@ app.use((req, res, next) => {
     // console.log(isAllowed);
     if ( isAllowed !== true ) {
       if ( req.session.user === null || req.session.user === undefined ) {
+        console.log("強制リダイレクト");
         return res.redirect('/login')
       }
     }

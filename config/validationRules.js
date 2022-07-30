@@ -464,14 +464,11 @@ const validationRules = {
       if ( taskId === false ) {
         throw new Error('タスクIDが不正です')
       }
-      return models.Task.findByPk(taskId).then(function (task) {
-        if ( task !== null && parseInt(task.id) === taskId ) {
-          return true
-        }
-        throw new Error('タスクIDが不正です')
-      }).catch(function (error) {
-        return Promise.reject(new Error(error))
-      })
+      let task = await models.Task.findByPk(taskId, {})
+      if ( task !== null ) {
+        return true
+      }
+      return Promise.reject(new Error('タスクIDが不正です'))
     }),
     check('user_id').custom(function (value, obj) {
       const userId = isNumber(value)

@@ -1,4 +1,4 @@
-import express, { json } from 'express'
+import express from 'express'
 import validationRules from '../../config/validationRules.js'
 
 const router = express.Router()
@@ -8,20 +8,11 @@ import { validationResult } from 'express-validator'
 router.post('/:taskId', validationRules['star.create'], function (req, res, next) {
   console.log('Start creating \'create star api\' --------------------------')
   const errors = validationResult(req)
-  const postData = req.body
-  const taskId = req.body.task_id
-  console.log(req.body)
-  // バリデーションチェックを実行
-  if ( errors.isEmpty() !== true ) {
-    const sessionErrors = {}
-    console.log(errors.array())
-    errors.errors.forEach((error, index) => {
-      sessionErrors[error.param] = error.msg
-    })
-    // エラーをsessionに確保
-    req.session.sessionErrors = sessionErrors
-    return res.redirect('back')
+  if (errors.isEmpty() !== true) {
+    return next();
   }
+  const postData = req.body;
+  const taskId = postData.task_id;
 
   (async function () {
     let tx = await models.sequelize.transaction()
@@ -86,7 +77,15 @@ router.post('/:taskId', validationRules['star.create'], function (req, res, next
     // エラー系 response
     return Promise.reject(jsonResponse)
   })
+}).post("/:taskId", (req, res, next) => {
+  let json = {
+    status: false,
+    code: 400,
+    response: validationResult(req).array(),
+  }
+  // Return response code to the client.
+  res.status(400);
+  return res.send(json);
 })
 
 export default router
-// module.exports = router

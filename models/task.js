@@ -67,6 +67,18 @@ export default (sequelize, DataTypes) => {
     formattedEndTime () {
       return moment(this.end_date).format('Y年M月D日')
     }
+
+    /**
+     * プロジェクトIDと紐づけたタスクコードを返却
+     * @returns {string}
+     */
+    taskCode () {
+      let taskCode = "―";
+      if (this.Project) {
+        taskCode = "PJ:" + this.Project.id + "#" + this.id;
+      }
+      return taskCode;
+    }
   };
   task.init({
     task_name: DataTypes.STRING,
