@@ -120,9 +120,7 @@ router.get('/detail/:projectId', ...validationRules['project.detail.get'], async
     const json = {
       status: true,
       code: 200,
-      response: {
-        project: result
-      }
+      response: result
     }
     return res.json(json)
   })
