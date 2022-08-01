@@ -6,6 +6,7 @@ import logger from 'morgan'
 import bodyParser from 'body-parser'
 import parseUrl from 'parse-url'
 import { query, validationResult } from 'express-validator'
+import cors from "cors";
 // ----------------------------------------------------------
 // テンプレート用ルーティング(コントローラ)
 // ----------------------------------------------------------
@@ -154,6 +155,25 @@ app.use(
 //   return next();
 // });
 
+/**
+ * corsモジュールを使用せずに,生でcorsクロスドメイン通信を許可する場合は以下の内容を
+ * 実行する
+ */
+app.use((req, res, next) => {
+  // フロントエンド側のドメインからのリクエストを許可する
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001')
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', "GET,HEAD,PUT,PATCH,POST,DELETE");
+  res.setHeader("Access-Control-Allow-Headers", 'access-control-allow-origin,content-type');
+  // res.setHeader("Vary", 'Access-Control-Request-Headers');
+  res.status(200);
+  next();
+});
+// app.use(cors({
+//   origin: 'http://localhost:3001', //アクセス許可するオリジン
+//   credentials: true, //レスポンスヘッダーにAccess-Control-Allow-Credentials追加
+//   optionsSuccessStatus: 200 //レスポンスstatusを200に設定
+// }));
 app.use((req, res, next) => {
   try {
     // applicationPath
