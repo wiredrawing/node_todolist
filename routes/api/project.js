@@ -188,7 +188,10 @@ router.get('/search/:keyword?', (req, res, next) => {
               '$Tasks.TaskComments.comment$': { [Op.like]: '%' + keyword + '%' },
             }
           ]
-        }
+        },
+        order: [
+          ["id", "desc"]
+        ]
       })
       if ( projects.length > 0 ) {
         console.log(projects.length)
