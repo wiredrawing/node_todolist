@@ -33,14 +33,16 @@ router.post('/create', ...validationRules['project.create'], (req, res, next) =>
 
   const init = async function () {
     try {
+      // Make a transaction.
+      let tx = await models.sequelize.transaction();
       // Check the variable codeNumber.
       let checkCodeNumber = await models.Project.findOne({
         where: {
           code_number: codeNumber,
-        }
+        },
+        transaction: tx,
       })
       if ( checkCodeNumber !== null ) {
-
         throw new Error('現在,サーバーが混み合っているようです.もう一度試して見て下さい')
       }
 
@@ -56,12 +58,34 @@ router.post('/create', ...validationRules['project.create'], (req, res, next) =>
         end_date: postData.end_date,
         // created_by: req.session.user.id
       }
-      let project = await models.Project.create(insertProject)
+      let project = await models.Project.create(insertProject, {
+        transaction: tx,
+      });
       if ( project !== null ) {
-        return project
+        console.log("project --------------->", project);
+        // projectsテーブルへの挿入が成功した場合
+        // project_imagesテーブルへの画像レコードの挿入処理を行う
+        let images = [];
+        postData.image_id.forEach((value, index) => {
+          images.push({
+            image_id: value,
+            project_id: project.id,
+          })
+        })
+        console.log(images);
+        let projectImages = await models.ProjectImage.bulkCreate(images, {
+          transaction: tx
+        });
+        if (images.length === projectImages.length) {
+          await tx.commit();
+          console.log(projectImages);
+          return project
+        }
+        return Promise.reject("projectsテーブルへの変更は完了しましたが,project_imagesテーブルへの反映に失敗しました");
       }
       return Promise.reject('新規プロジェクトの作成に失敗しました')
     } catch ( error ) {
+      await tx.rollback();
       return Promise.reject(error)
     }
   }
@@ -270,6 +294,65 @@ router.post('/update/:projectId', ...validationRules['project.update'], async (r
   }
 }).post("/update/:projectId", (req, res, next) => {
   const errors = validationResult(req).array();
+  let json = {
+    status: false,
+    code: 400,
+    response: errors,
+  }
+  res.status(400);
+  return res.send(json);
+})
+
+/**
+ * 指定したプロジェクトに紐づくタスク一覧を取得する
+ */
+router.get("/task/:projectId/", ...validationRules["get.project.task"], (req, res, next) => {
+  const errors = validationResult(req);
+  if (errors.isEmpty() !== true) {
+    return next();
+  }
+  let projectId = req.params.projectId;
+  const db = () => {
+    return new Promise(function(resolve, reject) {
+      models.Task.findAll({
+        where: {
+          project_id: projectId,
+        }
+      }).then((result) => {
+        resolve(result);
+      }).catch((error) => {
+        reject(new Error("タスク情報の取得に失敗しました"));
+      })
+    })
+  }
+  const init = async () => {
+    try {
+      let tasks = await db();
+      console.log(tasks);
+      return tasks;
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+  return init().then((result) => {
+    let json = {
+      status: true,
+      code: 200,
+      response: result,
+    }
+    res.status(200);
+    return res.send(json);
+  }).catch((error) => {
+    let json = {
+      status: false,
+      code: 400,
+      response: error,
+    }
+    res.status(400);
+    return res.send(json);
+  })
+}).get("/:projectId/task", (req, res, next) => {
+  const errors = validationResult(req);
   let json = {
     status: false,
     code: 400,

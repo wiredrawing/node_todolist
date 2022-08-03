@@ -54,8 +54,11 @@ router.post('/upload', function (req, res, next) {
 // アップロード済み画像一覧を返却する
 router.get('/image', (req, res, next) => {
   // 現在アップロード済みの画像一覧を取得する
-  return models.Image.findAll()
-    .then((images) => {
+  return models.Image.findAll({
+    order: [
+      ["created_at", "desc"]
+    ]
+  }).then((images) => {
       const json = {
         status: true,
         response: {

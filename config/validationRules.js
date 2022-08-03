@@ -640,6 +640,19 @@ const validationRules = {
         }
         return Promise.reject(new Error('projectレコードが見つかりません'))
       })
+  ],
+  "get.project.task": [
+    check("projectId").isInt().custom(async (value) => {
+      let projectId = isNumber(value);
+      if (projectId === false) {
+        return Promise.reject("正しいprojectIdを指定して下さい");
+      }
+      let project = await models.Project.findByPk(projectId,null);
+      if (project !== null) {
+        return true;
+      }
+      return Promise.reject("指定したプロジェクトが見つかりませんでした.");
+    })
   ]
 }
 

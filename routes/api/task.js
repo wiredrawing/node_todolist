@@ -204,7 +204,16 @@ router.get('/:id', ...validationRules['task.get'], (req, res, next) => {
 
   const db = function () {
     return new Promise((resolve, reject) => {
-      return models.Task.findByPk(taskId).then((result) => {
+      return models.Task.findByPk(taskId, {
+        include: [
+          {
+            model: models.TaskComment,
+            include: [{
+              model: models.CommentImage,
+            }]
+          }
+        ]
+      }).then((result) => {
         if ( result !== null ) {
           console.log(result)
           return resolve(result)
@@ -295,6 +304,7 @@ router.post('/create', ...validationRules['task.create'], (req, res, next) => {
         const imageIDList = arrayUnique(req.body.image_id)
         const imagePromiseList = []
         // タスクの登録が完了したあと､画像とタスクを紐付ける
+        console.log(imageIDList);
         imageIDList.forEach((imageId, index) => {
           const pro = models.TaskImage.create(
             {
