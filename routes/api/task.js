@@ -211,6 +211,9 @@ router.get('/:id', ...validationRules['task.get'], (req, res, next) => {
             include: [{
               model: models.CommentImage,
             }]
+          },
+          {
+            model: models.TaskImage
           }
         ]
       }).then((result) => {
