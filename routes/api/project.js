@@ -22,14 +22,14 @@ import { Op } from 'sequelize'
 // End point.
 // http://localhost:3000/api/project/create/
 router.post('/create', ...validationRules['project.create'], (req, res, next) => {
-  console.log(req.body)
+  // console.log(req.body)
   const errors = validationResult(req)
   if ( errors.isEmpty() !== true ) {
     return next()
   }
   let postData = req.body
   let codeNumber = makeCodeNumber()
-  console.log(codeNumber)
+  // console.log(codeNumber)
 
   const init = async function () {
     try {
@@ -62,7 +62,7 @@ router.post('/create', ...validationRules['project.create'], (req, res, next) =>
         transaction: tx,
       });
       if ( project !== null ) {
-        console.log("project --------------->", project);
+        // console.log("project --------------->", project);
         // projectsテーブルへの挿入が成功した場合
         // project_imagesテーブルへの画像レコードの挿入処理を行う
         let images = [];
@@ -72,13 +72,13 @@ router.post('/create', ...validationRules['project.create'], (req, res, next) =>
             project_id: project.id,
           })
         })
-        console.log(images);
+        // console.log(images);
         let projectImages = await models.ProjectImage.bulkCreate(images, {
           transaction: tx
         });
         if (images.length === projectImages.length) {
           await tx.commit();
-          console.log(projectImages);
+          // console.log(projectImages);
           return project
         }
         return Promise.reject("projectsテーブルへの変更は完了しましたが,project_imagesテーブルへの反映に失敗しました");
@@ -169,7 +169,7 @@ router.get('/search/:keyword?', (req, res, next) => {
   } else {
     keyword = ''
   }
-  console.log(keyword)
+  // console.log(keyword)
   const init = async function () {
     try {
       let projects = await models.Project.findAll({
@@ -218,18 +218,18 @@ router.get('/search/:keyword?', (req, res, next) => {
         ]
       })
       if ( projects.length > 0 ) {
-        console.log(projects.length)
+        // console.log(projects.length)
         return projects
       }
       return Promise.reject(new Error('該当するProjectデータが見つかりません'))
     } catch ( error ) {
-      console.log(error)
+      // console.log(error)
       return Promise.reject(error)
     }
   }
   // 実行
   return init().then((result) => {
-    console.log(result)
+    // console.log(result)
     let jsonResponse = {
       status: true,
       code: 200,
@@ -272,7 +272,7 @@ router.post('/update/:projectId', ...validationRules['project.update'], async (r
     }
     // Update.
     let result = await project.update(updateProject)
-    console.log(result);
+    // console.log(result);
     if (result === null) {
       throw new Error("Failed updating existing record.");
     }
@@ -281,10 +281,10 @@ router.post('/update/:projectId', ...validationRules['project.update'], async (r
       code: 200,
       response: result,
     }
-    console.log(json);
+    // console.log(json);
     return res.send(json)
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     let json = {
       status: false,
       code: 400,
@@ -317,10 +317,17 @@ router.get("/task/:projectId/", ...validationRules["get.project.task"], (req, re
       models.Task.findAll({
         where: {
           project_id: projectId,
-        }
+        },
+        include: [
+          {
+            model: models.Star,
+          },
+        ],
       }).then((result) => {
+        // console.log("result ====>", result);
         resolve(result);
       }).catch((error) => {
+        // console.log(error);
         reject(new Error("タスク情報の取得に失敗しました"));
       })
     })
@@ -328,7 +335,7 @@ router.get("/task/:projectId/", ...validationRules["get.project.task"], (req, re
   const init = async () => {
     try {
       let tasks = await db();
-      console.log(tasks);
+      // console.log(tasks);
       return tasks;
     } catch (error) {
       return Promise.reject(error);
@@ -343,6 +350,7 @@ router.get("/task/:projectId/", ...validationRules["get.project.task"], (req, re
     res.status(200);
     return res.send(json);
   }).catch((error) => {
+    console.log(error);
     let json = {
       status: false,
       code: 400,

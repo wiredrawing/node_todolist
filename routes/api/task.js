@@ -45,7 +45,7 @@ router.get('/', ...validationRules['task.search'], (req, res, next) => {
         order: [
           ['end_date', 'desc'],
           ['id', 'desc']
-        ]
+        ],
       }
       // 検索用のフリーワードが設定されている場合
       if ( queries.keyword ) {
@@ -71,7 +71,7 @@ router.get('/', ...validationRules['task.search'], (req, res, next) => {
       }
 
       models.Task.findAll(condition).then((result) => {
-        // console.log(result)
+        // // console.log(result)
         resolve(result)
       }).catch((error) => {
         return Promise.reject(error)
@@ -142,11 +142,11 @@ router.get('/', ...validationRules['task.search'], (req, res, next) => {
 //           }
 //         }
 //       }
-//       console.log(condition)
+//       // console.log(condition)
 //       return models.Task.findAll(condition).then((result) => {
 //         resolve(result)
 //       }).catch((error) => {
-//         console.log(error)
+//         // console.log(error)
 //         reject(error)
 //       })
 //     })
@@ -157,14 +157,14 @@ router.get('/', ...validationRules['task.search'], (req, res, next) => {
 //       let tasks = await db(queries)
 //       return tasks
 //     } catch ( error ) {
-//       console.log(error)
+//       // console.log(error)
 //       return null
 //     }
 //   }
 //
 //   // Return the json response.
 //   return init().then((result) => {
-//     console.log(result)
+//     // console.log(result)
 //     let json = {
 //       status: true,
 //       code: 200,
@@ -210,15 +210,18 @@ router.get('/:id', ...validationRules['task.get'], (req, res, next) => {
             model: models.TaskComment,
             include: [{
               model: models.CommentImage,
-            }]
+            }],
           },
           {
-            model: models.TaskImage
+            model: models.TaskImage,
           }
+        ],
+        order: [
+          [models.TaskComment, "id", "desc"]
         ]
       }).then((result) => {
         if ( result !== null ) {
-          console.log(result)
+          // // console.log(result)
           return resolve(result)
         }
         return Promise.reject('Failed finding task record which you selelcted.')
@@ -244,7 +247,7 @@ router.get('/:id', ...validationRules['task.get'], (req, res, next) => {
     }
     return res.send(jsonResponse)
   }).catch((error) => {
-    console.log(error)
+    // console.log(error)
     let jsonResponse = {
       status: false,
       code: 400,
@@ -270,7 +273,7 @@ router.post('/create', ...validationRules['task.create'], (req, res, next) => {
   if ( errors.isEmpty() !== true ) {
     return next()
   }
-  console.log('Pass validation check.')
+  // console.log('Pass validation check.')
   // Add new task record.
   const codeNumber = makeCodeNumber(12)
   const db = async function () {
@@ -302,12 +305,12 @@ router.post('/create', ...validationRules['task.create'], (req, res, next) => {
         if ( task === null ) {
           throw new Error('Failed creating new task record on DB.')
         }
-        console.log(task.id)
+        // console.log(task.id)
         lastInsertId = task.id
         const imageIDList = arrayUnique(req.body.image_id)
         const imagePromiseList = []
         // タスクの登録が完了したあと､画像とタスクを紐付ける
-        console.log(imageIDList);
+        // console.log(imageIDList);
         imageIDList.forEach((imageId, index) => {
           const pro = models.TaskImage.create(
             {
@@ -326,7 +329,7 @@ router.post('/create', ...validationRules['task.create'], (req, res, next) => {
         }
         // トランザクションコミットを実行
         const promiseTransaction = await tx.commit()
-        console.log(promiseTransaction)
+        // console.log(promiseTransaction)
         task = await models.Task.findByPk(lastInsertId, {
           include: [
             { model: models.TaskImage }
@@ -334,7 +337,7 @@ router.post('/create', ...validationRules['task.create'], (req, res, next) => {
         })
         return resolve(task)
       } catch ( error ) {
-        console.log(error)
+        // console.log(error)
         return reject(error)
       }
     })
@@ -361,7 +364,7 @@ router.post('/create', ...validationRules['task.create'], (req, res, next) => {
   })
 }).post('/create', (req, res, next) => {
   const errors = validationResult(req).array()
-  console.log(errors)
+  // console.log(errors)
   let jsonResponse = {
     status: false,
     code: 400,

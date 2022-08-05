@@ -17,7 +17,7 @@ router.post('/create', validationRules['taskComment.create'], (req, res, next) =
     return next()
   }
   let postData = req.body
-  let imageIdList = req.body.image_id_list
+  let imageIdList = req.body.image_id
   const init = async function () {
 
     /**
@@ -105,6 +105,9 @@ router.get('/:taskId', validationRules['taskComment.get'], (req, res, next) => {
       {
         model: models.Task,
       }
+    ],
+    order: [
+      ["id", "desc"]
     ]
   }).then((taskComments) => {
     let jsonResponse = {

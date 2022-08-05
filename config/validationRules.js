@@ -552,7 +552,7 @@ const validationRules = {
       min: 1,
       max: 65553
     }),
-    check('image_id_list').optional({ nullable: true }).isArray().custom(async (value, { req }) => {
+    check('image_id').optional({ nullable: true }).isArray().custom(async (value, { req }) => {
       // If you want to allow null data, add next condition.
       // optional({nullable: true});
       // Is all of images is correct?
