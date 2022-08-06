@@ -27,6 +27,7 @@ import starApiRouter from './routes/api/star.js'
 import userApiRouter from './routes/api/user.js'
 import taskCommentApiRouter from "./routes/api/taskcomment.js";
 import taskApiRouter from "./routes/api/task.js";
+import utilityApiRouter from "./routes/api/utility.js";
 import session from 'express-session'
 import fileUpload from 'express-fileupload'
 // session用のpostgresql storeの実行用
@@ -268,6 +269,7 @@ app.use('/api/star', starApiRouter)
 app.use('/api/user', userApiRouter)
 app.use("/api/taskcomment", taskCommentApiRouter);
 app.use("/api/task", taskApiRouter);
+app.use("/api/utility", utilityApiRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

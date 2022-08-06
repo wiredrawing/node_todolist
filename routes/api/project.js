@@ -321,13 +321,22 @@ router.get("/task/:projectId/", ...validationRules["get.project.task"], (req, re
         include: [
           {
             model: models.Star,
+            separate: true,
+            // subQuery: false,
+            // group: [
+            //   "stars.task_id",
+            // ],
+            // attributes: [
+            //   [models.sequelize.fn("count", models.sequelize.col("Stars.id")), "starsNumber"]
+            // ],
+
           },
         ],
       }).then((result) => {
-        // console.log("result ====>", result);
+        console.log("result ====>", result);
         resolve(result);
       }).catch((error) => {
-        // console.log(error);
+        console.log(error);
         reject(new Error("タスク情報の取得に失敗しました"));
       })
     })
