@@ -318,6 +318,30 @@ const validationRules = {
         } catch ( error ) {
           return Promise.reject(error)
         }
+      }),
+      check('image_id').isArray().custom(async (value) => {
+        try {
+          console.log("image_id ----> ", value);
+          // 指定された画像一覧がDB上に存在するかどうかを検証
+          if ( value.length > 0 ) {
+            let images = await models.Image.findAll({
+              where: {
+                id: {
+                  [Op.in]: value,
+                }
+              }
+            })
+            console.log("images ---->", images);
+            if ( images !== null ) {
+              if (value.length === images.length) {
+                return true;
+              }
+            }
+          }
+          throw new Error('指定した画像データが見つかりません')
+        } catch ( error ) {
+          return Promise.reject(error)
+        }
       })
     ],
   // --------------------------------------------------

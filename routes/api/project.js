@@ -34,7 +34,7 @@ router.post('/create', ...validationRules['project.create'], (req, res, next) =>
   const init = async function () {
     try {
       // Make a transaction.
-      let tx = await models.sequelize.transaction();
+      let tx = await models.sequelize.transaction()
       // Check the variable codeNumber.
       let checkCodeNumber = await models.Project.findOne({
         where: {
@@ -60,12 +60,12 @@ router.post('/create', ...validationRules['project.create'], (req, res, next) =>
       }
       let project = await models.Project.create(insertProject, {
         transaction: tx,
-      });
+      })
       if ( project !== null ) {
         // console.log("project --------------->", project);
         // projectsテーブルへの挿入が成功した場合
         // project_imagesテーブルへの画像レコードの挿入処理を行う
-        let images = [];
+        let images = []
         postData.image_id.forEach((value, index) => {
           images.push({
             image_id: value,
@@ -75,17 +75,17 @@ router.post('/create', ...validationRules['project.create'], (req, res, next) =>
         // console.log(images);
         let projectImages = await models.ProjectImage.bulkCreate(images, {
           transaction: tx
-        });
-        if (images.length === projectImages.length) {
-          await tx.commit();
+        })
+        if ( images.length === projectImages.length ) {
+          await tx.commit()
           // console.log(projectImages);
           return project
         }
-        return Promise.reject("projectsテーブルへの変更は完了しましたが,project_imagesテーブルへの反映に失敗しました");
+        return Promise.reject('projectsテーブルへの変更は完了しましたが,project_imagesテーブルへの反映に失敗しました')
       }
       return Promise.reject('新規プロジェクトの作成に失敗しました')
     } catch ( error ) {
-      await tx.rollback();
+      await tx.rollback()
       return Promise.reject(error)
     }
   }
@@ -214,7 +214,7 @@ router.get('/search/:keyword?', (req, res, next) => {
           ]
         },
         order: [
-          ["id", "desc"]
+          ['id', 'desc']
         ]
       })
       if ( projects.length > 0 ) {
@@ -251,13 +251,22 @@ router.get('/search/:keyword?', (req, res, next) => {
  * 指定したプロジェクトデータの更新処理
  */
 router.post('/update/:projectId', ...validationRules['project.update'], async (req, res, next) => {
+  const errors = validationResult(req)
+  if ( errors.isEmpty() !== true ) {
+    return next()
+  }
+  // 以下の処理でstart_transaction
+  const tx = await models.sequelize.transaction(null, null)
+  // 行ロックを取得する用の定数
+  console.log('tx.LOCK -----> ', tx.LOCK)
+  console.log('tx.LOCK.UPDATE -----> ', tx.LOCK.UPDATE)
   try {
-    const errors = validationResult(req);
-    if (errors.isEmpty() !== true) {
-      return next();
-    }
     let postData = req.body
-    let project = await models.Project.findByPk(postData.project_id)
+    // sql for update で 行ロックを取得する
+    let project = await models.Project.findByPk(postData.project_id, {
+      transaction: tx,
+      lock: tx.LOCK.UPDATE,
+    })
     if ( project === null ) {
       throw new Error('Cound not find specified project id.')
     }
@@ -268,23 +277,42 @@ router.post('/update/:projectId', ...validationRules['project.update'], async (r
       start_date: postData.start_date,
       end_date: postData.end_date,
       user_id: postData.user_id,
-      image_id: []
     }
     // Update.
-    let result = await project.update(updateProject)
-    // console.log(result);
-    if (result === null) {
-      throw new Error("Failed updating existing record.");
+    let result = await project.update(updateProject, {
+      transaction: tx
+    })
+    if ( result === null ) {
+      throw new Error('Failed updating existing record.')
     }
+    // 画像の更新 (1)画像の削除
+    let images = await models.ProjectImage.destroy({
+      where: {
+        project_id: postData.project_id,
+      }
+    });
+    console.log("deleted images ----> ", images);
+    let insertImages = []
+    postData.image_id.forEach((value) => {
+      insertImages.push({
+        image_id: value,
+        project_id: postData.project_id,
+      })
+    })
+    result = await models.ProjectImage.bulkCreate(insertImages, {
+      transaction: tx
+    })
+    result = await tx.commit()
+    console.log('await tx.commit() -----> ', result)
     let json = {
       status: true,
       code: 200,
       response: result,
     }
-    // console.log(json);
     return res.send(json)
-  } catch (error) {
-    // console.log(error);
+  } catch ( error ) {
+    let result = await tx.rollback()
+    console.log('await tx.rollback() =====> ', result)
     let json = {
       status: false,
       code: 400,
@@ -292,28 +320,28 @@ router.post('/update/:projectId', ...validationRules['project.update'], async (r
     }
     return res.send(json)
   }
-}).post("/update/:projectId", (req, res, next) => {
-  const errors = validationResult(req).array();
+}).post('/update/:projectId', (req, res, next) => {
+  const errors = validationResult(req).array()
   let json = {
     status: false,
     code: 400,
     response: errors,
   }
-  res.status(400);
-  return res.send(json);
+  res.status(400)
+  return res.send(json)
 })
 
 /**
  * 指定したプロジェクトに紐づくタスク一覧を取得する
  */
-router.get("/task/:projectId/", ...validationRules["get.project.task"], (req, res, next) => {
-  const errors = validationResult(req);
-  if (errors.isEmpty() !== true) {
-    return next();
+router.get('/task/:projectId/', ...validationRules['get.project.task'], (req, res, next) => {
+  const errors = validationResult(req)
+  if ( errors.isEmpty() !== true ) {
+    return next()
   }
-  let projectId = req.params.projectId;
+  let projectId = req.params.projectId
   const db = () => {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       models.Task.findAll({
         where: {
           project_id: projectId,
@@ -333,21 +361,21 @@ router.get("/task/:projectId/", ...validationRules["get.project.task"], (req, re
           },
         ],
       }).then((result) => {
-        console.log("result ====>", result);
-        resolve(result);
+        console.log('result ====>', result)
+        resolve(result)
       }).catch((error) => {
-        console.log(error);
-        reject(new Error("タスク情報の取得に失敗しました"));
+        console.log(error)
+        reject(new Error('タスク情報の取得に失敗しました'))
       })
     })
   }
   const init = async () => {
     try {
-      let tasks = await db();
+      let tasks = await db()
       // console.log(tasks);
-      return tasks;
-    } catch (error) {
-      return Promise.reject(error);
+      return tasks
+    } catch ( error ) {
+      return Promise.reject(error)
     }
   }
   return init().then((result) => {
@@ -356,27 +384,27 @@ router.get("/task/:projectId/", ...validationRules["get.project.task"], (req, re
       code: 200,
       response: result,
     }
-    res.status(200);
-    return res.send(json);
+    res.status(200)
+    return res.send(json)
   }).catch((error) => {
-    console.log(error);
+    console.log(error)
     let json = {
       status: false,
       code: 400,
       response: error,
     }
-    res.status(400);
-    return res.send(json);
+    res.status(400)
+    return res.send(json)
   })
-}).get("/:projectId/task", (req, res, next) => {
-  const errors = validationResult(req);
+}).get('/:projectId/task', (req, res, next) => {
+  const errors = validationResult(req)
   let json = {
     status: false,
     code: 400,
     response: errors,
   }
-  res.status(400);
-  return res.send(json);
+  res.status(400)
+  return res.send(json)
 })
 export default router
 
