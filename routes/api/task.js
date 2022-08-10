@@ -375,13 +375,14 @@ router.post('/create', ...validationRules['task.create'], (req, res, next) => {
 
 /**
  * 指定したタスクIDの情報を更新する
+ * TODO: tasksテーブルの更新処理後,task_imagesテーブルの更新処理を追加する
  */
 router.post('/update/:taskId', ...validationRules['task.update'], async (req, res, next) => {
   const errors = validationResult(req)
-
   if ( errors.isEmpty() !== true ) {
     return next()
   }
+  const tx = await models.sequelize.transaction();
   try {
     let postData = req.body
     // 更新用オブジェクト
@@ -392,28 +393,60 @@ router.post('/update/:taskId', ...validationRules['task.update'], async (req, re
       status: postData.status,
       project_id: postData.project_id,
       priority: postData.priority,
-      is_displayed: postData.is_displayed
+      is_displayed: postData.is_displayed,
+      start_date: postData.start_date,
+      end_date: postData.end_date,
     }
     let task = await models.Task.findByPk(postData.task_id, {
-      include: [
-        {
-          model: models.Project
-        },
-        {
-          model: models.TaskComment,
-          include: [
-            {
-              model: models.CommentImage,
-            }
-          ]
-        }
-      ]
+      transaction: tx,
+      // for update
+      lock: tx.LOCK.UPDATE,
+      // include: [
+      //   {
+      //     model: models.Project,
+      //   },
+      //   {
+      //     model: models.TaskComment,
+      //     include: [
+      //       {
+      //         model: models.CommentImage,
+      //       }
+      //     ]
+      //   }
+      // ],
     })
     if ( task === null ) {
       throw new Error('指定したタスク情報が見つかりません')
     }
-    let result = await task.update(updateTask)
+    let result = await task.update(updateTask, {
+      transaction: tx,
+    })
+    // 既存のタスク画像を削除する
+    let deletedTaskImages = await models.TaskImage.destroy({
+      where: {
+        task_id: postData.task_id,
+      },
+      transaction: tx,
+    })
+    console.log("deletedTaskImages -----> ",  deletedTaskImages);
 
+    // タスク用画像が存在する場合
+    if (postData.image_id.length > 0) {
+      let updateTaskImages = [];
+      postData.image_id.forEach((value) => {
+        updateTaskImages.push({
+          task_id: postData.task_id,
+          image_id: value,
+        })
+      })
+      let newestTaskImages = await models.TaskImage.bulkCreate(updateTaskImages, {
+        transaction: tx,
+      });
+      console.log("newestTaskImages -----> ", newestTaskImages);
+    }
+
+    let commitResult = await tx.commit();
+    console.log("commitResult ====> ", commitResult);
     let jsonResponse = {
       status: true,
       code: 200,
@@ -421,6 +454,9 @@ router.post('/update/:taskId', ...validationRules['task.update'], async (req, re
     }
     return res.send(jsonResponse)
   } catch ( error ) {
+    let rollbackResult = await tx.rollback();
+    console.log(error);
+    console.log("rollbackResult ---> ", rollbackResult);
     let jsonResponse = {
       status: false,
       code: 400,

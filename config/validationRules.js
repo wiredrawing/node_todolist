@@ -477,6 +477,30 @@ const validationRules = {
         return true
       }
       return Promise.reject(new Error('タスク作成者のみ編集可能です'))
+    }),
+    check("image_id").isArray().custom(async (value) => {
+      try {
+        console.log("image_id ------> ", value);
+        if (value.length > 0) {
+          let images = await models.Image.findAll({
+            where: {
+              id: {
+                [Op.in]: value
+              }
+            }
+          });
+          console.log(images);
+          if (images !== null && (images.length === value.length)) {
+            console.log("validation ok.---->", images);
+            return true;
+          }
+          throw new Error("指定した画像がサーバー上に存在しません");
+        }
+        return true;
+      } catch (error) {
+        console.log(error);
+        return Promise.reject(error);
+      }
     })
   ],
   // ---------------------------------
