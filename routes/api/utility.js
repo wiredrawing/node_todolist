@@ -15,6 +15,7 @@ router.get('/', (req, res, next) => {
       response: {
         priority: applicationConfig.priorityStatusList,
         status: applicationConfig.statusList,
+        displayTypes: applicationConfig.displayStatusList,
       }
     }
     res.status(200);

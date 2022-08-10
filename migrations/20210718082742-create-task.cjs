@@ -32,6 +32,10 @@ module.exports = {
       is_displayed: {
         type: Sequelize.INTEGER(2),
       },
+      // 削除状態のフラグ
+      is_deleted: {
+        type: Sequelize.INTEGER(2),
+      },
       // 識別用のタスクコード
       code_number: {
         type: Sequelize.STRING(64),

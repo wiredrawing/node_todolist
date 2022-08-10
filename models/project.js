@@ -56,6 +56,7 @@ export default (sequelize, DataTypes) => {
     user_id: DataTypes.BIGINT,
     code_number: DataTypes.STRING,
     is_displayed: DataTypes.INTEGER,
+    is_deleted: DataTypes.INTEGER,
     start_date: {
       type: DataTypes.DATE
     },

@@ -2,15 +2,23 @@ import express from 'express'
 // const express = require('express')
 const router = express.Router()
 import models from '../../models/index.js'
+import applicationConfig from '../../config/application-config.js'
 // const models = require('../../models/index.js')
 // ---------------------------------------------------
 // 登録中のユーザー情報一覧を取得する
 // ---------------------------------------------------
-router.get('/', function (req, res, next) {
+router.get('/', function(req, res, next) {
   let result = null
 
   // 登録中のユーザー情報一覧を取得する
-  return models.user.findAll().then(function (users) {
+  return models.user.findAll({
+    where: {
+      // 表示中
+      is_displayed: applicationConfig.binaryType.on,
+      // 非削除
+      is_deleted: applicationConfig.binaryType.off,
+    }
+  }).then(function(users) {
     if ( users ) {
       // 成功時のレスポンス
       result = {
@@ -35,4 +43,3 @@ router.get('/', function (req, res, next) {
 })
 
 export default router
-// module.exports = router

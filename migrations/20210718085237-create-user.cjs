@@ -1,7 +1,7 @@
 // マイグレーションの実行コマンド
 // => npx sequelize db:migrate (※ Laravelでの php artisan migrate)
 // 一度にすべてのテーブルを削除する場合
-//  sequelize db:migrate:undo:all
+// npx sequelize db:migrate:undo:all (※ Laravelでの php artisan migrate:rollback)
 'use strict';
 module.exports = {
   up: async (queryInterface, Sequelize) => {
@@ -27,6 +27,14 @@ module.exports = {
       // 自己紹介
       description: {
         type: Sequelize.STRING(2048),
+      },
+      // 表示状態
+      is_displayed: {
+        type: Sequelize.INTEGER,
+      },
+      // 削除状態
+      is_deleted: {
+        type: Sequelize.INTEGER,
       },
       password: {
         type: Sequelize.STRING(2048),

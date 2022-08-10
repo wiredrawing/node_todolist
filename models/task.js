@@ -88,6 +88,7 @@ export default (sequelize, DataTypes) => {
     status: DataTypes.INTEGER,
     priority: DataTypes.INTEGER,
     is_displayed: DataTypes.INTEGER,
+    is_deleted: DataTypes.INTEGER,
     code_number: DataTypes.STRING,
     created_by: DataTypes.BIGINT,
     deleted_at: {
