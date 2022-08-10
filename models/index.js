@@ -6,7 +6,9 @@
 // npm install sequelize-cli-esm モジュールを事前にインストールする
 import fs from 'fs'
 
-process.env.DB_URL = 'postgres://en:en_password@localhost:15432/todo-list'
+//process.env.DB_URL = 'postgres://en:en_password@localhost:15432/todo-list'
+// postgresqlのサーバーを変更
+process.env.DB_URL = 'postgres://admin:admin@localhost:1235/todo-list'
 import { Sequelize, DataTypes } from 'sequelize'
 import user from './user.js'
 import star from './star.js'
@@ -26,6 +28,10 @@ const config = {
     if ( fs.existsSync('./sql.logs') !== true ) {
       console.log(str)
       console.log('SQL保存用ディレクトリが存在しません')
+      console.log("sql.logsディレクトリを作成します----->");
+      fs.mkdir('./sql.logs', {recursive:  true}, (err) => {
+        console.log("sql.logsのディレクトリを作成しました----->");
+      })
       return false
     }
     // 実行したsqlのhash値を取得し,これをファイル名とする

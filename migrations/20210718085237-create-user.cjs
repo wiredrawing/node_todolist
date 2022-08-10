@@ -1,3 +1,5 @@
+// マイグレーションの実行コマンド
+// => npx sequelize db:migrate (※ Laravelでの php artisan migrate)
 // 一度にすべてのテーブルを削除する場合
 //  sequelize db:migrate:undo:all
 'use strict';

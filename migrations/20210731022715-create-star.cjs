@@ -2,7 +2,7 @@
 // Migrationファイルの作成コマンド
 // (1)sequelize model:generate --name Star --attributes task_id:bigInt,user_id:bigInt
 // 作成したMigrationファイルを実行する
-// (2)sequelize db:migrate
+// (2)sequelize db:migrate (※ Laravelでの <php artisan migrate>
 // Migrationをロールバック
 // (3)sequelize db:migrate:undo
 ///////////////////////////////////////////////////////////////////////

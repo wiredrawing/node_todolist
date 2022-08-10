@@ -68,18 +68,20 @@ app.use(express.static(path.join(__dirname, 'public')))
 // sequelizeの設定ファイルと共有する
 const pool = new Pool({
   host: 'localhost',
-  user: 'en',
-  password: 'en_password',
+  user: 'admin',
+  password: 'admin',
   database: 'todo-list',
-  port: '15432',
+  port: '1235',
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000
 })
 
-// ------------------------------------------
+// ------------------------------------------------------------------
 // ログイン情報の保持にセッションを利用する
-// ------------------------------------------
+// 以下のSQLを実行してセッション保存用のテーブルを作成する必要がある
+// psql mydatabase < node_modules/connect-pg-simple/table.sql
+// ------------------------------------------------------------------
 app.use(
   session({
     store: new pgSession({

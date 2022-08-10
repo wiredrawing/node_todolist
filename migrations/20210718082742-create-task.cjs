@@ -1,3 +1,5 @@
+// マイグレーションの実行コマンド
+// => npx sequelize db:migrate (※ Laravelでの php artisan migrate)
 'use strict';
 module.exports = {
   up: async (queryInterface, Sequelize) => {

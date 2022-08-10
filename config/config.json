@@ -1,11 +1,11 @@
 {
   "development": {
-    "username": "en",
-    "password": "en_password",
+    "username": "admin",
+    "password": "admin",
     "database": "todo-list",
     "host": "localhost",
     "dialect": "postgres",
-    "port": 15432,
+    "port": 1235,
     "define": {
       "timestamps": true
     },
