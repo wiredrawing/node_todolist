@@ -23,6 +23,9 @@ module.exports = {
       is_displayed: {
         type: Sequelize.INTEGER
       },
+      is_deleted: {
+        type: Sequelize.INTEGER
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,

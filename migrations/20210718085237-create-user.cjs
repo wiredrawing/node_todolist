@@ -31,10 +31,12 @@ module.exports = {
       // 表示状態
       is_displayed: {
         type: Sequelize.INTEGER,
+        defaultValue: 1,
       },
       // 削除状態
       is_deleted: {
         type: Sequelize.INTEGER,
+        defaultValue: 0,
       },
       password: {
         type: Sequelize.STRING(2048),
