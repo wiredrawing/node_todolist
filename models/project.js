@@ -17,7 +17,7 @@ export default (sequelize, DataTypes) => {
         sourceKey: 'id'
       })
       // 責任者ユーザー
-      Project.hasOne(models.user, {
+      Project.hasOne(models.User, {
         foreignKey: 'id',
         sourceKey: 'user_id'
       })
@@ -26,7 +26,7 @@ export default (sequelize, DataTypes) => {
         sourceKey: 'id'
       })
       // プロジェクト作成ユーザー
-      Project.hasOne(models.user, {
+      Project.hasOne(models.User, {
         foreignKey: 'id',
         sourceKey: 'created_by',
         as: 'userCreatedTask'

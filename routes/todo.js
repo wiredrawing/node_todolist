@@ -9,7 +9,7 @@ import makeCodeNumber from '../config/makeCodeNumber.js'
 import validationRules from '../config/validationRules.js'
 
 const userIDList = []
-models.user
+models.User
   .findAll()
   .then((users) => {
     return users

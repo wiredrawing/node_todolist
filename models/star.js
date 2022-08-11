@@ -12,7 +12,7 @@ export default (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Star.hasOne(models.user, {
+      Star.hasOne(models.User, {
         foreignKey: "id",
       });
       Star.hasOne(models.Task, {

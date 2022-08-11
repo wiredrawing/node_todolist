@@ -63,7 +63,7 @@ const config = {
 const sequelize = new Sequelize(process.env.DB_URL, config)
 const models = {
   // モデルを静的定義していく
-  user: user(sequelize, DataTypes),
+  User: user(sequelize, DataTypes),
   Task: task(sequelize, DataTypes),
   Star: star(sequelize, DataTypes),
   Image: image(sequelize, DataTypes),

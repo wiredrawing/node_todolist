@@ -214,6 +214,9 @@ router.get('/:id', ...validationRules['task.get'], (req, res, next) => {
           },
           {
             model: models.TaskImage,
+          },
+          {
+            model: models.User,
           }
         ],
         order: [

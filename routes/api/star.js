@@ -63,6 +63,7 @@ router.post('/:taskId', validationRules['star.create'], function (req, res, next
     } catch ( error ) {
       await tx.rollback()
       console.log('Finished creating \'create star api\' --------------------------')
+      console.log(error);
       return Promise.reject(error);
     }
   })().then((jsonResponse) => {

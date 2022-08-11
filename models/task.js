@@ -12,19 +12,19 @@ export default (sequelize, DataTypes) => {
      */
     static associate (models) {
       // belongsToで代替可能だが...
-      task.hasOne(models.user, {
+      task.hasOne(models.User, {
         foreignKey: 'id',
         sourceKey: 'user_id'
       })
       // belongsToUserで代替した場合
       // かつ､エイリアスで別名を付与
-      task.belongsTo(models.user, {
+      task.belongsTo(models.User, {
         foreignKey: 'user_id',
         sourceKey: 'id',
         as: 'belongsToUser'
       })
       // タスク作成者IDに紐付ける
-      task.hasOne(models.user, {
+      task.hasOne(models.User, {
         foreignKey: 'id',
         sourceKey: 'created_by',
         as: 'userCreatedTask'

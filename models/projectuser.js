@@ -16,7 +16,7 @@ export default (sequelize, DataTypes) => {
         foreignKey: 'id',
         sourceKey: 'project_id'
       })
-      ProjectUser.hasOne(models.user, {
+      ProjectUser.hasOne(models.User, {
         foreignKey: 'id',
         sourceKey: 'user_id'
       })

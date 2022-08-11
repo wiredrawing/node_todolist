@@ -41,7 +41,7 @@ const validationRules = {
       .isEmail()
       .withMessage('正しいメールアドレスを入力して下さい')
       .custom(function (value, obj) {
-        return models.user
+        return models.User
           .findAll({
             where: {
               email: value
@@ -64,7 +64,7 @@ const validationRules = {
       })
       .withMessage('10文字以上64文字以内で入力して下さい')
       .custom(function (value, obj) {
-        return models.user
+        return models.User
           .findOne({
             where: {
               email: obj.req.body.email
@@ -119,7 +119,7 @@ const validationRules = {
       .isEmail()
       .withMessage('正しいメールアドレスを入力して下さい｡')
       .custom(function (value, obj) {
-        return models.user
+        return models.User
           .findAll({
             where: {
               email: value
@@ -163,7 +163,7 @@ const validationRules = {
   'project.create': [
     // カスタムバリデーター
     check('user_id', '登録者IDは必須項目です').isNumeric().custom(async (value, request) => {
-      let user = await models.user.findByPk(value)
+      let user = await models.User.findByPk(value)
       if ( user !== null ) {
         return true
       }
@@ -264,7 +264,7 @@ const validationRules = {
               throw new Error('正しいフォーマットで指定して下さい')
             }
             // user_idがDBレコードに存在するかバリデーションする
-            let user = await models.user.findByPk(value)
+            let user = await models.User.findByPk(value)
             if ( user === null ) {
               throw new Error('DBレコードに一致しません｡')
             }
@@ -365,7 +365,7 @@ const validationRules = {
           // Not a Numberだったら例外
           return Promise.reject(new Error('user_idが正しい数値型ではありません.'))
         }
-        let user = await models.user.findByPk(userId)
+        let user = await models.User.findByPk(userId)
         if ( user !== null && parseInt(user.id) === userId ) {
           // userIdの存在を確定.
           return true
@@ -523,7 +523,7 @@ const validationRules = {
       if ( userId === false ) {
         return Promise.reject(new Error('ユーザーIDが不正です'))
       }
-      return models.user.findByPk(userId).then(function (user) {
+      return models.User.findByPk(userId).then(function (user) {
         if ( user !== null && parseInt(user.id) === userId ) {
           // user_idとtask_idの組み合わせはユニークであること
           return models.Star.findAll({
@@ -590,7 +590,7 @@ const validationRules = {
       return Promise.reject('指定したタスクIDが存在しません')
     }),
     check('user_id', '不正なユーザーです').isInt().custom(async (value) => {
-      let user = await models.user.findByPk(value, null)
+      let user = await models.User.findByPk(value, null)
       if ( user !== null ) {
         return true
       }

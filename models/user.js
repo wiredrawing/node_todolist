@@ -5,7 +5,7 @@ import pkg from 'sequelize';
 const {Model} = pkg;
 
 export default (sequelize, DataTypes) => {
-  class user extends Model {
+  class User extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -13,7 +13,7 @@ export default (sequelize, DataTypes) => {
      */
     static associate (models) {
       // define association here
-      user.hasMany(models.Task, {
+      User.hasMany(models.Task, {
         foreignKey: 'user_id'
       })
     }
@@ -31,7 +31,7 @@ export default (sequelize, DataTypes) => {
       return moment(this.updatedAt).format('Y年M月D日 H時m分s秒')
     }
   }
-  user.init(
+  User.init(
     {
       user_name: DataTypes.STRING,
       email: DataTypes.STRING,
@@ -62,5 +62,5 @@ export default (sequelize, DataTypes) => {
       paranoid: true
     }
   )
-  return user
+  return User
 }

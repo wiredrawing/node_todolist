@@ -12,7 +12,7 @@ export default (sequelize, DataTypes) => {
      */
     static associate (models) {
       // define association here
-      TaskComment.hasOne(models.user, {
+      TaskComment.hasOne(models.User, {
         foreignKey: 'id',
         sourceKey: 'user_id'
       })

@@ -127,7 +127,7 @@ router.get('/detail/:projectId', ...validationRules['project.detail.get'], async
           model: models.ProjectImage,
           include: [{ model: models.Image }]
         },
-        { model: models.user },
+        { model: models.User },
         {
           model: models.Task,
           include: [{ model: models.TaskComment }]
@@ -181,7 +181,7 @@ router.get('/search/:keyword?', (req, res, next) => {
               { model: models.TaskComment, }
             ]
           },
-          { model: models.user, }
+          { model: models.User, }
         ],
         where: {
           [Op.or]: [
@@ -357,8 +357,10 @@ router.get('/task/:projectId/', ...validationRules['get.project.task'], (req, re
             // attributes: [
             //   [models.sequelize.fn("count", models.sequelize.col("Stars.id")), "starsNumber"]
             // ],
-
           },
+          {
+            model: models.User,
+          }
         ],
       }).then((result) => {
         console.log('result ====>', result)
