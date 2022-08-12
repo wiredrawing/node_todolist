@@ -163,30 +163,42 @@ const validationRules = {
   'project.create': [
     // カスタムバリデーター
     check('user_id', '登録者IDは必須項目です').isNumeric().custom(async (value, request) => {
-      let user = await models.User.findByPk(value)
-      if ( user !== null ) {
-        return true
+      try {
+        let user = await models.User.findByPk(value)
+        if ( user !== null ) {
+          return true
+        }
+        return Promise.reject(new Error('DBレコードに一致しません｡'))
+      } catch (error) {
+        console.log(error);
+        return Promise.reject(error);
       }
-      return Promise.reject(new Error('DBレコードに一致しません｡'))
     }),
     // プロジェクト名
     check('project_name', 'プロジェクト名を入力して下さい').isLength({
       min: 1,
       max: 256
     }).custom(async (value) => {
-      // Deny registering project having same name.
-      if ( !value ) {
-        return Promise.reject('プロジェクト名を必ず入力して下さい')
-      }
-      let project = await models.Project.findOne({
-        where: {
-          project_name: value,
+      try {
+        // Deny registering project having same name.
+        if ( !value ) {
+          return Promise.reject('プロジェクト名を必ず入力して下さい')
         }
-      })
-      if ( project !== null ) {
-        return Promise.reject('既に同名のプロジェクトが存在します')
+        let project = await models.Project.findOne({
+          where: {
+            project_name: {
+              [Op.eq]: value,
+            }
+          }
+        })
+        if ( project !== null ) {
+          return Promise.reject('既に同名のプロジェクトが存在します')
+        }
+        return true
+      } catch (error) {
+        console.log(error);
+        return Promise.reject(error);
       }
-      return true
     }),
     // プロジェクト概要
     check('project_description').isLength({
@@ -194,21 +206,26 @@ const validationRules = {
       max: 4096
     }).withMessage('プロジェクトの概要を4000文字以内で入力して下さい｡'),
     // 画像ID
-    check('image_id', '指定した画像がアップロードされていません｡').custom(async function (value) {
-      if ( Array.isArray(value) !== true ) {
-        return Promise.reject(new Error('アップロード画像パラメータが配列ではありません.'))
-      }
-      let images = await models.Image.findAll({
-        where: {
-          id: {
-            [Op.in]: value,
-          }
+    check('image_id', '指定した画像がアップロードされていません｡').isArray().custom(async function (value) {
+      try {
+        if ( Array.isArray(value) !== true ) {
+          return Promise.reject(new Error('アップロード画像パラメータが配列ではありません.'))
         }
-      })
-      if ( images.length === value.length ) {
-        return true
+        let images = await models.Image.findAll({
+          where: {
+            id: {
+              [Op.in]: value,
+            }
+          }
+        })
+        if ( images.length === value.length ) {
+          return true
+        }
+        return Promise.reject(new Error('指定した画像がアップロードされていません｡'))
+      } catch (error) {
+        console.log(error);
+        return Promise.reject(error);
       }
-      return Promise.reject(new Error('指定した画像がアップロードされていません｡'))
     }),
     check('is_displayed').isIn(displayStatusList).withMessage('規定の選択肢から設定して下さい'),
     // タスク開始時間
@@ -231,8 +248,8 @@ const validationRules = {
       .not()
       .isEmpty()
       .withMessage('終了時間は必須項目です')
-      .custom(function (value, obj) {
-        if ( value === null || value === undefined ) {
+      .custom(async function (value, obj) {
+        if (!value) {
           throw new Error('終了時間は正しく入力して下さい')
         }
         const startTime = moment(obj.req.body.start_date)
@@ -245,9 +262,29 @@ const validationRules = {
         }
         throw new Error('不正な終了時間です')
       }),
-    check('users').custom(function (value, obj) {
-      console.log('users value --->', value)
-      return true
+    check('users').isArray().custom(async function (value, obj) {
+      try {
+        // 指定したuser_idの配列がすべて存在することを保証させる
+        if (Array.isArray(value) !== true) {
+          throw new Error("正しい参加者を指定して下さい");
+        }
+        let users = await models.User.findAll({
+          where: {
+            id: {
+              [Op.in]: value,
+            }
+          }
+        })
+        if (users.length !== value.length) {
+          throw new Error("指定した参加者の一部が不正です");
+        }
+        console.log('value ----->', value)
+        console.log('users ----->', users)
+        return true
+      } catch (error) {
+        console.log(error);
+        return Promise.reject(error);
+      }
     })
   ],
   // --------------------------------------------------

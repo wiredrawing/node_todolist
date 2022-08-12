@@ -31,7 +31,11 @@ export default (sequelize, DataTypes) => {
         sourceKey: 'created_by',
         as: 'userCreatedTask'
       })
-      // define association here
+      // プロジェクト参画ユーザー
+      Project.hasMany(models.ProjectUser, {
+        foreignKey: "project_id",
+        sourceKey : "id"
+      })
     }
 
     formattedCreatedAt () {

@@ -72,16 +72,31 @@ router.post('/create', ...validationRules['project.create'], (req, res, next) =>
             project_id: project.id,
           })
         })
-        // console.log(images);
+        // プロジェクト用の画像をレコードに作成する
         let projectImages = await models.ProjectImage.bulkCreate(images, {
           transaction: tx
         })
-        if ( images.length === projectImages.length ) {
-          await tx.commit()
-          // console.log(projectImages);
-          return project
+        if ( images.length !== projectImages.length ) {
+          throw new Error("プロジェクト用画像のレコード登録に失敗しました")
         }
-        return Promise.reject('projectsテーブルへの変更は完了しましたが,project_imagesテーブルへの反映に失敗しました')
+        // プロジェクト参画ユーザーをDBに登録
+        let users = [];
+        postData.users.forEach((value, index) => {
+          users.push({
+            project_id: project.id,
+            user_id: value,
+          })
+        });
+        let projectUsers = await models.ProjectUser.bulkCreate(users, {
+          transaction: tx,
+        });
+        console.log("projectUsers ----->", projectUsers);
+        if ( users.length !== projectUsers.length ) {
+          throw new Error("プロジェクト用画像のレコード登録に失敗しました")
+        }
+        await tx.commit()
+        // console.log(projectImages);
+        return project
       }
       return Promise.reject('新規プロジェクトの作成に失敗しました')
     } catch ( error ) {
@@ -121,23 +136,30 @@ router.get('/detail/:projectId', ...validationRules['project.detail.get'], async
   }
   const projectId = parseInt(req.params.projectId)
   const db = async () => {
-    let project = await models.Project.findByPk(projectId, {
-      include: [
-        {
-          model: models.ProjectImage,
-          include: [{ model: models.Image }]
-        },
-        { model: models.User },
-        {
-          model: models.Task,
-          include: [{ model: models.TaskComment }]
-        }
-      ]
-    })
-    if ( project === null ) {
-      return Promise.reject('指定したproject idのデータが見つかりません')
+    try {
+      let project = await models.Project.findByPk(projectId, {
+        include: [
+          {
+            model: models.ProjectImage,
+            include: [{ model: models.Image }]
+          },
+          { model: models.User },
+          {
+            model: models.Task,
+            include: [{ model: models.TaskComment }]
+          },
+          {
+            model: models.ProjectUser,
+          }
+        ]
+      })
+      if ( project === null ) {
+        return Promise.reject('指定したproject idのデータが見つかりません')
+      }
+      return project
+    } catch (error) {
+      console.log(error);
     }
-    return project
   }
 
   return db().then((result) => {
@@ -255,9 +277,10 @@ router.post('/update/:projectId', ...validationRules['project.update'], async (r
   if ( errors.isEmpty() !== true ) {
     return next()
   }
-  // 以下の処理でstart_transaction
+  // Start transaction.
   const tx = await models.sequelize.transaction(null, null)
   // 行ロックを取得する用の定数
+  console.log("tx -----> ", tx);
   console.log('tx.LOCK -----> ', tx.LOCK)
   console.log('tx.LOCK.UPDATE -----> ', tx.LOCK.UPDATE)
   try {
@@ -289,19 +312,46 @@ router.post('/update/:projectId', ...validationRules['project.update'], async (r
     let images = await models.ProjectImage.destroy({
       where: {
         project_id: postData.project_id,
-      }
+      },
+      transaction: tx,
     });
     console.log("deleted images ----> ", images);
-    let insertImages = []
-    postData.image_id.forEach((value) => {
-      insertImages.push({
-        image_id: value,
-        project_id: postData.project_id,
+    if (postData.image_id.length > 0) {
+      let insertImages = []
+      postData.image_id.forEach((value) => {
+        insertImages.push({
+          image_id: value,
+          project_id: postData.project_id,
+        })
       })
-    })
-    result = await models.ProjectImage.bulkCreate(insertImages, {
-      transaction: tx
-    })
+      result = await models.ProjectImage.bulkCreate(insertImages, {
+        transaction: tx
+      })
+    }
+    // プロジェクト参画メンバーのレコード削除および更新
+    let deleteProjectUsers = await models.ProjectUser.destroy({
+      where: {
+        project_id:{
+          [Op.eq]: postData.project_id,
+        }
+      },
+      transaction: tx,
+    });
+    // プロジェクトの参画ユーザーをアップデート
+    if (postData.users.length > 0) {
+      let projectUsers = [];
+      postData.users.forEach((value, index) => {
+        projectUsers.push({
+          project_id: postData.project_id,
+          user_id: value,
+        })
+      });
+      result = await models.ProjectUser.bulkCreate(projectUsers,{
+        transaction: tx,
+      })
+      console.log("deleted projectUsers ----> ", deleteProjectUsers);
+    }
+
     result = await tx.commit()
     console.log('await tx.commit() -----> ', result)
     let json = {

@@ -78,14 +78,14 @@ router.get('/', (req, res, next) => {
       include: [
         { model: models.Star },
         { model: models.Project },
-        { model: models.user },
+        { model: models.User },
         { model: models.TaskImage },
         {
-          model: models.user,
+          model: models.User,
           as: 'belongsToUser'
         },
         {
-          model: models.user,
+          model: models.User,
           as: 'userCreatedTask'
         }
       ],
@@ -152,12 +152,12 @@ router.get(
     }
     // タスク一覧を取得するプロミス
     const taskPromise = models.Task.findAll({
-      include: [{ model: models.Star }, { model: models.Project }, { model: models.user }],
+      include: [{ model: models.Star }, { model: models.Project }, { model: models.User }],
       order: [['id', 'desc']]
     })
 
     // 担当者一覧
-    const userPromise = models.user.findAll({
+    const userPromise = models.User.findAll({
       include: [{ model: models.Task }],
       order: [['id', 'desc']]
     })
@@ -264,19 +264,19 @@ router.get('/detail/:task_id', (req, res, next) => {
   // taskモデルのpromiseを取得
   const taskID = req.params.task_id
   // userモデルのpromiseを取得
-  const users = models.user.findAll({
+  const users = models.User.findAll({
     order: [['id', 'asc']]
   })
 
   // タスク情報一覧
   const task = models.Task.findByPk(taskID, {
     include: [
-      { model: models.user },
+      { model: models.User },
       { model: models.Project },
       {
         model: models.TaskComment,
         include: [
-          { model: models.user },
+          { model: models.User },
           {
             model: models.CommentImage,
             include: [
@@ -293,6 +293,9 @@ router.get('/detail/:task_id', (req, res, next) => {
       {
         model: models.TaskImage,
         include: [{ model: models.Image }]
+      },
+      {
+        model: models.User,
       }
     ],
     // 結合先のテーブルにたいしてsortさせる
@@ -422,12 +425,12 @@ router.get('/edit/:task_id', (req, res, next) => {
   // taskモデルのpromiseを取得
   const taskID = req.params.task_id
   // userモデルのpromiseを取得
-  const users = models.user.findAll({
+  const users = models.User.findAll({
     order: [['id', 'asc']]
   })
   const task = models.Task
     .findByPk(taskID, {
-      include: [{ model: models.user }]
+      include: [{ model: models.User }]
     })
     .then((task) => {
       if ( task === null ) {

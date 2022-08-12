@@ -11,7 +11,7 @@ router.get('/', function(req, res, next) {
   let result = null
 
   // 登録中のユーザー情報一覧を取得する
-  return models.user.findAll({
+  return models.User.findAll({
     where: {
       // 表示中
       is_displayed: applicationConfig.binaryType.on,

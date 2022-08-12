@@ -217,6 +217,9 @@ router.get('/:id', ...validationRules['task.get'], (req, res, next) => {
           },
           {
             model: models.User,
+          },
+          {
+            model: models.Project,
           }
         ],
         order: [
