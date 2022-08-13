@@ -297,6 +297,7 @@ router.post('/create', ...validationRules['task.create'], (req, res, next) => {
             project_id: postData.project_id,
             priority: postData.priority,
             is_displayed: applicationConfig.binaryType.on,
+            is_deleted: applicationConfig.binaryType.off,
             code_number: codeNumber,
             start_date: postData.start_date,
             end_date: postData.end_date,
@@ -335,7 +336,7 @@ router.post('/create', ...validationRules['task.create'], (req, res, next) => {
         }
         // トランザクションコミットを実行
         const promiseTransaction = await tx.commit()
-        // console.log(promiseTransaction)
+        console.log("promiseTransaction -----> ", promiseTransaction)
         task = await models.Task.findByPk(lastInsertId, {
           include: [
             { model: models.TaskImage }

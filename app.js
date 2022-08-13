@@ -36,6 +36,7 @@ const { Pool } = pkg
 import sessionForPg from 'connect-pg-simple'
 // __dirnameと__filenameのシミュレーション
 import { fileURLToPath } from 'url'
+import applicationConfig from './config/application-config.js'
 
 
 const pgSession = sessionForPg(session)
@@ -164,10 +165,11 @@ app.use(
  */
 app.use((req, res, next) => {
   // フロントエンド側のドメインからのリクエストを許可する
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001')
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', "GET,HEAD,PUT,PATCH,POST,DELETE");
   res.setHeader("Access-Control-Allow-Headers", 'access-control-allow-origin,content-type');
+  res.setHeader("X-Powered-By", "Wire-Drawing.co.jp");
   // res.setHeader("Vary", 'Access-Control-Request-Headers');
   res.status(200);
   next();

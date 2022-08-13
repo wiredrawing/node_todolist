@@ -67,6 +67,14 @@ export default  {
     'image/png': 'png',
     'image/gif': 'gif',
     'application/pdf': 'pdf'
-  }
+  },
+
+  // Domain list which you allowed.
+  domainListAllowed: [
+    // React製フロント側のアプリケーション
+    "http://localhost:3001",
+    // Laravelアプリケーション
+    "http://localhost:8000",
+  ]
 }
 
