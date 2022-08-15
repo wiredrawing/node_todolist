@@ -34,6 +34,10 @@ router.get('/', function(req, res, next) {
           }
         },
         required: false,
+      },
+      {
+        model: models.ProjectUser,
+        required: false,
       }
     ],
     where: {

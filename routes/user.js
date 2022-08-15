@@ -1,14 +1,9 @@
 import express from "express";
-// const express = require('express')
 const router = express.Router()
 import models from "../models/index.js";
-// const models = require('../models/index.js')
 import {check, validationResult} from 'express-validator'
-// const { check, validationResult } = require('express-validator')
 import applicationConfig from "../config/application-config.js";
-// const applicationConfig = require('../config/application-config.js')
 import {Op} from "sequelize";
-// const { Op } = require('Sequelize')
 
 const sectionTypeIDList = []
 applicationConfig.sectionType.map((data, index) => {
@@ -35,7 +30,7 @@ router.get('/', function (req, res, next) {
     }
   }
   console.log(ormOption)
-  models.user.findAll(ormOption).then((users) => {
+  models.User.findAll(ormOption).then((users) => {
     return res.render('./user/index', {
       query: query,
       users: users

@@ -18,6 +18,7 @@ let router = express.Router()
 router.get('/', ...validationRules['task.search'], (req, res, next) => {
   // リクエストされたqueryパラメータ
   let queries = req.query
+
   /**
    * 全タスクを取得する
    * @returns {Promise<void>}

@@ -15,6 +15,11 @@ export default (sequelize, DataTypes) => {
       // define association here
       User.hasMany(models.Task, {
         foreignKey: 'user_id'
+      });
+
+      User.hasMany(models.ProjectUser, {
+        foreignKey: "user_id",
+        sourceKey: "id",
       })
     }
 
