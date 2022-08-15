@@ -24,15 +24,16 @@ router.get('/', function(req, res, next) {
     include: [
       {
         model: models.Task,
-        // where: {
-        //   // 表示中,非削除な有効なタスクのみ取得
-        //   is_deleted: applicationConfig.binaryType.off,
-        //   is_displayed: applicationConfig.binaryType.on,
-        //   // 完了済みタスクのみ表示中
-        //   status: {
-        //     [Op.ne]: 6,
-        //   }
-        // }
+        where: {
+          // 表示中,非削除な有効なタスクのみ取得
+          is_deleted: applicationConfig.binaryType.off,
+          is_displayed: applicationConfig.binaryType.on,
+          // 完了済みタスクのみ表示中
+          status: {
+            [Op.ne]: 6,
+          }
+        },
+        required: false,
       }
     ],
     where: {
